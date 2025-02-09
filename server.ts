@@ -9,14 +9,11 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { applyMiddleware } from "graphql-middleware";
 import mercury from "@mercury-js/core";
 import { IResolvers } from "graphql-middleware/types";
-import {
-  WebSocketClient,
-  WebSocketServer,
-} from "https://deno.land/x/websocket/mod.ts";
+import { WebSocketClient, WebSocketServer } from "websocket";
 // Mercury Core setup - Metadata API
 import "./server/models/index.ts";
 
-let interval: any;
+let interval: number;
 // Websocket setup
 const wss = new WebSocketServer(8080);
 wss.on("connection", function (ws: WebSocketClient) {
@@ -52,7 +49,7 @@ mercury.addGraphqlSchema(
 `,
   {
     Query: {
-      hello: (root: any, args: any, ctx: any, resolveInfo: any) => {
+      hello: () => {
         return "Hello World!";
       },
     },

@@ -1,6 +1,6 @@
 import React from "react";
 import type { Route } from "#types/routes/+types/home.ts";
-import { Outlet } from "react-router";
+import Likes, { Increment } from "../components/Likes.tsx";
 
 export function meta() {
   return [
@@ -18,11 +18,17 @@ export function loader({ context }: Route.LoaderArgs) {
     message: context.VALUE_FROM_EXPRESS as string,
   };
 }
-export default function Home({ loaderData }: { loaderData: LoaderData }) {
+const Home: React.FC<{ loaderData: LoaderData }> = (
+  { loaderData },
+) => {
   return (
     <div>
       Hello World! Welcome to MercuryX Platform
       <p>{loaderData.message}</p>
+      <Likes animal="cats" />
+      <Increment animal="cats" />
     </div>
   );
-}
+};
+
+export default Home;

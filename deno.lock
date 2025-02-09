@@ -12,6 +12,8 @@
     "npm:@react-router/express@^7.1.3": "7.1.5_express@4.21.2_react-router@7.1.5__react@19.0.0__react-dom@19.0.0___react@19.0.0_react@19.0.0_react-dom@19.0.0__react@19.0.0",
     "npm:@react-router/fs-routes@^7.1.5": "7.1.5_@react-router+dev@7.1.5__react-router@7.1.5___react@19.0.0___react-dom@19.0.0____react@19.0.0__vite@6.1.0__@babel+core@7.26.7__react@19.0.0__react-dom@19.0.0___react@19.0.0_react-router@7.1.5__react@19.0.0__react-dom@19.0.0___react@19.0.0_vite@6.1.0_react@19.0.0_react-dom@19.0.0__react@19.0.0",
     "npm:@react-router/node@^7.1.3": "7.1.5_react-router@7.1.5__react@19.0.0__react-dom@19.0.0___react@19.0.0_react@19.0.0_react-dom@19.0.0__react@19.0.0",
+    "npm:@tanstack/react-store@0.7": "0.7.0_react@19.0.0_react-dom@19.0.0__react@19.0.0",
+    "npm:@tanstack/store@0.7": "0.7.0",
     "npm:@types/body-parser@^1.19.5": "1.19.5",
     "npm:@types/compression@^1.7.5": "1.7.5",
     "npm:@types/cors@^2.8.17": "2.8.17",
@@ -858,6 +860,18 @@
     },
     "@rollup/rollup-win32-x64-msvc@4.34.4": {
       "integrity": "sha512-p0scwGkR4kZ242xLPBuhSckrJ734frz6v9xZzD+kHVYRAkSUmdSLCIJRfql6H5//aF8Q10K+i7q8DiPfZp0b7A=="
+    },
+    "@tanstack/react-store@0.7.0_react@19.0.0_react-dom@19.0.0__react@19.0.0": {
+      "integrity": "sha512-S/Rq17HaGOk+tQHV/yrePMnG1xbsKZIl/VsNWnNXt4XW+tTY8dTlvpJH2ZQ3GRALsusG5K6Q3unAGJ2pd9W/Ng==",
+      "dependencies": [
+        "@tanstack/store",
+        "react",
+        "react-dom",
+        "use-sync-external-store"
+      ]
+    },
+    "@tanstack/store@0.7.0": {
+      "integrity": "sha512-CNIhdoUsmD2NolYuaIs8VfWM467RK6oIBAW4nPEKZhg1smZ+/CwtCdpURgp7nxSqOaV9oKkzdWD80+bC66F/Jg=="
     },
     "@types/babel__core@7.20.5": {
       "integrity": "sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==",
@@ -2352,6 +2366,12 @@
         "picocolors"
       ]
     },
+    "use-sync-external-store@1.4.0_react@19.0.0": {
+      "integrity": "sha512-9WXSPC5fMv61vaupRkCKCxsPxBocVnwakBEkMIHHpkTTg6icbJtg6jzgtLDm4bl3cSHAca52rYWih0k4K3PfHw==",
+      "dependencies": [
+        "react"
+      ]
+    },
     "util-deprecate@1.0.2": {
       "integrity": "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw=="
     },
@@ -2481,6 +2501,9 @@
       ]
     }
   },
+  "redirects": {
+    "https://deno.land/x/websocket/mod.ts": "https://deno.land/x/websocket@v0.1.4/mod.ts"
+  },
   "remote": {
     "https://deno.land/std@0.92.0/_util/assert.ts": "2f868145a042a11d5ad0a3c748dcf580add8a0dbc0e876eaa0026303a5488f58",
     "https://deno.land/std@0.92.0/_util/has_own_property.ts": "f5edd94ed3f3c20c517d812045deb97977e18501c9b7105b5f5c11a31893d7a2",
@@ -2526,6 +2549,8 @@
         "npm:@react-router/express@^7.1.3",
         "npm:@react-router/fs-routes@^7.1.5",
         "npm:@react-router/node@^7.1.3",
+        "npm:@tanstack/react-store@0.7",
+        "npm:@tanstack/store@0.7",
         "npm:@types/body-parser@^1.19.5",
         "npm:@types/compression@^1.7.5",
         "npm:@types/cors@^2.8.17",

@@ -1,7 +1,11 @@
 import React, { useEffect } from "react";
 import type { Route } from "#types/routes/+types/home.ts";
-import { Form, useNavigation, useSubmit } from "react-router";
+import { Form, useSubmit } from "react-router";
 import ClientTime from "../components/Counter.tsx";
+import { SubmitTarget } from "react-router";
+import { AnimalStore } from "../store/index.ts";
+import AnimalCard from "../components/AnimalCard.tsx";
+import { useStore } from "@tanstack/react-store";
 export function meta() {
   return [
     { title: "New React Router App" },
@@ -20,22 +24,22 @@ export function loader({ request }: Route.LoaderArgs) {
   const data = `this is ${q}`;
   return { q, data };
 }
-export default function Counter({ loaderData }: { loaderData: LoaderData }) {
+const Counter: React.FC<{ loaderData: LoaderData }> = ({ loaderData }) => {
   const { q, data } = loaderData;
-  const navigation = useNavigation();
+  const catLikes = useStore(AnimalStore, (state) => state.cats);
   const submit = useSubmit();
   useEffect(() => {
     if (q !== null) {
       const form = document.getElementById("search-form");
       console.log("Heelo", q);
       if (form) {
-        submit(form, { replace: true });
+        submit(form as SubmitTarget, { replace: true });
       }
     }
-  }, [q, submit]);
+  }, [q, submit, catLikes]);
   return (
     <div>
-      <p>{loaderData.message}</p>
+      <AnimalCard name="cats" likes={catLikes} />
       <Form
         id="search-form"
         onChange={(event) => {
@@ -57,7 +61,9 @@ export default function Counter({ loaderData }: { loaderData: LoaderData }) {
         <div aria-hidden hidden={true} id="search-spinner" />
       </Form>
       <div>{data}</div>
-      <ClientTime />
+      <ClientTime incMsg="Counter" />
     </div>
   );
-}
+};
+
+export default Counter;
