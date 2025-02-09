@@ -9,6 +9,10 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { applyMiddleware } from "graphql-middleware";
 import mercury from "@mercury-js/core";
 import { IResolvers } from "graphql-middleware/types";
+import {
+  WebSocketClient,
+  WebSocketServer,
+} from "https://deno.land/x/websocket/mod.ts";
 // Mercury Core setup - Metadata API
 import "./server/models/index.ts";
 
