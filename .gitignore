@@ -1,0 +1,5 @@
+.env*
+build
+node_modules
+.react-router
+.DS_Store

@@ -1,0 +1,19 @@
+{
+  "tasks": {
+    "dev:rr": "deno run --env-file=.env.dev -A --node-modules-dir npm:@react-router/dev dev",
+    "dev": "deno run --env-file=.env.dev -A server.ts",
+    "start": "deno run --env-file=.env.prod -A server.ts",
+    "build": "deno run --env-file=.env.prod -A --node-modules-dir npm:@react-router/dev build"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "npm:react@19.0.0",
+    "jsxImportSourceTypes": "npm:@types/react@^19.0.8",
+    "jsxFactory": "React.createElement",
+    "jsxFragmentFactory": "React.Fragment"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1",
+    "#types/": "./.react-router/types/app/"
+  }
+}

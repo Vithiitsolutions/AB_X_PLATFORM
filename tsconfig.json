@@ -1,0 +1,6 @@
+{
+  "include": [".react-router/types/**/*"],
+  "compilerOptions": {
+    "rootDirs": [".", "./.react-router/types"]
+  }
+}
