@@ -1,17 +1,14 @@
 import compression from "compression";
 import express, { NextFunction, Request, Response } from "express";
 import morgan from "morgan";
-import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import cors from "cors";
 import bodyParser from "body-parser";
-import { makeExecutableSchema } from "@graphql-tools/schema";
-import { applyMiddleware } from "graphql-middleware";
-import mercury from "@mercury-js/core";
-import { IResolvers } from "graphql-middleware/types";
 import { WebSocketClient, WebSocketServer } from "websocket";
 // Mercury Core setup - Metadata API
-import "./server/models/index.ts";
+import MetaApi from "./server/metadata/index.ts";
+import PlatformApi from "./server/platform/index.ts";
+import { platform } from "node:os";
 
 let interval: number;
 // Websocket setup
@@ -38,40 +35,40 @@ const DEVELOPMENT = Deno.env.get("NODE_ENV") === "development";
 const PORT = Number.parseInt(Deno.env.get("PORT") || "3000");
 
 const app = express();
-// Mercur core setup
-mercury.connect("mongodb://localhost:27017/mercury");
 
-mercury.addGraphqlSchema(
-  `
-  type Query {
-    hello: String
-  }
-`,
-  {
-    Query: {
-      hello: () => {
-        return "Hello World!";
-      },
-    },
-  },
-);
-
-const schema = applyMiddleware(
-  makeExecutableSchema({
-    typeDefs: mercury.typeDefs,
-    resolvers: mercury.resolvers as unknown as IResolvers,
-  }),
-);
-// const httpServer = http.createServer(app);
-const server = new ApolloServer({
-  schema,
+// Metadata API server
+const metaServer = new MetaApi({
+  db: "mongodb://localhost:27017/mercury",
 });
-await server.start();
+await metaServer.start();
+
+// Platform API Server
+const platformServer = new PlatformApi({
+  db: "mongodb://localhost:27017/mercury",
+});
+await platformServer.start();
+// app.use(
+//   "/api/update",
+//   async (
+//     { res },
+//   ) => {
+//     console.log("Update triggered");
+//     await metaServer.restart();
+//     return res?.send("Updated");
+//   },
+// );
 app.use(
-  "/graphql",
+  "/meta-api",
   cors<cors.CorsRequest>(),
   bodyParser.json(),
-  expressMiddleware(server) as unknown as express.RequestHandler,
+  expressMiddleware(metaServer.server) as unknown as express.RequestHandler,
+);
+
+app.use(
+  "/platform",
+  cors<cors.CorsRequest>(),
+  bodyParser.json(),
+  expressMiddleware(platformServer.server) as unknown as express.RequestHandler,
 );
 
 // React Router Setup
