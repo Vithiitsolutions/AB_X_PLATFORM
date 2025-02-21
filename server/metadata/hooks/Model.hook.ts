@@ -33,6 +33,7 @@ type HookModelField = {
 
 mercury.hook.after("CREATE_MODELFIELD_RECORD", function (this: HookModelField) {
   console.log("Model Record Updated: ", this.record);
+  // mercury.deleteModel(this.record.model.name);
   mercury.createModel(
     this.record.model.name,
     {
@@ -41,8 +42,9 @@ mercury.hook.after("CREATE_MODELFIELD_RECORD", function (this: HookModelField) {
       },
     },
     {
-      update: true,
-    } as any
+      historyTracking: false,
+      // update: true,
+    }
   );
 
   metaEvents.emit("CREATE_MODEL_RECORD");
