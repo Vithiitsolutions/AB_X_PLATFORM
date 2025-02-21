@@ -4,7 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "dev": "react-router dev"
+    "dev": "deno task dev:rr",
+    "build": "deno task build",
+    "start": "deno task start"
   },
   "author": "",
   "license": "MIT",
