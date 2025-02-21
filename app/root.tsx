@@ -8,6 +8,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import "./app.css"
 
 // export function HydrateFallback() {
 //   return (
@@ -43,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <div>This is Mercury</div>
+        <div className="text-red-600 text-2xl">This is Mercury jksfnjk mnsfjnwb </div>
         {children}
         <ScrollRestoration />
         <Scripts />

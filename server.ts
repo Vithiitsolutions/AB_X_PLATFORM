@@ -15,7 +15,7 @@ import "./server/models/index.ts";
 
 let interval: number;
 // Websocket setup
-const wss = new WebSocketServer(8080);
+const wss = new WebSocketServer(9080);
 wss.on("connection", function (ws: WebSocketClient) {
   // ws.on("message", function (message: string) {
   interval = setInterval(() => {
@@ -36,10 +36,11 @@ wss.on("close", function () {
 const BUILD_PATH = "./build/server/index.js";
 const DEVELOPMENT = Deno.env.get("NODE_ENV") === "development";
 const PORT = Number.parseInt(Deno.env.get("PORT") || "3000");
+const DB_URL = Deno.env.get("DB_URL");
 
 const app = express();
 // Mercur core setup
-mercury.connect("mongodb://localhost:27017/mercury");
+mercury.connect(DB_URL || "mongodb://localhost:27017/mercury");
 
 mercury.addGraphqlSchema(
   `
