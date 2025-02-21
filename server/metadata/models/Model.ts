@@ -42,15 +42,29 @@ mercury.createModel("ModelField", {
   model: {
     type: "relationship",
     ref: "Model",
+    required: true,
   },
   name: {
     type: "string",
+    required: true,
   },
   label: {
     type: "string",
+    required: true,
   },
   type: {
-    type: "string",
+    type: "enum",
+    enumType: "string",
+    enum: [
+      "string",
+      "number",
+      "float",
+      "boolean",
+      "relationship",
+      "enum",
+      "virtual",
+    ],
+    required: true,
   },
   managed: {
     type: "boolean",

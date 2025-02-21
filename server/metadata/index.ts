@@ -6,11 +6,15 @@ import { IResolvers } from "graphql-middleware/types";
 import "./models/Model.ts";
 import "./models/Package.ts";
 import "./models/User.ts";
-import PlatformApi from "../platform/index.ts";
+
+// hooks
+import "./hooks/Model.hook.ts";
+
+// Profiles
+import "./SystemAdmin.profile.ts";
 
 interface IMetaApiConfig {
   db: string;
-  platformApi: PlatformApi;
 }
 
 export default class MetaApi {
@@ -18,15 +22,13 @@ export default class MetaApi {
     makeExecutableSchema({
       typeDefs: mercury.typeDefs,
       resolvers: mercury.resolvers as unknown as IResolvers,
-    }),
+    })
   );
   config: ApolloServerOptions<BaseContext> = {
     schema: this.schema,
   };
   server = new ApolloServer(this.config);
-  constructor({
-    db,
-  }: IMetaApiConfig) {
+  constructor({ db }: IMetaApiConfig) {
     mercury.connect(db);
   }
   async start() {
@@ -37,9 +39,9 @@ export default class MetaApi {
       makeExecutableSchema({
         typeDefs: mercury.typeDefs,
         resolvers: mercury.resolvers as unknown as IResolvers,
-      }),
+      })
     );
     // @ts-expect-error - added a method using patch to apollo server package
-    await this.server.restart();
+    await this.server.restart(this.config);
   }
 }

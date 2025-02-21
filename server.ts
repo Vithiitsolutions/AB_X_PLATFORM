@@ -7,8 +7,9 @@ import bodyParser from "body-parser";
 import { WebSocketClient, WebSocketServer } from "websocket";
 // Mercury Core setup - Metadata API
 import MetaApi from "./server/metadata/index.ts";
-import PlatformApi from "./server/platform/index.ts";
-import { platform } from "node:os";
+import { metaEvents } from "./server/metadata/Events.ts";
+import { meta } from "./app/routes/counter.tsx";
+import { profile } from "node:console";
 
 let interval: number;
 // Websocket setup
@@ -16,13 +17,15 @@ const wss = new WebSocketServer(8080);
 wss.on("connection", function (ws: WebSocketClient) {
   // ws.on("message", function (message: string) {
   interval = setInterval(() => {
-    ws.send(JSON.stringify({
-      data: new Date().toLocaleTimeString("en", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }),
-    }));
+    ws.send(
+      JSON.stringify({
+        data: new Date().toLocaleTimeString("en", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+      })
+    );
   }, 1000);
   // });
 });
@@ -35,41 +38,44 @@ const DEVELOPMENT = Deno.env.get("NODE_ENV") === "development";
 const PORT = Number.parseInt(Deno.env.get("PORT") || "3000");
 
 const app = express();
-
+// Platform API Server
+// const platformServer = new PlatformApi({
+//   db: "mongodb://localhost:27017/mercury",
+// });
 // Metadata API server
 const metaServer = new MetaApi({
   db: "mongodb://localhost:27017/mercury",
 });
 await metaServer.start();
 
-// Platform API Server
-const platformServer = new PlatformApi({
-  db: "mongodb://localhost:27017/mercury",
+metaEvents.on("CREATE_MODEL_RECORD", async (data: any) => {
+  console.log("Model Record Created: ");
+  await metaServer.restart();
 });
-await platformServer.start();
-// app.use(
-//   "/api/update",
-//   async (
-//     { res },
-//   ) => {
-//     console.log("Update triggered");
-//     await metaServer.restart();
-//     return res?.send("Updated");
-//   },
-// );
+
 app.use(
   "/meta-api",
   cors<cors.CorsRequest>(),
   bodyParser.json(),
-  expressMiddleware(metaServer.server) as unknown as express.RequestHandler,
+  expressMiddleware(metaServer.server, {
+    context: async ({ req }) => {
+      return {
+        ...req,
+        user: {
+          id: 1,
+          profile: "System Admin",
+        },
+      };
+    },
+  }) as unknown as express.RequestHandler
 );
 
-app.use(
-  "/platform",
-  cors<cors.CorsRequest>(),
-  bodyParser.json(),
-  expressMiddleware(platformServer.server) as unknown as express.RequestHandler,
-);
+// app.use(
+//   "/platform",
+//   cors<cors.CorsRequest>(),
+//   bodyParser.json(),
+//   expressMiddleware(platformServer.server) as unknown as express.RequestHandler
+// );
 
 // React Router Setup
 app.use(compression());
@@ -83,32 +89,26 @@ if (DEVELOPMENT) {
     })
   );
   app.use(viteDevServer.middlewares);
-  app.use(
-    async (
-      req: Request,
-      res: Response,
-      next: NextFunction,
-    ) => {
-      try {
-        const source = await viteDevServer.ssrLoadModule("./server/app.ts");
-        return await source.app(req, res, next);
-      } catch (error) {
-        if (typeof error === "object" && error instanceof Error) {
-          viteDevServer.ssrFixStacktrace(error);
-        }
-        next(error);
+  app.use(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const source = await viteDevServer.ssrLoadModule("./server/app.ts");
+      return await source.app(req, res, next);
+    } catch (error) {
+      if (typeof error === "object" && error instanceof Error) {
+        viteDevServer.ssrFixStacktrace(error);
       }
-    },
-  );
+      next(error);
+    }
+  });
 } else {
   console.log("Starting production server");
   app.use(
     "/assets",
-    express.static("build/client/assets", { immutable: true, maxAge: "1y" }),
+    express.static("build/client/assets", { immutable: true, maxAge: "1y" })
   );
   app.use(
     "/components",
-    express.static("components", { immutable: true, maxAge: "1y" }),
+    express.static("components", { immutable: true, maxAge: "1y" })
   );
   app.use(express.static("build/client", { maxAge: "1h" }));
   // app.use(
