@@ -1,8 +1,12 @@
 import React from 'react'
+import LogInContainer from '../container/loginContainer';
+import { Box } from '@mercury-js/mess';
 
 const _index = () => {
   return (
-    <div className='text-green-600'> Hello World Praveen</div>
+    <Box>
+      <LogInContainer/>
+    </Box>
   )
 }
 

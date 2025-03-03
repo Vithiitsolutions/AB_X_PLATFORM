@@ -9,6 +9,9 @@ import {
   ScrollRestoration,
 } from "react-router";
 import "./app.css"
+import Navbar from "./components/navbar";
+import { Box } from "@mercury-js/mess";
+import SideBar from "./components/sidebar";
 
 // export function HydrateFallback() {
 //   return (
@@ -44,8 +47,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <div className="text-red-600 text-2xl">This is Mercury jksfnjk mnsfjnwb </div>
+        {/* <div className="text-red-600 text-2xl">This is Mercury jksfnjk mnsfjnwb </div> */}
+        {/* <Navbar/>
+        <Box styles={{base:{display:"flex",flexDirection:"row",gap:20}}}>
+<SideBar/> */}
         {children}
+        {/* </Box> */}
+        
         <ScrollRestoration />
         <Scripts />
       </body>
