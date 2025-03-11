@@ -3,9 +3,7 @@ import { ApolloServer, ApolloServerOptions, BaseContext } from "@apollo/server";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { applyMiddleware } from "graphql-middleware";
 import { IResolvers } from "graphql-middleware/types";
-import "./models/Model.ts";
-import "./models/Package.ts";
-import "./models/User.ts";
+import "./models";
 
 // hooks
 import "./hooks/Model.hook.ts";

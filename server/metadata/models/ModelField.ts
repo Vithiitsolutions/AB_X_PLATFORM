@@ -1,7 +1,7 @@
 import mercury from "@mercury-js/core";
 
 // Model Fields
-mercury.createModel("ModelField", {
+export const modelField = mercury.createModel("ModelField", {
   model: {
     type: "relationship",
     ref: "Model",

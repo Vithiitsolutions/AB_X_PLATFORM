@@ -1,6 +1,6 @@
 import mercury from "@mercury-js/core";
 
-mercury.createModel("Package", {
+export const packageM = mercury.createModel("Package", {
   name: {
     type: "string",
   },

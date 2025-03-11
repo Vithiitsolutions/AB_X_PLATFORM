@@ -1,6 +1,6 @@
 import mercury from "@mercury-js/core";
 
-mercury.createModel(
+export const layoutStructure = mercury.createModel(
     'LayoutStructure',
     {
       layout: {

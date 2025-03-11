@@ -1,6 +1,6 @@
 import mercury from "@mercury-js/core";
 
-mercury.createModel("View", {
+export const view = mercury.createModel("View", {
     name: {
         type: "string",
         required: true,

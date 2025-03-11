@@ -13,7 +13,7 @@ import { profile } from "node:console";
 
 let interval: number;
 // Websocket setup
-const wss = new WebSocketServer(8081);
+const wss = new WebSocketServer(8080);
 wss.on("connection", function (ws: WebSocketClient) {
   // ws.on("message", function (message: string) {
   interval = setInterval(() => {

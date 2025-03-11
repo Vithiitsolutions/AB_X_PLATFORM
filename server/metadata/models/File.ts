@@ -1,6 +1,6 @@
 import mercury from "@mercury-js/core";
 
-mercury.createModel(
+export const file = mercury.createModel(
   "File",
   {
     name: {

@@ -1,6 +1,6 @@
 import mercury from "@mercury-js/core";
 
-mercury.createModel(
+export const component = mercury.createModel(
     'Component',
     {
       name: {

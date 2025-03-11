@@ -32,7 +32,7 @@ type HookModelField = {
 };
 
 mercury.hook.after("CREATE_MODELFIELD_RECORD", function (this: HookModelField) {
-  console.log("Model Record Updated: ", this.record);
+  console.log("Model Record Updated: ", this);
   // mercury.deleteModel(this.record.model.name);
   mercury.createModel(
     this.record.model.name,

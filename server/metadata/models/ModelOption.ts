@@ -1,6 +1,6 @@
 import mercury from "@mercury-js/core";
 
-mercury.createModel(
+export const modelOption = mercury.createModel(
   'ModelOption',
   {
     model: {

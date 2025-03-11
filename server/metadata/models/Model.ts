@@ -1,7 +1,7 @@
 import mercury from "@mercury-js/core";
 
 // Model
-mercury.createModel("Model", {
+export const model = mercury.createModel("Model", {
   name: {
     type: "string",
     unique: true
