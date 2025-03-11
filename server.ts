@@ -13,7 +13,7 @@ import { profile } from "node:console";
 
 let interval: number;
 // Websocket setup
-const wss = new WebSocketServer(8080);
+const wss = new WebSocketServer(8081);
 wss.on("connection", function (ws: WebSocketClient) {
   // ws.on("message", function (message: string) {
   interval = setInterval(() => {
@@ -44,7 +44,7 @@ const app = express();
 // });
 // Metadata API server
 const metaServer = new MetaApi({
-  db: "mongodb://localhost:27017/mercury",
+  db: "mongodb+srv://admin:123@cluster0.mosjp.mongodb.net/mercury-platform",
 });
 await metaServer.start();
 
@@ -63,7 +63,7 @@ app.use(
         ...req,
         user: {
           id: 1,
-          profile: "System Admin",
+          profile: "SystemAdmin",
         },
       };
     },

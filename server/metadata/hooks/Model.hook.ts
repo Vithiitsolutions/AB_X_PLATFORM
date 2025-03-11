@@ -43,9 +43,19 @@ mercury.hook.after("CREATE_MODELFIELD_RECORD", function (this: HookModelField) {
     },
     {
       historyTracking: false,
-      // update: true,
+      update: true,
     }
   );
+  // mercury.createModel("Employee", {
+  //   name: {
+  //     type: "string",
+  //   },
+  //   age: {
+  //     type: "number",
+  //   },
+  // }, {
+  //   historyTracking: true,
+  // })
 
   metaEvents.emit("CREATE_MODEL_RECORD");
 });

@@ -1,16 +1,8 @@
 import mercury from "@mercury-js/core";
 
 mercury.createModel(
-    'Permission',
+    'FieldOption',
     {
-      profile: {
-        type: 'relationship',
-        ref: 'Profile',
-        required: true,
-      },
-      profileName: {
-        type: 'string',
-      },
       model: {
         type: 'relationship',
         ref: 'Model',
@@ -18,27 +10,39 @@ mercury.createModel(
       },
       modelName: {
         type: 'string',
-      },
-      create: {
-        type: 'boolean',
         required: true,
       },
-      update: {
-        type: 'boolean',
+      modelField: {
+        type: 'relationship',
+        ref: 'ModelField',
         required: true,
       },
-      delete: {
-        type: 'boolean',
+      fieldName: {
+        type: 'string',
         required: true,
       },
-      read: {
-        type: 'boolean',
+      keyName: {
+        type: 'string',
         required: true,
       },
-      fieldLevelAccess: {
+      type: {
+        type: 'enum',
+        enum: ['number', 'string', 'boolean'],
+        enumType: 'string',
+        required: true,
+      },
+      value: {
+        type: 'string',
+        required: true,
+      },
+      managed: {
         type: 'boolean',
         required: true,
-        default: false,
+        default: true,
+      },
+      prefix: {
+        type: 'string',
+        default: 'CUSTOM',
       },
     },
     {

@@ -18,12 +18,13 @@ export default class PlatformApi {
   );
   config: ApolloServerOptions<BaseContext> = {
     schema: this.schema,
+    introspection: true
   };
   server = new ApolloServer(this.config);
   constructor({
     db,
   }: IPlatformApiConfig) {
-    mercury.connect(db);
+    mercury.connect(db || "mongodb+srv://admin:123@cluster0.mosjp.mongodb.net/mercury-platform");
   }
   async start() {
     await this.server.start();
