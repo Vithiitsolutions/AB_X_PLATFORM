@@ -31,14 +31,15 @@ type HookModelField = {
   };
 };
 
-mercury.hook.after("CREATE_MODELFIELD_RECORD", function (this: HookModelField) {
+mercury.hook.after("CREATE_MODELFIELD_RECORD", function (this: any) {
   console.log("Model Record Updated: ", this);
+  const input = this.options.args.input;
   // mercury.deleteModel(this.record.model.name);
   mercury.createModel(
-    this.record.model.name,
+    input.modelName,
     {
-      [this.record.name]: {
-        type: this.record.type,
+      [input.name]: {
+        type: input.type,
       },
     },
     {
