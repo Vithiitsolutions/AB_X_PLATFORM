@@ -1,10 +1,10 @@
 import mercury from "@mercury-js/core";
-
-mercury.createModel("User", {
+// Field Options
+mercury.createModel("Test", {
   name: {
     type: "string",
   },
-  email: {
+  value: {
     type: "string",
   },
 });

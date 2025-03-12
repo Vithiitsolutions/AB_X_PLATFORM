@@ -1,17 +1,15 @@
 import compression from "compression";
 import express, { NextFunction, Request, Response } from "express";
 import morgan from "morgan";
-import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import cors from "cors";
 import bodyParser from "body-parser";
-import { makeExecutableSchema } from "@graphql-tools/schema";
-import { applyMiddleware } from "graphql-middleware";
-import mercury from "@mercury-js/core";
-import { IResolvers } from "graphql-middleware/types";
 import { WebSocketClient, WebSocketServer } from "websocket";
 // Mercury Core setup - Metadata API
-import "./server/models/index.ts";
+import MetaApi from "./server/metadata/index.ts";
+import { metaEvents } from "./server/metadata/Events.ts";
+import { meta } from "./app/routes/counter.tsx";
+import { profile } from "node:console";
 
 let interval: number;
 // Websocket setup
@@ -19,13 +17,15 @@ const wss = new WebSocketServer(9080);
 wss.on("connection", function (ws: WebSocketClient) {
   // ws.on("message", function (message: string) {
   interval = setInterval(() => {
-    ws.send(JSON.stringify({
-      data: new Date().toLocaleTimeString("en", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }),
-    }));
+    ws.send(
+      JSON.stringify({
+        data: new Date().toLocaleTimeString("en", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+      })
+    );
   }, 1000);
   // });
 });
@@ -39,41 +39,44 @@ const PORT = Number.parseInt(Deno.env.get("PORT") || "3000");
 const DB_URL = Deno.env.get("DB_URL");
 
 const app = express();
-// Mercur core setup
-mercury.connect(DB_URL || "mongodb://localhost:27017/mercury");
-
-mercury.addGraphqlSchema(
-  `
-  type Query {
-    hello: String
-  }
-`,
-  {
-    Query: {
-      hello: () => {
-        return "Hello World!";
-      },
-    },
-  },
-);
-
-const schema = applyMiddleware(
-  makeExecutableSchema({
-    typeDefs: mercury.typeDefs,
-    resolvers: mercury.resolvers as unknown as IResolvers,
-  }),
-);
-// const httpServer = http.createServer(app);
-const server = new ApolloServer({
-  schema,
+// Platform API Server
+// const platformServer = new PlatformApi({
+//   db: "mongodb://localhost:27017/mercury",
+// });
+// Metadata API server
+const metaServer = new MetaApi({
+  db: "mongodb+srv://admin:123@cluster0.mosjp.mongodb.net/mercury-platform",
 });
-await server.start();
+await metaServer.start();
+
+metaEvents.on("CREATE_MODEL_RECORD", async (data: any) => {
+  console.log("Model Record Created: ");
+  await metaServer.restart();
+});
+
 app.use(
-  "/graphql",
+  "/meta-api",
   cors<cors.CorsRequest>(),
   bodyParser.json(),
-  expressMiddleware(server) as unknown as express.RequestHandler,
+  expressMiddleware(metaServer.server, {
+    context: async ({ req }) => {
+      return {
+        ...req,
+        user: {
+          id: 1,
+          profile: "SystemAdmin",
+        },
+      };
+    },
+  }) as unknown as express.RequestHandler
 );
+
+// app.use(
+//   "/platform",
+//   cors<cors.CorsRequest>(),
+//   bodyParser.json(),
+//   expressMiddleware(platformServer.server) as unknown as express.RequestHandler
+// );
 
 // React Router Setup
 app.use(compression());
@@ -87,32 +90,26 @@ if (DEVELOPMENT) {
     })
   );
   app.use(viteDevServer.middlewares);
-  app.use(
-    async (
-      req: Request,
-      res: Response,
-      next: NextFunction,
-    ) => {
-      try {
-        const source = await viteDevServer.ssrLoadModule("./server/app.ts");
-        return await source.app(req, res, next);
-      } catch (error) {
-        if (typeof error === "object" && error instanceof Error) {
-          viteDevServer.ssrFixStacktrace(error);
-        }
-        next(error);
+  app.use(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const source = await viteDevServer.ssrLoadModule("./server/app.ts");
+      return await source.app(req, res, next);
+    } catch (error) {
+      if (typeof error === "object" && error instanceof Error) {
+        viteDevServer.ssrFixStacktrace(error);
       }
-    },
-  );
+      next(error);
+    }
+  });
 } else {
   console.log("Starting production server");
   app.use(
     "/assets",
-    express.static("build/client/assets", { immutable: true, maxAge: "1y" }),
+    express.static("build/client/assets", { immutable: true, maxAge: "1y" })
   );
   app.use(
     "/components",
-    express.static("components", { immutable: true, maxAge: "1y" }),
+    express.static("components", { immutable: true, maxAge: "1y" })
   );
   app.use(express.static("build/client", { maxAge: "1h" }));
   // app.use(
