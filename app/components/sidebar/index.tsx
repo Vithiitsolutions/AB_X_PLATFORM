@@ -1,5 +1,15 @@
 import { A, Box } from "@mercury-js/mess";
 import React, { useEffect, useState } from "react";
+
+
+
+export async function clientLoader() {
+  console.log("njkvakjdj");
+  
+  return { message: "Hello, world!" };
+}
+
+
 function DynamicIcon({ iconName }) {
 
   const [IconComponent, setIconComponent] = useState<React.ComponentType | null>(null);
@@ -23,7 +33,9 @@ function DynamicIcon({ iconName }) {
   return <IconComponent />;
 }
 
-function SideBar() {
+function SideBar({loaderData}) {
+  console.log(loaderData, "--------");
+  
   const [openItems, setOpenItems] = useState<string[]>([]);
 
   const tabJson = [
