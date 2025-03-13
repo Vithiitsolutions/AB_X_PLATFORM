@@ -1,3 +1,5 @@
+import { A, Box, Table, Tbody, Tr, Th } from "@mercury-js/mess";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useMemo } from "react";
 import { useTable, usePagination, useRowSelect } from "react-table";
 
@@ -11,10 +13,10 @@ const DynamicTable: React.FC<TableProps> = ({ data }) => {
       {
         id: "select",
         Header: ({ getToggleAllRowsSelectedProps }: any) => (
-          <input type="checkbox" {...getToggleAllRowsSelectedProps()} className="rounded-full" />
+          <input type="checkbox" {...getToggleAllRowsSelectedProps()} />
         ),
         Cell: ({ row }: any) => (
-          <input type="checkbox" {...row.getToggleRowSelectedProps()} className="rounded-full" />
+          <input type="checkbox" {...row.getToggleRowSelectedProps()} />
         ),
       },
       ...Object.keys(data[0] || {}).map((key) => ({
@@ -35,6 +37,8 @@ const DynamicTable: React.FC<TableProps> = ({ data }) => {
     previousPage,
     canNextPage,
     canPreviousPage,
+    pageOptions,
+    gotoPage,
     state: { pageIndex },
   } = useTable(
     {
@@ -45,58 +49,166 @@ const DynamicTable: React.FC<TableProps> = ({ data }) => {
     usePagination,
     useRowSelect
   );
-
+  const renderPagination = () => {
+    const totalPages = pageOptions.length;
+    const visiblePages = 3;
+    let displayedPages = [];
+  
+    if (totalPages <= visiblePages + 1) {
+      displayedPages = pageOptions;
+    } else if (pageIndex < visiblePages) {
+      displayedPages = [...pageOptions.slice(0, visiblePages), "...", totalPages - 1];
+    } else if (pageIndex >= totalPages - visiblePages) {
+      displayedPages = [0, "...", ...pageOptions.slice(totalPages - visiblePages)];
+    } else {
+      displayedPages = [0, "...", ...pageOptions.slice(pageIndex - 1, pageIndex + 2), "...", totalPages - 1];
+    }
+  
+    return displayedPages.map((number, index) => (
+      <A
+        key={index}
+        styles={{
+          base: {
+            color: "#000",
+            padding: "2px 8px",
+            border: pageIndex === number ? "1px solid #DDDDDD" : "none",
+            borderRadius: "4px",
+            fontSize: 12,
+            cursor: "pointer",
+            opacity: number === "..." ? 0.5 : 1,
+          },
+        }}
+        onClick={() => typeof number === "number" && gotoPage(number)}
+      >
+        {number === "..." ? "..." : number + 1}
+      </A>
+    ));
+  };
+  
   return (
-    <div className="p-4 w-full">
-      <div className="overflow-auto border border-gray-300 rounded-md w-full">
-        <table {...getTableProps()} className="w-full border-collapse">
-          <thead className="bg-gray-100 text-gray-700 text-sm font-semibold">
+    <Box styles={{ base: {  width: "100%" } }}>
+      <Box
+        styles={{
+          base: {
+            overflow: "auto",
+            border: "1px solid #D1D5DB",
+            borderRadius: "8px",
+            width: "100%",
+          },
+        }}
+      >
+        <Table
+          {...getTableProps()}
+          styles={{ base: { minWidth: "calc(100vw - 240px)", borderCollapse: "collapse" } }}
+        >
+          <Tbody
+            as="thead"
+            styles={{
+              base: {
+                backgroundColor: "#F2F2F2",
+                color: "#656565",
+                fontSize: "12px",
+                fontWeight: "600",
+              },
+            }}
+          >
             {headerGroups.map((headerGroup) => (
-              <tr {...headerGroup.getHeaderGroupProps()}>
+              <Tr {...headerGroup.getHeaderGroupProps()}>
                 {headerGroup.headers.map((column) => (
-                  <th {...column.getHeaderProps()} className="px-4 py-2 text-left border-b">
+                  <Th
+                    {...column.getHeaderProps()}
+                    styles={{
+                      base: {
+                        padding: "8px 16px",
+                        textAlign: "left",
+                        borderBottom: "1px solid #E5E7EB",
+                      },
+                    }}
+                  >
                     {column.render("Header")}
-                  </th>
+                  </Th>
                 ))}
-              </tr>
+              </Tr>
             ))}
-          </thead>
-          <tbody {...getTableBodyProps()} className="bg-white">
+          </Tbody>
+          <Tbody
+            {...getTableBodyProps()}
+            styles={{ base: { backgroundColor: "#FFFFFF" } }}
+          >
             {page.map((row) => {
               prepareRow(row);
               return (
-                <tr {...row.getRowProps()} className="border-t hover:bg-gray-50">
+                <Tr
+                  {...row.getRowProps()}
+                  styles={{
+                    base: {
+                      borderTop: "1px solid #E5E7EB",
+                      ":hover": { backgroundColor: "#F9FAFB" },
+                    },
+                  }}
+                >
                   {row.cells.map((cell) => (
-                    <td {...cell.getCellProps()} className="px-4 py-2 text-sm">
+                    <Th
+                      as="td"
+                      {...cell.getCellProps()}
+                      styles={{
+                        base: { padding: "8px 16px", fontSize: "12px" ,cursor:"pointer"},
+                      }}
+                    >
                       {cell.render("Cell")}
-                    </td>
+                    </Th>
                   ))}
-                </tr>
+                </Tr>
               );
             })}
-          </tbody>
-        </table>
-      </div>
+          </Tbody>
+        </Table>
+      </Box>
 
       {/* Pagination */}
-      <div className="flex justify-center items-center gap-4 mt-4">
-        <button
-          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          onClick={previousPage}
-          disabled={!canPreviousPage}
-        >
-          Previous
-        </button>
-        <span className="text-sm font-semibold">Page {pageIndex + 1}</span>
-        <button
-          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-          onClick={nextPage}
-          disabled={!canNextPage}
-        >
-          Next
-        </button>
-      </div>
-    </div>
+      <Box
+        styles={{
+          base: {
+            display: "flex",
+
+            justifyContent: "end",
+            alignItems: "center",
+            gap: "8px",
+            marginTop: "16px",
+          },
+        }}
+      >
+        <A onClick={previousPage} disabled={!canPreviousPage} styles={{base:{
+          display:"flex",flexDirection:"row",alignItems:"center",fontSize:"12px",fontWeight:600,textAlign:"center",lineHeight:0,cursor:"pointer"
+        }}}>
+          <ChevronLeft size={12}  className="mt-[2px]"/> Previous
+        </A>
+        {/* {pageOptions.map((number, index) => (
+          <A
+            key={index}
+            styles={{
+              base: {
+                color: "#000",
+                padding: "2px 8px",
+                border: pageIndex === number ? "1px solid #DDDDDD" : "none",
+                borderRadius: "4px",
+                fontSize:12,
+                cursor:"pointer"
+              },
+            }}
+            onClick={() => gotoPage(number)}
+          >
+            {number + 1}
+          </A>
+        ))} */}
+        {renderPagination()}
+        <A onClick={nextPage} disabled={!canNextPage} styles={{base:{
+          display:"flex",flexDirection:"row",alignItems:"center",fontSize:"12px",fontWeight:600,textAlign:"center",lineHeight:0,cursor:"pointer"
+        }}}>
+          Next <ChevronRight size={12} className="mt-[2px]"/>
+        </A>
+      </Box>
+    </Box>
   );
 };
 

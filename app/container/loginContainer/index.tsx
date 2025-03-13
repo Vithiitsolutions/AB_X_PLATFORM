@@ -11,9 +11,12 @@ import {
   Text,
 } from "@mercury-js/mess";
 import React from "react";
+import { redirect } from "react-router";
+
 // import { router } from "websocket";
 // import image from "../../../public/assets/loginSideImage.png"
 function LogInContainer() {
+  // const navigation =useNavigate()
   return (
     <Box
     styles={{
@@ -87,7 +90,7 @@ function LogInContainer() {
                 },
               }}
 
-            //   onClick={()=>router.push("/dashboard")}
+              onClick={()=>redirect("/home")}
             >
               Continue
             </Button>

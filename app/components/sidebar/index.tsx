@@ -1,5 +1,6 @@
 import { A, Box } from "@mercury-js/mess";
 import React, { useEffect, useState } from "react";
+import { NavLink, useLocation } from "react-router";
 function DynamicIcon({ iconName }) {
 
   const [IconComponent, setIconComponent] = useState<React.ComponentType | null>(null);
@@ -25,7 +26,8 @@ function DynamicIcon({ iconName }) {
 
 function SideBar() {
   const [openItems, setOpenItems] = useState<string[]>([]);
-
+const location =useLocation()
+console.log(location,"location?.state")
   const tabJson = [
     {
       icon: "House",
@@ -65,13 +67,13 @@ function SideBar() {
           icon: "AdminUsers",
           order: 3,
           id: "admin_users",
-          label: "Manage Users",
+          label: "Users",
           children: [
             {
               icon: "SubAdmin",
               order: 1,
               id: "sub_admin",
-              label: "Sub Admin",
+              label: "Admin",
               children: [],
             },
           ],
@@ -204,7 +206,7 @@ const toggleItem = (id: string) => {
 
               {/* ✅ Dynamic Icon Here */}
               <DynamicIcon iconName={item.icon} />
-              <Box>{item.label}</Box></Box>
+              <NavLink to={`/${item?.id}`} state={item?.id} className={`${location.state === item?.id && "text-black"}`}>{item.label}</NavLink></Box>
 
               {/* Dropdown Toggle Icon */}
               {item.children?.length > 0 && (

@@ -1,8 +1,9 @@
 import React from 'react'
+import DynamicForm from '../components/dynamicForm'
 
 const dashboard = () => {
   return (
-    <div>dashboard object model page</div>
+    <div><DynamicForm/></div>
   )
 }
 

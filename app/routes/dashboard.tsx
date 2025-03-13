@@ -8,16 +8,21 @@ import { ThemeProvider } from "../utils/theme";
 const dashboard = () => {
   return (
     <div>
-       <ThemeProvider>
-        
-      <Navbar />
-      <Box
-        styles={{ base: { display: "flex", flexDirection: "row", gap: 20 } }}
-      >
-        <SideBar />
-        <Outlet />
-      </Box>
-       </ThemeProvider>
+      <ThemeProvider>
+        <Navbar />
+        <Box styles={{ base: { display: "flex", flexDirection: "row" } }}>
+          <SideBar />
+          <Box
+            styles={{
+              base: {
+                padding: 20,
+              },
+            }}
+          >
+            <Outlet />
+          </Box>
+        </Box>
+      </ThemeProvider>
     </div>
   );
 };
