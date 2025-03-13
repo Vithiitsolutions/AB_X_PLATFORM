@@ -1,6 +1,6 @@
 import { defineConfig } from "vite";
 import { reactRouter } from "@react-router/dev/vite";
-import deno from "@deno/vite-plugin";
+// import deno from "@deno/vite-plugin";
 import autoprefixer from "autoprefixer";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -31,5 +31,5 @@ export default defineConfig(({ isSsrBuild }) => ({
       plugins: [autoprefixer],
     },
   },
-  plugins: [tailwindcss(), deno(), reactRouter()],
+  plugins: [tailwindcss(), reactRouter()],
 }));
