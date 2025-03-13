@@ -1,6 +1,16 @@
 import { A, Box } from "@mercury-js/mess";
 import React, { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router";
+
+
+
+export async function clientLoader() {
+  console.log("njkvakjdj");
+  
+  return { message: "Hello, world!" };
+}
+
+
 function DynamicIcon({ iconName }) {
 
   const [IconComponent, setIconComponent] = useState<React.ComponentType | null>(null);
@@ -24,7 +34,9 @@ function DynamicIcon({ iconName }) {
   return <IconComponent />;
 }
 
-function SideBar() {
+function SideBar({loaderData}) {
+  console.log(loaderData, "--------");
+  
   const [openItems, setOpenItems] = useState<string[]>([]);
 const location =useLocation()
 console.log(location,"location?.state")
