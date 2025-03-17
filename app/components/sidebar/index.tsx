@@ -2,18 +2,21 @@ import { A, Box } from "@mercury-js/mess";
 import React, { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router";
 
-
-
 export async function clientLoader() {
   console.log("njkvakjdj");
-  
+
   return { message: "Hello, world!" };
 }
 
+export async function loader() {
+  return { message: "Hello, world!" };
+}
 
-function DynamicIcon({ iconName }) {
+function DynamicIcon({ iconName, loaderData }) {
+  console.log(loaderData, "---------loaderData,  ");
 
-  const [IconComponent, setIconComponent] = useState<React.ComponentType | null>(null);
+  const [IconComponent, setIconComponent] =
+    useState<React.ComponentType | null>(null);
   useEffect(() => {
     if (!iconName) return;
 
@@ -28,32 +31,37 @@ function DynamicIcon({ iconName }) {
       })
       .catch((err) => console.error("Error loading icon:", err));
   }, [iconName]);
-  console.log(IconComponent,"IconComponent")
+  console.log(IconComponent, "IconComponent");
 
-  if (!IconComponent) return <div style={{ width: "24px" }}>⌛</div>; 
+  if (!IconComponent) return <div style={{ width: "24px" }}>⌛</div>;
   return <IconComponent />;
 }
 
-function SideBar({loaderData}) {
+function SideBar({ loaderData }) {
   console.log(loaderData, "--------");
-  
+
   const [openItems, setOpenItems] = useState<string[]>([]);
 const location =useLocation()
 console.log(location,"location?.state")
+  const [tabs, setTabs] = useState([]);
+
+  useEffect(() => {
+    getTabs();
+  }, []);
+
+
   const tabJson = [
     {
       icon: "House",
       order: 1,
       id: "dashboard",
       label: "Dashboard",
-
     },
     {
       icon: "UserCog",
       order: 2,
       id: "customers",
       label: "Customers",
-
     },
     {
       icon: "ClipboardList",
@@ -168,30 +176,83 @@ console.log(location,"location?.state")
     },
   ];
 
-const toggleItem = (id: string) => {
-  setOpenItems((prev) => {
-    if (prev.includes(id)) {
-      return prev.filter((item) => item !== id);
-    }
+  const getTabs = async () => {
+    const data = await fetch("http://localhost:4000/meta-api", {
+      method: "POST",
+      body: JSON.stringify({
+        query: `query Docs {
+            listTabs {
+              docs {
+                id
+                label
+                order
+                icon
+                model {
+                    id
+                    label
+                    name
+                  }
+                childTabs {
+                  id
+                  icon
+                  label
+                  order
+                  model {
+                    id
+                    label
+                    name
+                  }
+                }
+              }
+            }
+          }`,
+        variables: {
+          sort: {
+            order: "asc",
+          },
+        },
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        "x-apollo-operation-name": "Docs"
+      }
+    });
+    const response = await data.json();
+    setTabs(response.data.listTabs.docs);
+  };
 
-    const isChild = tabJson.some((parent) =>
-      parent.children?.some((child) => child.id === id)
-    );
+  const toggleItem = (id: string) => {
+    setOpenItems((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id);
+      }
 
-    return isChild ? [...prev, id] : [id]; 
-  });
-};
+      const isChild = tabs.some((parent: any) =>
+        parent.childTabs?.some((child) => child.id === id)
+      );
 
+      return isChild ? [...prev, id] : [id];
+    });
+  };
 
   const renderMenu = (items) => {
     return (
-      <Box styles={{ base: { display: "flex", flexDirection: "column", gap: "15px" } }}>
+      <Box
+        styles={{
+          base: { display: "flex", flexDirection: "column", gap: "15px" },
+        }}
+      >
         {items.map((item) => (
-          <Box key={item.id} styles={{base:{
-            display: "flex",
-                  flexDirection: "column",
-                  gap:10
-          }}}>
+          <Box
+            key={item.id}
+            styles={{
+              base: {
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              },
+            }}
+          >
             <Box
               onClick={() => toggleItem(item.id)}
               styles={{
@@ -218,7 +279,7 @@ const toggleItem = (id: string) => {
 
               {/* ✅ Dynamic Icon Here */}
               <DynamicIcon iconName={item.icon} />
-              <NavLink to={`/${item?.id}`} state={item?.id} className={`${location.state === item?.id && "text-black"}`}>{item.label}</NavLink></Box>
+              <NavLink to={`/${item?.id}`} state={item?.id} className={`${location.pathname.includes( item?.id) && "text-black"}`}>{item.label}</NavLink></Box>
 
               {/* Dropdown Toggle Icon */}
               {item.children?.length > 0 && (
@@ -268,11 +329,20 @@ const toggleItem = (id: string) => {
               )}
             </Box>
 
-            {openItems.includes(item.id) && item.children && item.children.length > 0 && (
-              <Box styles={{ base: { paddingLeft: "20px", borderLeft: "1px solid #BCBCBC" } }}>
-                {renderMenu(item.children)}
-              </Box>
-            )}
+            {openItems.includes(item.id) &&
+              item.children &&
+              item.children.length > 0 && (
+                <Box
+                  styles={{
+                    base: {
+                      paddingLeft: "20px",
+                      borderLeft: "1px solid #BCBCBC",
+                    },
+                  }}
+                >
+                  {renderMenu(item.children)}
+                </Box>
+              )}
           </Box>
         ))}
       </Box>
@@ -293,7 +363,7 @@ const toggleItem = (id: string) => {
         },
       }}
     >
-      {renderMenu(tabJson)}
+      {renderMenu(tabs)}
     </Box>
   );
 }

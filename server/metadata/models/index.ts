@@ -11,3 +11,4 @@ export { view } from "./View";
 export { viewField } from "./ViewField";
 export { component } from "./Component";
 export { user } from "./User";
+export { tab } from "./Tab";
