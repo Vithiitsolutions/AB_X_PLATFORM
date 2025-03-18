@@ -1,7 +1,7 @@
 {
   "tasks": {
     "dev:rr": "deno run --env-file=.env.dev --unstable-detect-cjs -A --node-modules-dir npm:@react-router/dev dev",
-    "dev": "deno run --unstable-sloppy-imports --unstable-detect-cjs --watch=app,server,server.ts --env-file=.env.dev -A --unsafely-ignore-certificate-errors server.ts",
+    "dev": "deno run --unstable-sloppy-imports --unstable-detect-cjs --watch=server,server.ts --env-file=.env.dev -A --unsafely-ignore-certificate-errors server.ts",
     "start": "deno run --env-file=.env.prod -A server.ts",
     "build": "deno run --env-file=.env.prod -A --node-modules-dir npm:@react-router/dev build"
   },

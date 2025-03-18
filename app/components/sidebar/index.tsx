@@ -1,6 +1,7 @@
 import { A, Box } from "@mercury-js/mess";
 import React, { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router";
+import { serverFetch } from "../../utils/action";
 
 export async function clientLoader() {
   console.log("njkvakjdj");
@@ -13,7 +14,6 @@ export async function loader() {
 }
 
 function DynamicIcon({ iconName, loaderData }) {
-  console.log(loaderData, "---------loaderData,  ");
 
   const [IconComponent, setIconComponent] =
     useState<React.ComponentType | null>(null);
@@ -33,12 +33,11 @@ function DynamicIcon({ iconName, loaderData }) {
   }, [iconName]);
   console.log(IconComponent, "IconComponent");
 
-  if (!IconComponent) return <div style={{ width: "24px" }}>⌛</div>;
-  return <IconComponent />;
-}
+  if (!IconComponent) return <div style={{ width: "10px" }}>⌛</div>;
+  return <IconComponent style={{width: "15px"}}/>;
+} 
 
 function SideBar({ loaderData }) {
-  console.log(loaderData, "--------");
 
   const [openItems, setOpenItems] = useState<string[]>([]);
 const location =useLocation()
@@ -50,137 +49,119 @@ console.log(location,"location?.state")
   }, []);
 
 
-  const tabJson = [
-    {
-      icon: "House",
-      order: 1,
-      id: "dashboard",
-      label: "Dashboard",
-    },
-    {
-      icon: "UserCog",
-      order: 2,
-      id: "customers",
-      label: "Customers",
-    },
-    {
-      icon: "ClipboardList",
-      order: 3,
-      id: "orders",
-      label: "Orders",
-      children: [
-        {
-          icon: "AdminSettings",
-          order: 1,
-          id: "admin_settings",
-          label: "Settings",
-          children: [],
-        },
-        {
-          icon: "AdminReports",
-          order: 2,
-          id: "admin_reports",
-          label: "Reports",
-          children: [],
-        },
-        {
-          icon: "AdminUsers",
-          order: 3,
-          id: "admin_users",
-          label: "Users",
-          children: [
-            {
-              icon: "SubAdmin",
-              order: 1,
-              id: "sub_admin",
-              label: "Admin",
-              children: [],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      icon: "Package",
-      order: 3,
-      id: "products",
-      label: "Products",
-      children: [
-        {
-          icon: "AdminSettings",
-          order: 1,
-          id: "admin_settings",
-          label: "Settings",
-          children: [],
-        },
-        {
-          icon: "AdminReports",
-          order: 2,
-          id: "admin_reports",
-          label: "Reports",
-          children: [],
-        },
-        {
-          icon: "AdminUsers",
-          order: 3,
-          id: "admin_users",
-          label: "Manage Users",
-          children: [
-            {
-              icon: "SubAdmin",
-              order: 1,
-              id: "sub_admin",
-              label: "Sub Admin",
-              children: [],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      icon: "ChartNoAxesColumnIncreasing",
-      order: 3,
-      id: "analytics",
-      label: "Analytics",
-      children: [
-        {
-          icon: "AdminSettings",
-          order: 1,
-          id: "admin_settings",
-          label: "Settings",
-          children: [],
-        },
-        {
-          icon: "AdminReports",
-          order: 2,
-          id: "admin_reports",
-          label: "Reports",
-          children: [],
-        },
-        {
-          icon: "AdminUsers",
-          order: 3,
-          id: "admin_users",
-          label: "Manage Users",
-          children: [
-            {
-              icon: "SubAdmin",
-              order: 1,
-              id: "sub_admin",
-              label: "Sub Admin",
-              children: [],
-            },
-          ],
-        },
-      ],
-    },
-  ];
+  // const tabs = [
+  //   {
+  //     "icon": "House",
+  //     "order": 1,
+  //     "id": "dashboard",
+  //     "label": "Dashboard"
+  //   },
+  //   {
+  //     "icon": "User",
+  //     "order": 2,
+  //     "id": "hrms",
+  //     "label": "HRMS",
+  //     "children": [
+  //       {
+  //         "icon": "CreditCard",
+  //         "order": 1,
+  //         "id": "payroll_management",
+  //         "label": "Payroll Management",
+  //         "children": []
+  //       },
+  //       {
+  //         "icon": "Clock",
+  //         "order": 2,
+  //         "id": "attendance",
+  //         "label": "Attendance",
+  //         "children": []
+  //       },
+  //       {
+  //         "icon": "Calendar",
+  //         "order": 3,
+  //         "id": "leave",
+  //         "label": "Leave",
+  //         "children": []
+  //       },
+  //       {
+  //         "icon": "BarChart",
+  //         "order": 4,
+  //         "id": "employee_performance",
+  //         "label": "Employee Performance",
+  //         "children": []
+  //       },
+  //       {
+  //         "icon": "Users",
+  //         "order": 5,
+  //         "id": "employee_data",
+  //         "label": "Employee Data",
+  //         "children": []
+  //       }
+  //     ]
+  //   },
+  //   {
+  //     "icon": "Briefcase",
+  //     "order": 3,
+  //     "id": "business_management",
+  //     "label": "Business Management",
+  //     "children": [
+  //       {
+  //         "icon": "Building",
+  //         "order": 1,
+  //         "id": "business",
+  //         "label": "Business",
+  //         "children": []
+  //       },
+  //       {
+  //         "icon": "ClipboardCheck",
+  //         "order": 2,
+  //         "id": "entity",
+  //         "label": "Entity",
+  //         "children": []
+  //       },
+  //       {
+  //         "icon": "ShoppingCart",
+  //         "order": 3,
+  //         "id": "sales",
+  //         "label": "Sales",
+  //         "children": []
+  //       },
+  //       {
+  //         "icon": "ShoppingBag",
+  //         "order": 4,
+  //         "id": "purchase",
+  //         "label": "Purchase",
+  //         "children": []
+  //       },
+  //       {
+  //         "icon": "Wallet",
+  //         "order": 5,
+  //         "id": "expenses",
+  //         "label": "Expenses",
+  //         "children": []
+  //       },
+  //       {
+  //         "icon": "Tag",
+  //         "order": 6,
+  //         "id": "expense_category",
+  //         "label": "Expense Category",
+  //         "children": []
+  //       },
+  //       {
+  //         "icon": "Banknote",
+  //         "order": 7,
+  //         "id": "finances",
+  //         "label": "Finances",
+  //         "children": []
+  //       }
+  //     ]
+  //   }
+  // ]
+  
 
   const getTabs = async () => {
-    const data = await fetch("http://localhost:4000/meta-api", {
-      method: "POST",
-      body: JSON.stringify({
-        query: `query Docs {
+    const data = await serverFetch(
+      `query Docs {
             listTabs {
               docs {
                 id
@@ -206,19 +187,18 @@ console.log(location,"location?.state")
               }
             }
           }`,
-        variables: {
+        {
           sort: {
             order: "asc",
           },
         },
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        "x-apollo-operation-name": "Docs"
-      }
-    });
-    const response = await data.json();
-    setTabs(response.data.listTabs.docs);
+        {
+          cache: "no-store"
+        }
+    )
+    console.log(data);
+    
+    setTabs(data.listTabs.docs);
   };
 
   const toggleItem = (id: string) => {
@@ -257,8 +237,8 @@ console.log(location,"location?.state")
               onClick={() => toggleItem(item.id)}
               styles={{
                 base: {
-                  fontSize: "14px",
-                  lineHeight: "19.12px",
+                  fontSize: "12px",
+                  lineHeight: "12.12px",
                   color: "#4A4A50",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -279,7 +259,7 @@ console.log(location,"location?.state")
 
               {/* ✅ Dynamic Icon Here */}
               <DynamicIcon iconName={item.icon} />
-              <NavLink to={`/${item?.id}`} state={item?.id} className={`${location.pathname.includes( item?.id) && "text-black"}`}>{item.label}</NavLink></Box>
+              <NavLink to={`/dashboard/o/${item?.model?.name}/list`} state={item?.id} className={`${location.pathname.includes( item?.id) && "text-black"}`}>{item.label}</NavLink></Box>
 
               {/* Dropdown Toggle Icon */}
               {item.children?.length > 0 && (
