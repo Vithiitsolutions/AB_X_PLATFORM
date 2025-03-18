@@ -65,7 +65,7 @@ function Navbar() {
             },
           }}
         >
-          Mercury Platform
+          Astona
         </Text>
       </Box>
       <Box
