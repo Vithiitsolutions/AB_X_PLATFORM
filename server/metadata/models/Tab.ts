@@ -10,8 +10,8 @@ export const tab = mercury.createModel(
       model: {
         type: 'relationship',
         ref: 'Model',
-        required: true,
-        unique: true
+        required: false,
+        unique: false
       },
       label: {
         type: 'string',

@@ -1,9 +1,10 @@
 import React from 'react'
 import DynamicForm from '../components/dynamicForm'
+import DynamicTableContainer from '../container/dynamicTableContainer'
 
 const dashboard = () => {
   return (
-    <div><DynamicForm/></div>
+    <div><DynamicTableContainer/></div>
   )
 }
 

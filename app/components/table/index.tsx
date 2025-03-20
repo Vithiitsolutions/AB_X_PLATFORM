@@ -1,31 +1,32 @@
 import { A, Box, Table, Tbody, Tr, Th } from "@mercury-js/mess";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import React, { useMemo } from "react";
-import { useTable, usePagination, useRowSelect } from "react-table";
+import { ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
+import React, { forwardRef, useMemo } from "react";
+import { useTable, usePagination, useRowSelect,Column } from "react-table";
+import _ from "lodash";
 
-interface TableProps {
-  data: any[];
+interface TableProps<T extends object> {
+  data: T[];
+  columns: Column<T>[] | undefined;
 }
 
-const DynamicTable: React.FC<TableProps> = ({ data }) => {
-  const columns = useMemo(
+const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(({ data, columns = [] }, ref) => {
+  console.log("Columns:", columns);
+  console.log("Data:", data);
+  const tableColumns: Column<any>[] = useMemo(
     () => [
       {
         id: "select",
         Header: ({ getToggleAllRowsSelectedProps }: any) => (
           <input type="checkbox" {...getToggleAllRowsSelectedProps()} />
         ),
-        Cell: ({ row }: any) => (
-          <input type="checkbox" {...row.getToggleRowSelectedProps()} />
-        ),
+        Cell: ({ row }: any) => <input type="checkbox" {...row.getToggleRowSelectedProps()} />,
       },
-      ...Object.keys(data[0] || {}).map((key) => ({
-        Header: key.replace(/([A-Z])/g, " $1").trim(),
-        accessor: key,
-      })),
+
+      ...columns, // Spread the rest of the dynamic columns
     ],
-    [data]
+    [columns]
   );
+  
 
   const {
     getTableProps,
@@ -42,7 +43,7 @@ const DynamicTable: React.FC<TableProps> = ({ data }) => {
     state: { pageIndex },
   } = useTable(
     {
-      columns,
+      columns:tableColumns,
       data,
       initialState: { pageIndex: 0, pageSize: 10 },
     },
@@ -86,7 +87,7 @@ const DynamicTable: React.FC<TableProps> = ({ data }) => {
   };
   
   return (
-    <Box styles={{ base: {  width: "100%" } }}>
+    <Box styles={{ base: {  width: "100%" } }} ref={ref}>
       <Box
         styles={{
           base: {
@@ -210,6 +211,7 @@ const DynamicTable: React.FC<TableProps> = ({ data }) => {
       </Box>
     </Box>
   );
-};
+
+});
 
 export default DynamicTable;

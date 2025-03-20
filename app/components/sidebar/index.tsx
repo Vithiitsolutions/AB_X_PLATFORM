@@ -2,15 +2,65 @@ import { A, Box } from "@mercury-js/mess";
 import React, { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router";
 import { serverFetch } from "../../utils/action";
+// import type {Route} from "../../../../mercuryx-platform/.react-router/types/app/+types/root"
+// export async function clientLoader() {
+//   console.log("njkvakjdj");
 
-export async function clientLoader() {
-  console.log("njkvakjdj");
-
-  return { message: "Hello, world!" };
-}
+//   return { message: "Hello, world!" };
+// }
 
 export async function loader() {
-  return { message: "Hello, world!" };
+  const response = await serverFetch(
+    `query Docs($where: whereTabInput, $sort: sortTabInput) {
+          listTabs(where: $where, sort: $sort) {
+            docs {
+              id
+              label
+              order
+              icon
+              model {
+                  id
+                  label
+                  name
+                }
+              childTabs {
+                id
+                icon
+                label
+                order
+                model {
+                  id
+                  label
+                  name
+                }
+              }
+              profiles {
+                id
+                label
+                name
+
+              }
+            }
+          }
+        }`,
+        {
+          "where": {
+            "parent": {
+              "is": null
+            }
+          },
+          "sort": {
+            "order": "asc"
+          }
+        },
+      {
+        cache: "no-store"
+      }
+  );
+  const data = await response.json();
+  console.log(data,"response");
+  
+  return data?.listTabs?.docs; 
 }
 
 function DynamicIcon({ iconName, loaderData }) {
@@ -37,8 +87,8 @@ function DynamicIcon({ iconName, loaderData }) {
   return <IconComponent style={{width: "15px"}}/>;
 } 
 
-function SideBar({ loaderData }) {
-
+function SideBar({ loaderData  }) {
+console.log(loaderData,"loaderdata")
   const [openItems, setOpenItems] = useState<string[]>([]);
 const location =useLocation()
 console.log(location,"location?.state")
@@ -48,121 +98,10 @@ console.log(location,"location?.state")
     getTabs();
   }, []);
 
-
-  // const tabs = [
-  //   {
-  //     "icon": "House",
-  //     "order": 1,
-  //     "id": "dashboard",
-  //     "label": "Dashboard"
-  //   },
-  //   {
-  //     "icon": "User",
-  //     "order": 2,
-  //     "id": "hrms",
-  //     "label": "HRMS",
-  //     "children": [
-  //       {
-  //         "icon": "CreditCard",
-  //         "order": 1,
-  //         "id": "payroll_management",
-  //         "label": "Payroll Management",
-  //         "children": []
-  //       },
-  //       {
-  //         "icon": "Clock",
-  //         "order": 2,
-  //         "id": "attendance",
-  //         "label": "Attendance",
-  //         "children": []
-  //       },
-  //       {
-  //         "icon": "Calendar",
-  //         "order": 3,
-  //         "id": "leave",
-  //         "label": "Leave",
-  //         "children": []
-  //       },
-  //       {
-  //         "icon": "BarChart",
-  //         "order": 4,
-  //         "id": "employee_performance",
-  //         "label": "Employee Performance",
-  //         "children": []
-  //       },
-  //       {
-  //         "icon": "Users",
-  //         "order": 5,
-  //         "id": "employee_data",
-  //         "label": "Employee Data",
-  //         "children": []
-  //       }
-  //     ]
-  //   },
-  //   {
-  //     "icon": "Briefcase",
-  //     "order": 3,
-  //     "id": "business_management",
-  //     "label": "Business Management",
-  //     "children": [
-  //       {
-  //         "icon": "Building",
-  //         "order": 1,
-  //         "id": "business",
-  //         "label": "Business",
-  //         "children": []
-  //       },
-  //       {
-  //         "icon": "ClipboardCheck",
-  //         "order": 2,
-  //         "id": "entity",
-  //         "label": "Entity",
-  //         "children": []
-  //       },
-  //       {
-  //         "icon": "ShoppingCart",
-  //         "order": 3,
-  //         "id": "sales",
-  //         "label": "Sales",
-  //         "children": []
-  //       },
-  //       {
-  //         "icon": "ShoppingBag",
-  //         "order": 4,
-  //         "id": "purchase",
-  //         "label": "Purchase",
-  //         "children": []
-  //       },
-  //       {
-  //         "icon": "Wallet",
-  //         "order": 5,
-  //         "id": "expenses",
-  //         "label": "Expenses",
-  //         "children": []
-  //       },
-  //       {
-  //         "icon": "Tag",
-  //         "order": 6,
-  //         "id": "expense_category",
-  //         "label": "Expense Category",
-  //         "children": []
-  //       },
-  //       {
-  //         "icon": "Banknote",
-  //         "order": 7,
-  //         "id": "finances",
-  //         "label": "Finances",
-  //         "children": []
-  //       }
-  //     ]
-  //   }
-  // ]
-  
-
   const getTabs = async () => {
     const data = await serverFetch(
-      `query Docs {
-            listTabs {
+      `query Docs($where: whereTabInput, $sort: sortTabInput) {
+            listTabs(where: $where, sort: $sort) {
               docs {
                 id
                 label
@@ -184,14 +123,25 @@ console.log(location,"location?.state")
                     name
                   }
                 }
+                profiles {
+                  id
+                  label
+                  name
+
+                }
               }
             }
           }`,
-        {
-          sort: {
-            order: "asc",
+          {
+            "where": {
+              "parent": {
+                "is": null
+              }
+            },
+            "sort": {
+              "order": "asc"
+            }
           },
-        },
         {
           cache: "no-store"
         }
@@ -259,10 +209,11 @@ console.log(location,"location?.state")
 
               {/* ✅ Dynamic Icon Here */}
               <DynamicIcon iconName={item.icon} />
-              <NavLink to={`/dashboard/o/${item?.model?.name}/list`} state={item?.id} className={`${location.pathname.includes( item?.id) && "text-black"}`}>{item.label}</NavLink></Box>
+              {(item?.model ) ?
+              <NavLink to={`/dashboard/o/${item?.model?.name}/list`} state={item?.id} className={`${location.pathname.includes( item?.id) && "text-black"}`}>{item.label}</NavLink>:<Box  className={`${location.pathname.includes( item?.id) && "text-black"}`}>{item.label}</Box>}</Box>
 
               {/* Dropdown Toggle Icon */}
-              {item.children?.length > 0 && (
+              {item.childTabs?.length > 0 && (
                 <Box
                   styles={{
                     base: {
@@ -310,8 +261,8 @@ console.log(location,"location?.state")
             </Box>
 
             {openItems.includes(item.id) &&
-              item.children &&
-              item.children.length > 0 && (
+              item.childTabs &&
+              item.childTabs.length > 0 && (
                 <Box
                   styles={{
                     base: {
@@ -320,7 +271,7 @@ console.log(location,"location?.state")
                     },
                   }}
                 >
-                  {renderMenu(item.children)}
+                  {renderMenu(item.childTabs)}
                 </Box>
               )}
           </Box>
