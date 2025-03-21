@@ -10,6 +10,7 @@ import "./hooks/Model.hook.ts";
 
 // Profiles
 import "./SystemAdmin.profile.ts";
+import { Platform } from "./platform.ts";
 
 interface IMetaApiConfig {
   db: string;
@@ -28,10 +29,12 @@ export default class MetaApi {
   };
   server = new ApolloServer(this.config);
   constructor({ db }: IMetaApiConfig) {
-    mercury.connect(db || "mongodb+srv://admin:123@cluster0.mosjp.mongodb.net/mercury-platform");
+    mercury.connect(db || "mongodb://localhost:27017")
   }
   async start() {
-    await this.server.start();
+    const platform = new Platform();
+    await platform.initialize();
+    await this.restart();
   }
   async restart() {
     this.config.schema = applyMiddleware(

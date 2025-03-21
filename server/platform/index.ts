@@ -24,7 +24,7 @@ export default class PlatformApi {
   constructor({
     db,
   }: IPlatformApiConfig) {
-    mercury.connect(db || "mongodb+srv://admin:123@cluster0.mosjp.mongodb.net/mercury-platform");
+    mercury.connect(db || "mongodb://localhost:27017");
   }
   async start() {
     await this.server.start();

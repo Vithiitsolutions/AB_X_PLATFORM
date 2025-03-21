@@ -43,28 +43,27 @@ export async function loader() {
             }
           }
         }`,
-        {
-          "where": {
-            "parent": {
-              "is": null
-            }
-          },
-          "sort": {
-            "order": "asc"
-          }
+    {
+      where: {
+        parent: {
+          is: null,
         },
-      {
-        cache: "no-store"
-      }
+      },
+      sort: {
+        order: "asc",
+      },
+    },
+    {
+      cache: "no-store",
+    }
   );
   const data = await response.json();
-  console.log(data,"response");
-  
-  return data?.listTabs?.docs; 
+  console.log(data, "response");
+
+  return data?.listTabs?.docs;
 }
 
 function DynamicIcon({ iconName, loaderData }) {
-
   const [IconComponent, setIconComponent] =
     useState<React.ComponentType | null>(null);
   useEffect(() => {
@@ -84,14 +83,14 @@ function DynamicIcon({ iconName, loaderData }) {
   console.log(IconComponent, "IconComponent");
 
   if (!IconComponent) return <div style={{ width: "10px" }}>⌛</div>;
-  return <IconComponent style={{width: "15px"}}/>;
-} 
+  return <IconComponent style={{ width: "15px" }} />;
+}
 
-function SideBar({ loaderData  }) {
-console.log(loaderData,"loaderdata")
+function SideBar({ loaderData }) {
+  console.log(loaderData, "loaderdata");
   const [openItems, setOpenItems] = useState<string[]>([]);
-const location =useLocation()
-console.log(location,"location?.state")
+  const location = useLocation();
+  console.log(location, "location?.state");
   const [tabs, setTabs] = useState([]);
 
   useEffect(() => {
@@ -132,22 +131,22 @@ console.log(location,"location?.state")
               }
             }
           }`,
-          {
-            "where": {
-              "parent": {
-                "is": null
-              }
-            },
-            "sort": {
-              "order": "asc"
-            }
+      {
+        where: {
+          parent: {
+            is: null,
           },
-        {
-          cache: "no-store"
-        }
-    )
+        },
+        sort: {
+          order: "asc",
+        },
+      },
+      {
+        cache: "no-store",
+      }
+    );
     console.log(data);
-    
+
     setTabs(data.listTabs.docs);
   };
 
@@ -200,17 +199,40 @@ console.log(location,"location?.state")
                 },
               }}
             >
-              <Box styles={{base:{
-                display:"flex",
-                flexDirection:"row",
-                alignItems:"center",
-                gap:5
-              }}}>
-
-              {/* ✅ Dynamic Icon Here */}
-              <DynamicIcon iconName={item.icon} />
-              {(item?.model ) ?
-              <NavLink to={`/dashboard/o/${item?.model?.name}/list`} state={item?.id} className={`${location.pathname.includes( item?.id) && "text-black"}`}>{item.label}</NavLink>:<Box  className={`${location.pathname.includes( item?.id) && "text-black"}`}>{item.label}</Box>}</Box>
+              <Box
+                styles={{
+                  base: {
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 5,
+                  },
+                }}
+              >
+                {/* ✅ Dynamic Icon Here */}
+                <DynamicIcon iconName={item.icon} />
+                {item?.model ? (
+                  <NavLink
+                    to={`/dashboard/o/${item?.model?.name}/list`}
+                    state={item?.id}
+                    className={`${
+                      location.pathname.includes(item?.model?.name) &&
+                      "text-black"
+                    }`}
+                  >
+                    {item.label}
+                  </NavLink>
+                ) : (
+                  <Box
+                    className={`${
+                      location.pathname.includes(item?.model?.name) &&
+                      "text-black"
+                    }`}
+                  >
+                    {item.label}
+                  </Box>
+                )}
+              </Box>
 
               {/* Dropdown Toggle Icon */}
               {item.childTabs?.length > 0 && (

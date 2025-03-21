@@ -28,8 +28,8 @@ export const getModelFieldRefModelKey = async (modelName: string) => {
 
 
   export const GET_DYNAMIC_MODEL_LIST = async (modelName: string, modelFields: any[]) => {
-    let str = `query List${modelName}($sort: sort${modelName}Input, $limit: Int!) {
-      list${modelName}s(sort: $sort, limit: $limit) {
+    let str = `query List${modelName}($sort: sort${modelName}Input, $limit: Int!, $offset: Int!) {
+      list${modelName}s(sort: $sort, limit: $limit, offset: $offset) {
           docs {
               id`;
   
@@ -37,13 +37,13 @@ export const getModelFieldRefModelKey = async (modelName: string) => {
       if (item.type === "virtual" || item.type === "relationship") {
         const refModelKey = await getModelFieldRefModelKey(item.ref);
         return `
-              ${item.fieldName} {
+              ${item.name} {
                   id
                   ${refModelKey}
               }`;
       }
       return `
-              ${item.fieldName}`;
+              ${item.name}`;
     });
   
     const fieldStrings = await Promise.all(fieldPromises);

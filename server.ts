@@ -10,10 +10,11 @@ import MetaApi from "./server/metadata/index.ts";
 import { metaEvents } from "./server/metadata/Events.ts";
 import { meta } from "./app/routes/counter.tsx";
 import { profile } from "node:console";
+import { Platform } from "./server/metadata/platform.ts";
 
 let interval: number;
 // Websocket setup
-const wss = new WebSocketServer(8080);
+const wss = new WebSocketServer(9080);
 wss.on("connection", function (ws: WebSocketClient) {
   // ws.on("message", function (message: string) {
   interval = setInterval(() => {
@@ -45,7 +46,7 @@ const app = express();
 // });
 // Metadata API server
 const metaServer = new MetaApi({
-  db: "mongodb+srv://admin:123@cluster0.mosjp.mongodb.net/mercury-platform",
+  db: "mongodb://localhost:27017",
 });
 await metaServer.start();
 
