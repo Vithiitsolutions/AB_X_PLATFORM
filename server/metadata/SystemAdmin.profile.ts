@@ -127,6 +127,15 @@ export const SystemAdminRules = [
       delete: true,
     },
   },
+  {
+    modelName: "Employee",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
 ];
 
 

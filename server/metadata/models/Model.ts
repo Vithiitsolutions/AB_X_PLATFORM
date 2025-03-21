@@ -25,14 +25,14 @@ export const model = mercury.createModel("Model", {
   fields: {
     type: "virtual",
     ref: "ModelField",
-    localField: "id",
+    localField: "_id",
     foreignField: "model",
     many: true,
   },
   options: {
     type: "virtual",
     ref: "ModelOption",
-    localField: "id",
+    localField: "_id",
     foreignField: "field",
     many: true,
   },

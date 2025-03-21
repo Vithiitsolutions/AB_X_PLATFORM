@@ -37,13 +37,13 @@ export const getModelFieldRefModelKey = async (modelName: string) => {
       if (item.type === "virtual" || item.type === "relationship") {
         const refModelKey = await getModelFieldRefModelKey(item.ref);
         return `
-              ${item.fieldName} {
+              ${item.name} {
                   id
                   ${refModelKey}
               }`;
       }
       return `
-              ${item.fieldName}`;
+              ${item.name}`;
     });
   
     const fieldStrings = await Promise.all(fieldPromises);

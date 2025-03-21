@@ -45,7 +45,6 @@ const CustomSelect = React.forwardRef<HTMLSelectElement, SelectProps>(
           base: {
             position: "relative", // Make parent relative for absolute positioning
             display: "inline-block", // Adjust width based on content
-            width: "100%", // Ensure it remains dynamic
           },
         }}
       >

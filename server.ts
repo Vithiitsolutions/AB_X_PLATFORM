@@ -10,6 +10,7 @@ import MetaApi from "./server/metadata/index.ts";
 import { metaEvents } from "./server/metadata/Events.ts";
 import { meta } from "./app/routes/counter.tsx";
 import { profile } from "node:console";
+import { Platform } from "./server/metadata/platform.ts";
 
 let interval: number;
 // Websocket setup

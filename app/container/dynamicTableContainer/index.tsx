@@ -18,12 +18,13 @@ function DynamicTableContainer() {
   const [columns, setColumns] = useState<any>([]);
 
   const [listModelData, listModelDataResponse] = useLazyQuery(serverFetch);
+  const [dynamicQueryString, setDynamicQueryString] = useState("");
   const [getAllModelFields, { data, loading, error }] =
     useLazyQuery(serverFetch);
-    const [pagination, setPagination] = React.useState<PaginationState>({
-        pageIndex: 0,
-        pageSize: 10,
-      });
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   useEffect(() => {
     getAllModelFields(
       `query ListModelFields($where: whereModelFieldInput, $limit: Int!) {
@@ -268,12 +269,13 @@ function DynamicTableContainer() {
         //     </div>
         //   ),
         // });
-        
+
         setColumns(columns);
         const str = await GET_DYNAMIC_MODEL_LIST(
           model as string,
           data?.listModelFields?.docs
         );
+        setDynamicQueryString(str);
         listModelData(
           str,
           {
@@ -281,7 +283,7 @@ function DynamicTableContainer() {
               createdOn: "desc",
             },
             limit: pagination.pageSize,
-            offset: ((pagination.pageIndex+1) * pagination.pageSize)
+            offset: pagination.pageIndex * pagination.pageSize,
           },
           {
             cache: "no-store",
@@ -290,6 +292,23 @@ function DynamicTableContainer() {
       })();
     }
   }, [data, loading, error]);
+
+  useEffect(() => {
+    if (dynamicQueryString)
+      listModelData(
+        dynamicQueryString,
+        {
+          sort: {
+            createdOn: "desc",
+          },
+          limit: pagination.pageSize,
+          offset: pagination.pageIndex * pagination.pageSize,
+        },
+        {
+          cache: "no-store",
+        }
+      );
+  }, [pagination.pageSize, pagination.pageSize, dynamicQueryString]);
   useEffect(() => {
     if (listModelDataResponse.data) {
       console.log(listModelDataResponse.data, "data11");
