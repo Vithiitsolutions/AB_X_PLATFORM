@@ -357,7 +357,8 @@ const dashboard = () => {
   ];
   return (
     <Box>
-      <DynamicTable data={data} />
+      {/* <DynamicTable data={data} /> */}
+      Dasboard
       {/* <CustomeInput type='date' placeholder='' addonstyles={{base:{
   // height:"20px",
   // width:"20px",
@@ -366,9 +367,9 @@ const dashboard = () => {
 }}}/> */}
       {/* <Button onClick={()=>    setPopupOpen(true)
 }>Popup</Button> */}
-      <PopUp isOpen={popupOpen} onClose={onclosePopUp}>
-        <DynamicTable data={data} />
-      </PopUp>
+      {/* <PopUp isOpen={popupOpen} onClose={onclosePopUp}> */}
+        {/* <DynamicTable data={data} /> */}
+      {/* </PopUp> */}
       {/* <div><DynamicForm/></div> */}
       {/* <button
         className={Mess({

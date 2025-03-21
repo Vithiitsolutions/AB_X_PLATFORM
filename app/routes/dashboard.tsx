@@ -15,6 +15,8 @@ const dashboard = () => {
           <Box
             styles={{
               base: {
+                width: "calc(100vw - 280px)",
+
                 padding: 20,
               },
             }}

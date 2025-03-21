@@ -100,7 +100,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(({ data, column
       >
         <Table
           {...getTableProps()}
-          styles={{ base: { minWidth: "calc(100vw - 240px)", borderCollapse: "collapse" } }}
+          styles={{ base: { minWidth: "calc(100vw - 280px)", borderCollapse: "collapse" } }}
         >
           <Tbody
             as="thead"
