@@ -44,7 +44,7 @@ mercury.hook.after("CREATE_MODELFIELD_RECORD", function (this: any) {
     },
     {
       historyTracking: false,
-      update: true,
+      // update: true,
     }
   );
   // mercury.createModel("Employee", {

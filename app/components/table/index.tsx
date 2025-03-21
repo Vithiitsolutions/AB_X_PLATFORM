@@ -1,70 +1,56 @@
-import { A, Box, Table, Tbody, Tr, Th } from "@mercury-js/mess";
-import { ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
-import React, { forwardRef, useMemo } from "react";
-import { useTable, usePagination, useRowSelect,Column } from "react-table";
-import _ from "lodash";
+import { A, Box, Table, Tbody, Tr, Th, Button } from "@mercury-js/mess";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { forwardRef } from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  ColumnDef,
+  flexRender,
+  PaginationState,
+} from "@tanstack/react-table";
 
 interface TableProps<T extends object> {
   data: T[];
-  columns: Column<T>[] | undefined;
+  rowCount: number;
+  columns: ColumnDef<T>[];
+  pagination: PaginationState;
+  setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
 }
 
-const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(({ data, columns = [] }, ref) => {
-  console.log("Columns:", columns);
-  console.log("Data:", data);
-  const tableColumns: Column<any>[] = useMemo(
-    () => [
-      {
-        id: "select",
-        Header: ({ getToggleAllRowsSelectedProps }: any) => (
-          <input type="checkbox" {...getToggleAllRowsSelectedProps()} />
-        ),
-        Cell: ({ row }: any) => <input type="checkbox" {...row.getToggleRowSelectedProps()} />,
-      },
-
-      ...columns, // Spread the rest of the dynamic columns
-    ],
-    [columns]
-  );
+const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(({ data, columns = [], rowCount, pagination, setPagination }, ref) => {
   
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    page,
-    prepareRow,
-    nextPage,
-    previousPage,
-    canNextPage,
-    canPreviousPage,
-    pageOptions,
-    gotoPage,
-    state: { pageIndex },
-  } = useTable(
-    {
-      columns:tableColumns,
-      data,
-      initialState: { pageIndex: 0, pageSize: 10 },
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      pagination,
     },
-    usePagination,
-    useRowSelect
-  );
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
+    rowCount,
+    debugTable: true
+  });
+
   const renderPagination = () => {
-    const totalPages = pageOptions.length;
+    const totalPages = table.getPageCount();
+    const pageIndex = table.getState().pagination.pageIndex;
     const visiblePages = 3;
     let displayedPages = [];
-  
+
     if (totalPages <= visiblePages + 1) {
-      displayedPages = pageOptions;
+      displayedPages = Array.from({ length: totalPages }, (_, i) => i);
     } else if (pageIndex < visiblePages) {
-      displayedPages = [...pageOptions.slice(0, visiblePages), "...", totalPages - 1];
+      displayedPages = [...Array.from({ length: visiblePages }, (_, i) => i), "...", totalPages - 1];
     } else if (pageIndex >= totalPages - visiblePages) {
-      displayedPages = [0, "...", ...pageOptions.slice(totalPages - visiblePages)];
+      displayedPages = [0, "...", ...Array.from({ length: visiblePages }, (_, i) => totalPages - visiblePages + i)];
     } else {
-      displayedPages = [0, "...", ...pageOptions.slice(pageIndex - 1, pageIndex + 2), "...", totalPages - 1];
+      displayedPages = [0, "...", pageIndex - 1, pageIndex, pageIndex + 1, "...", totalPages - 1];
     }
-  
+
     return displayedPages.map((number, index) => (
       <A
         key={index}
@@ -79,15 +65,15 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(({ data, column
             opacity: number === "..." ? 0.5 : 1,
           },
         }}
-        onClick={() => typeof number === "number" && gotoPage(number)}
+        onClick={() => typeof number === "number" && table.setPageIndex(number)}
       >
-        {number === "..." ? "..." : number + 1}
+        {number === "..." ? "..." : (number as number) + 1}
       </A>
     ));
   };
-  
+
   return (
-    <Box styles={{ base: {  width: "100%" } }} ref={ref}>
+    <Box styles={{ base: { width: "100%" } }} ref={ref}>
       <Box
         styles={{
           base: {
@@ -98,10 +84,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(({ data, column
           },
         }}
       >
-        <Table
-          {...getTableProps()}
-          styles={{ base: { minWidth: "calc(100vw - 240px)", borderCollapse: "collapse" } }}
-        >
+        <Table styles={{ base: { minWidth: "calc(100vw - 240px)", borderCollapse: "collapse" } }}>
           <Tbody
             as="thead"
             styles={{
@@ -113,11 +96,11 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(({ data, column
               },
             }}
           >
-            {headerGroups.map((headerGroup) => (
-              <Tr {...headerGroup.getHeaderGroupProps()}>
-                {headerGroup.headers.map((column) => (
+            {table.getHeaderGroups().map((headerGroup) => (
+              <Tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
                   <Th
-                    {...column.getHeaderProps()}
+                    key={header.id}
                     styles={{
                       base: {
                         padding: "8px 16px",
@@ -126,52 +109,107 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(({ data, column
                       },
                     }}
                   >
-                    {column.render("Header")}
+                    {flexRender(header.column.columnDef.header, header.getContext())}
                   </Th>
                 ))}
               </Tr>
             ))}
           </Tbody>
-          <Tbody
-            {...getTableBodyProps()}
-            styles={{ base: { backgroundColor: "#FFFFFF" } }}
-          >
-            {page.map((row) => {
-              prepareRow(row);
-              return (
-                <Tr
-                  {...row.getRowProps()}
-                  styles={{
-                    base: {
-                      borderTop: "1px solid #E5E7EB",
-                      ":hover": { backgroundColor: "#F9FAFB" },
-                    },
-                  }}
-                >
-                  {row.cells.map((cell) => (
-                    <Th
-                      as="td"
-                      {...cell.getCellProps()}
-                      styles={{
-                        base: { padding: "8px 16px", fontSize: "12px" ,cursor:"pointer"},
-                      }}
-                    >
-                      {cell.render("Cell")}
-                    </Th>
-                  ))}
-                </Tr>
-              );
-            })}
+          <Tbody styles={{ base: { backgroundColor: "#FFFFFF" } }}>
+            {table.getRowModel().rows.map((row) => (
+              <Tr
+                key={row.id}
+                styles={{
+                  base: {
+                    borderTop: "1px solid #E5E7EB",
+                    ":hover": { backgroundColor: "#F9FAFB" },
+                  },
+                }}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <Th
+                    key={cell.id}
+                    as="td"
+                    styles={{
+                      base: { padding: "8px 16px", fontSize: "12px", cursor: "pointer" },
+                    }}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </Th>
+                ))}
+              </Tr>
+            ))}
           </Tbody>
         </Table>
       </Box>
 
-      {/* Pagination */}
+      <Box className="flex items-center gap-2">
+        <Button
+          className="border rounded p-1"
+          onClick={() => table.firstPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          {'<<'}
+        </Button>
+        <Button
+          className="border rounded p-1"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          {'<'}
+        </Button>
+        <Button
+          className="border rounded p-1"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          {'>'}
+        </Button>
+        <Button
+          className="border rounded p-1"
+          onClick={() => table.lastPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          {'>>'}
+        </Button>
+        <span className="flex items-center gap-1">
+          <Box>Page</Box>
+          <strong>
+            {table.getState().pagination.pageIndex + 1} of{' '}
+            {table.getPageCount().toLocaleString()}
+          </strong>
+        </span>
+        <span className="flex items-center gap-1">
+          | Go to page:
+          <input
+            type="number"
+            min="1"
+            max={table.getPageCount()}
+            defaultValue={table.getState().pagination.pageIndex + 1}
+            onChange={e => {
+              const page = e.target.value ? Number(e.target.value) - 1 : 0
+              table.setPageIndex(page)
+            }}
+            className="border p-1 rounded w-16"
+          />
+        </span>
+        <select
+          value={table.getState().pagination.pageSize}
+          onChange={e => {
+            table.setPageSize(Number(e.target.value))
+          }}
+        >
+          {[10, 20, 30, 40, 50].map(pageSize => (
+            <option key={pageSize} value={pageSize}>
+              Show {pageSize}
+            </option>
+          ))}
+        </select>
+      </Box>
       <Box
         styles={{
           base: {
             display: "flex",
-
             justifyContent: "end",
             alignItems: "center",
             gap: "8px",
@@ -179,39 +217,46 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(({ data, column
           },
         }}
       >
-        <A onClick={previousPage} disabled={!canPreviousPage} styles={{base:{
-          display:"flex",flexDirection:"row",alignItems:"center",fontSize:"12px",fontWeight:600,textAlign:"center",lineHeight:0,cursor:"pointer"
-        }}}>
-          <ChevronLeft size={12}  className="mt-[2px]"/> Previous
+        <A
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+          styles={{
+            base: {
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              fontSize: "12px",
+              fontWeight: 600,
+              textAlign: "center",
+              lineHeight: 0,
+              cursor: "pointer",
+            },
+          }}
+        >
+          <ChevronLeft size={12} className="mt-[2px]" /> Previous
         </A>
-        {/* {pageOptions.map((number, index) => (
-          <A
-            key={index}
-            styles={{
-              base: {
-                color: "#000",
-                padding: "2px 8px",
-                border: pageIndex === number ? "1px solid #DDDDDD" : "none",
-                borderRadius: "4px",
-                fontSize:12,
-                cursor:"pointer"
-              },
-            }}
-            onClick={() => gotoPage(number)}
-          >
-            {number + 1}
-          </A>
-        ))} */}
         {renderPagination()}
-        <A onClick={nextPage} disabled={!canNextPage} styles={{base:{
-          display:"flex",flexDirection:"row",alignItems:"center",fontSize:"12px",fontWeight:600,textAlign:"center",lineHeight:0,cursor:"pointer"
-        }}}>
-          Next <ChevronRight size={12} className="mt-[2px]"/>
+        <A
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+          styles={{
+            base: {
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              fontSize: "12px",
+              fontWeight: 600,
+              textAlign: "center",
+              lineHeight: 0,
+              cursor: "pointer",
+            },
+          }}
+        >
+          Next <ChevronRight size={12} className="mt-[2px]" />
         </A>
       </Box>
     </Box>
   );
-
 });
 
 export default DynamicTable;
