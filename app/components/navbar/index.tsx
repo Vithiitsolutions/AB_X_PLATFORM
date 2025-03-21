@@ -96,7 +96,7 @@ function Navbar() {
             base: {
               fontWeight: 500,
               fontSize: 14,
-              lineHeight: 19.12,
+              // lineHeight: 19.12,
               color: "#161616",
             },
           }}

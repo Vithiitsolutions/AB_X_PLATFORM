@@ -12,20 +12,20 @@ export const generateSchema = (metadata: any[]) => {
   const schemaObj: Record<string, any> = {};
 
   metadata?.forEach((field) => {
-    const { fieldName, type, required, enumType, label, many } = field;
+    const { name, type, required, enumType, label, many } = field;
 
     const wrapMany = (schema: any) => (many ? z.array(schema) : schema);
 
     switch (type) {
       case "string":
-        schemaObj[fieldName] = required
+        schemaObj[name] = required
           ? wrapMany(z.string({ required_error: `${label} is required` }))
           : wrapMany(z.string()).optional();
         break;
 
       case "number":
       case "float":
-        schemaObj[fieldName] = required
+        schemaObj[name] = required
           ? wrapMany(
               z.coerce.number({ required_error: `${label} is required` })
             )
@@ -33,33 +33,33 @@ export const generateSchema = (metadata: any[]) => {
         break;
 
       case "boolean":
-        schemaObj[fieldName] = required
+        schemaObj[name] = required
           ? wrapMany(z.boolean({ required_error: `${label} is required` }))
           : wrapMany(z.boolean()).optional();
         break;
 
       case "enum":
         if (enumType === "number") {
-          schemaObj[fieldName] = required
+          schemaObj[name] = required
             ? wrapMany(
                 z.coerce.number({ required_error: `${label} is required` })
               )
             : wrapMany(z.coerce.number()).optional();
         } else if (enumType === "string") {
-          schemaObj[fieldName] = required
+          schemaObj[name] = required
             ? wrapMany(z.string({ required_error: `${label} is required` }))
             : wrapMany(z.string()).optional();
         }
         break;
 
       case "relationship":
-        schemaObj[fieldName] = required
+        schemaObj[name] = required
           ? wrapMany(z.string({ required_error: `${label} is required` }))
           : wrapMany(z.string()).optional();
         break;
 
       case "date":
-        schemaObj[fieldName] = required
+        schemaObj[name] = required
           ? wrapMany(z.coerce.date({ required_error: `${label} is required` }))
           : wrapMany(z.coerce.date()).optional();
         break;
@@ -87,12 +87,12 @@ const CreateDynamicRecord = () => {
 
   const formSchema = generateSchema(data?.listModelFields?.docs);
   type FormSchema = z.infer<typeof formSchema>;
-
+console.log(formSchema,"formSCHEMA")
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: data?.listModelFields?.docs.reduce(
       (acc: any, field: any) => {
-        acc[field.fieldName] =
+        acc[field.name] =
           field.type === "boolean" ? false : field.type == "number" ? 0 : "";
         return acc;
       },
@@ -176,6 +176,8 @@ const CreateDynamicRecord = () => {
   ]);
 
   const onSubmit: SubmitHandler<FormSchema> = (values) => {
+    console.log("enter")
+    console.log(values,"values")
     createRecord(
       Create_Query,
       { input: values },
