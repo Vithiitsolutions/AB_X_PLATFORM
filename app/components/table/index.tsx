@@ -8,6 +8,7 @@ import {
   ColumnDef,
   flexRender,
   PaginationState,
+  SortingState,
 } from "@tanstack/react-table";
 import { CustomSelect } from "../inputs";
 
@@ -17,20 +18,25 @@ interface TableProps<T extends object> {
   columns: ColumnDef<T>[];
   pagination: PaginationState;
   setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
+  sorting: SortingState;
+  setSorting: React.Dispatch<React.SetStateAction<SortingState>>;
 }
 
 const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
-  ({ data, columns = [], rowCount, pagination, setPagination }, ref) => {
+  ({ data, columns = [], rowCount, pagination, setPagination, sorting, setSorting }, ref) => {
     const table = useReactTable({
       data,
       columns,
       state: {
         pagination,
+        sorting,
       },
       onPaginationChange: setPagination,
+      onSortingChange: setSorting,
       getCoreRowModel: getCoreRowModel(),
       getPaginationRowModel: getPaginationRowModel(),
       manualPagination: true,
+      manualSorting: true,
       rowCount,
       debugTable: true,
     });

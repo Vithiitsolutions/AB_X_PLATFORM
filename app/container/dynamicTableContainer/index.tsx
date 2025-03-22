@@ -11,7 +11,7 @@ import { ChevronsUpDown, ExternalLink } from "lucide-react";
 import { CustomeInput } from "../../components/inputs";
 import DynamicTable from "../../components/table";
 import _ from "lodash";
-import { PaginationState } from "@tanstack/react-table";
+import { PaginationState, SortingState } from "@tanstack/react-table";
 
 function DynamicTableContainer() {
   let { model } = useParams();
@@ -25,6 +25,8 @@ function DynamicTableContainer() {
     pageIndex: 0,
     pageSize: 10,
   });
+  const [sorting, setSorting] = React.useState<SortingState>([])
+
   useEffect(() => {
     getAllModelFields(
       `query ListModelFields($where: whereModelFieldInput, $limit: Int!) {
@@ -299,7 +301,7 @@ function DynamicTableContainer() {
         dynamicQueryString,
         {
           sort: {
-            createdOn: "desc",
+            [sorting[0]?.id || "createdOn"]: sorting[0]?.desc ? "desc": "asc",
           },
           limit: pagination.pageSize,
           offset: pagination.pageIndex * pagination.pageSize,
@@ -308,7 +310,7 @@ function DynamicTableContainer() {
           cache: "no-store",
         }
       );
-  }, [pagination.pageSize, pagination.pageSize, dynamicQueryString]);
+  }, [pagination.pageSize, pagination.pageSize, dynamicQueryString, sorting]);
   useEffect(() => {
     if (listModelDataResponse.data) {
       console.log(listModelDataResponse.data, "data11");
@@ -329,9 +331,11 @@ function DynamicTableContainer() {
         <DynamicTable
           data={listModelDataResponse.data?.[`list${model}s`]?.docs || []}
           columns={columns}
-          rowCount={listModelDataResponse.data?.[`list${model}s`]?.totalDocs}
+          rowCount={listModelDataResponse.data?.[`list${model}s`]?.totalDocs || 0}
           pagination={pagination}
           setPagination={setPagination}
+          setSorting={setSorting}
+          sorting={sorting}
         />
       ) : (
         <Text>Loading...</Text>

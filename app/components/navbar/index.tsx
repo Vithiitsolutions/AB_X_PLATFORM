@@ -5,7 +5,7 @@ import { useTheme } from "../../utils/theme";
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  console.log(theme,"theme")
+  console.log(theme, "theme");
   return (
     <Box
       styles={{
@@ -106,94 +106,110 @@ function Navbar() {
         <FaChevronDown size={14} color="#161616" />
 
         {isOpen && (
-            <Box styles={{base:{}}}>
-            <Box styles={{base:{clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",position:"absolute",background:"white",top: "30px",
-                right: 20,boxShadow: " 6px 7px 16px -7px rgba(0,0,0,0.86)",color:"white", }}} >{" aas"}</Box>
-          <Box
-            styles={{
-              base: {
-                position: "absolute",
-                top: "40px",
-                right: 0,
-                background: "white",
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                borderRadius: "8px",
-                padding: "8px 16px",
-                width: "130px",
-                display:"flex",
-                flexDirection:"column",
-                gap:"10px",
-                fontSize:"14px",
-                fontWeight:500,
-                lineHeight:"19.12px",
-                color:"#161616"
-              },
-            }}
-          >
+          <Box styles={{ base: {} }}>
             <Box
               styles={{
                 base: {
-                  cursor: "pointer",
+                  clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+                  position: "absolute",
+                  background: "white",
+                  top: "30px",
+                  right: 20,
+                  boxShadow: " 6px 7px 16px -7px rgba(0,0,0,0.86)",
+                  color: "white",
                 },
               }}
             >
-              Dashboard
+              {" aas"}
             </Box>
             <Box
               styles={{
                 base: {
-                  cursor: "pointer",
-                  width:"100%",
-                  display:"flex",
-                  flexDirection:"row",
-                  alignItems:"center",
-                  gap:"5px"
-                },
-              }}
-              onClick={toggleTheme}
-            >
-              <Image src="/public/assets/darkModeIcon.png" alt="Logo"
-            styles={{
-              base: {
-                width: "16px",
-                height: "16px",
-                background:theme == "light"?"yellow":"black",
-                borderRadius:"100%",
-                padding:2,
-                objectFit: "contain",
-              },
-            }}/> {theme == "light"?"Light":"Dark"} Mode
-            </Box>
-            <Box
-              styles={{
-                base: {
-                  cursor: "pointer",
+                  position: "absolute",
+                  top: "40px",
+                  right: 0,
+                  background: "white",
+                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                  borderRadius: "8px",
+                  padding: "8px 16px",
+                  width: "130px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  lineHeight: "19.12px",
+                  color: "#161616",
                 },
               }}
             >
-              Settings
-            </Box>
-            <Box
-              styles={{
-                base: {
-                  cursor: "pointer",
-                },
-              }}
-            >
-              Account
-            </Box>
-            <Box
-              styles={{
-                base: {
-                  cursor: "pointer",
-                },
-              }}
-            >
-              Logout
+              <Box
+                styles={{
+                  base: {
+                    cursor: "pointer",
+                  },
+                }}
+              >
+                Dashboard
+              </Box>
+              <Box
+                styles={{
+                  base: {
+                    cursor: "pointer",
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: "5px",
+                  },
+                }}
+                onClick={toggleTheme}
+              >
+                <Image
+                  src="/public/assets/darkModeIcon.png"
+                  alt="Logo"
+                  styles={{
+                    base: {
+                      width: "16px",
+                      height: "16px",
+                      background: theme == "light" ? "yellow" : "black",
+                      borderRadius: "100%",
+                      padding: 2,
+                      objectFit: "contain",
+                    },
+                  }}
+                />{" "}
+                {theme == "light" ? "Light" : "Dark"} Mode
+              </Box>
+              <Box
+                styles={{
+                  base: {
+                    cursor: "pointer",
+                  },
+                }}
+              >
+                Settings
+              </Box>
+              <Box
+                styles={{
+                  base: {
+                    cursor: "pointer",
+                  },
+                }}
+              >
+                Account
+              </Box>
+              <Box
+                styles={{
+                  base: {
+                    cursor: "pointer",
+                  },
+                }}
+              >
+                Logout
+              </Box>
             </Box>
           </Box>
-          </Box>
-
         )}
       </Box>
     </Box>
