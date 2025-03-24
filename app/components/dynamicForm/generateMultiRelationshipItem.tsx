@@ -22,12 +22,9 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
                 listModelFields(where: $where, limit: $limit) {
                     docs {
                         id
-                        fieldName
+                        name
                         enumValues
-                        createdBy {
-                            id
-                            firstName
-                        }
+                       
                         label
                         managed
                         required
@@ -40,13 +37,14 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
                             id
                             name
                             label
-                            key
-                            prefix
+                            recordKey {
+            id
+            name
+            label
+          }
+                            
                         }
-                        updatedBy {
-                            id
-                            firstName
-                        }
+                        
                     }
                     limit
                 }
@@ -58,6 +56,7 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
                     },
                 },
                 limit: 200,
+
             },
             {}
         );
@@ -73,6 +72,8 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
                             createdOn: 'desc',
                         },
                         limit: 1000,
+                        offset: 0
+
                     },
                     {}
                 );
@@ -93,12 +94,23 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
 
     const onSelect = (selectedList: any) => {
         setSelectedValues(selectedList);
-        form.setValue(fieldData.fieldName, selectedList);
+        console.log(selectedList, "selectedList");
+    
+        // Extract only IDs from the selected list
+        const selectedIds = selectedList.map((item: any) => item.id);
+    
+        // Set form value with array of IDs
+        form.setValue(fieldData.name, selectedIds);
     };
 
     const onRemove = (selectedList: any) => {
         setSelectedValues(selectedList);
-        form.setValue(fieldData.fieldName, selectedList);
+
+    // Extract only IDs from the updated selected list
+    const selectedIds = selectedList.map((item: any) => item.id);
+
+    // Update form value with new array of IDs
+    form.setValue(fieldData.name, selectedIds);
     };
 
     return (

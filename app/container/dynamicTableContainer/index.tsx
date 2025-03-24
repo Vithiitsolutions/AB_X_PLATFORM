@@ -36,7 +36,7 @@ function DynamicTableContainer() {
               managed
               required
               enumType
-              ref
+              
               many
               unique
               type
@@ -44,6 +44,11 @@ function DynamicTableContainer() {
                 id
                 name
                 label
+                recordKey {
+            id
+            name
+            label
+          }
               }
             name
           }
@@ -72,7 +77,7 @@ function DynamicTableContainer() {
 
         for (const field of data?.listModelFields?.docs || []) {
           if (field.type === "relationship" || field.type === "virtual") {
-            refKeyMap[field.name] = await getModelFieldRefModelKey(field.ref);
+            refKeyMap[field.name] = await getModelFieldRefModelKey(field.model?.recordKey?.name);
           }
         }
 

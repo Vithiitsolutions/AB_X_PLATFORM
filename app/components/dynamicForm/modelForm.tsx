@@ -24,7 +24,7 @@ const DynamicForm = ({
   form: any;
   loading?: boolean;
 }) => {
-  console.log(modelFields,"modelFields")
+  console.log(modelFields, "modelFields");
   return (
     <div>
       <form
@@ -36,31 +36,43 @@ const DynamicForm = ({
           {modelFields.map((item) => {
             return (
               <div>
-                {item.type === "string" && (!item.many || item?.many==null) && (
-                  <Controller
-                    control={form.control}
-                    name={item.name}
-                    render={({ field }) => (
-                      <Box
-                        styles={{
-                          base: {
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 2,
-                          },
-                        }}
-                      >
-                        <Text styles={{base:{fontWeight:500,fontSize:"15px"}}}>{_.startCase(item.label)}</Text>
-                        <CustomeInput
-                          placeholder={item.name}
-                          {...field}
-                          type="text"
-                        />
-                        {/* <FormMessage /> */}
-                      </Box>
-                    )}
-                  />
-                )}
+                {item.type === "string" &&
+                  (!item.many || item?.many == null) && (
+                    <Controller
+                      control={form.control}
+                      name={item.name}
+                      render={({ field }) => (
+                        <Box
+                          styles={{
+                            base: {
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 2,
+                            },
+                          }}
+                        >
+                          <Text
+                            styles={{
+                              base: { fontWeight: 500, fontSize: "15px" },
+                            }}
+                          >
+                            {_.startCase(item.label)}
+                          </Text>
+                          <CustomeInput
+                            placeholder={item.name}
+                            {...field}
+                            type="text"
+                          />
+                          {form.formState.errors[item.name] && (
+                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                          {form.formState.errors[item.name]?.message}
+                        </Text>
+                      )}
+                          {/* <FormMessage /> */}
+                        </Box>
+                      )}
+                    />
+                  )}
 
                 {item.type == "date" && (
                   <Controller
@@ -76,7 +88,13 @@ const DynamicForm = ({
                           },
                         }}
                       >
-                                               <Text styles={{base:{fontWeight:500,fontSize:"15px"}}}>{_.startCase(item.label)}</Text>
+                        <Text
+                          styles={{
+                            base: { fontWeight: 500, fontSize: "15px" },
+                          }}
+                        >
+                          {_.startCase(item.label)}
+                        </Text>
 
                         {/* <DateTimePicker
                               granularity="second"
@@ -89,6 +107,11 @@ const DynamicForm = ({
                           {...field}
                           type="datetime-local"
                         />
+                        {form.formState.errors[item.name] && (
+                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                          {form.formState.errors[item.name]?.message}
+                        </Text>
+                      )}
                         {/* <FormMessage /> */}
                       </Box>
                     )}
@@ -110,7 +133,13 @@ const DynamicForm = ({
                             },
                           }}
                         >
-                                                  <Text styles={{base:{fontWeight:500,fontSize:"15px"}}}>{_.startCase(item.label)}</Text>
+                          <Text
+                            styles={{
+                              base: { fontWeight: 500, fontSize: "15px" },
+                            }}
+                          >
+                            {_.startCase(item.label)}
+                          </Text>
 
                           {/* <FormControl> */}
                           <CustomeInput
@@ -152,6 +181,11 @@ const DynamicForm = ({
                               field.onChange(arrayValues);
                             }}
                           />
+                          {form.formState.errors[item.name] && (
+                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                          {form.formState.errors[item.name]?.message}
+                        </Text>
+                      )}
                           {/* </FormControl> */}
                           {/* <FormMessage /> */}
                         </Box>
@@ -159,19 +193,28 @@ const DynamicForm = ({
                     />
                   )}
 
-                {
-                    item.type == "relationship" && !item.many && (
-                      <Controller
-                        control={form.control}
-                        name={item.name}
-                        render={({ field }) => (
-                            <Box styles={{base:{
-                                display:"flex",
-                                flexDirection:"column",
-                                gap:5
-                            }}}>
-                        <Text styles={{base:{fontWeight:500,fontSize:"15px"}}}>{_.startCase(item.ref)}s</Text>
-                            
+                {item.type == "relationship" && !item.many && (
+                  <Controller
+                    control={form.control}
+                    name={item.name}
+                    render={({ field }) => (
+                      <Box
+                        styles={{
+                          base: {
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 5,
+                          },
+                        }}
+                      >
+                        <Text
+                          styles={{
+                            base: { fontWeight: 500, fontSize: "15px" },
+                          }}
+                        >
+                          {_.startCase(item.ref)}s
+                        </Text>
+
                         <Box
                           styles={{
                             base: {
@@ -182,10 +225,12 @@ const DynamicForm = ({
                           }}
                         >
                           <Select
-                            onValueChange={(value) => {
-                              form.setValue(item.name, value);
-                            }}
-                            value={form.watch(item.name)}
+                         {...field} // Use field props directly
+                         onValueChange={(value) => {
+                           console.log(value, "enum value");
+                           field.onChange(value); // Correct way to update value
+                         }}
+                         value={field.value}
                             styles={Clx({
                               base: {
                                 height: 46,
@@ -203,8 +248,10 @@ const DynamicForm = ({
                             <Option disabled>
                               Select a {_.startCase(item.ref)}
                             </Option>
-                            <GenerateRelationshipValues fieldData={item} form={form} />
-                           
+                            <GenerateRelationshipValues
+                              fieldData={item}
+                              form={form}
+                            />
                           </Select>
 
                           {/* Dropdown Icon (absolute inside Box) */}
@@ -222,20 +269,22 @@ const DynamicForm = ({
                             <ChevronDown size={20} color="#555" />
                           </Box>
                         </Box>
-                          </Box>
-                        )}
-                      />
-                    )
-                  }
+                        {form.formState.errors[item.name] && (
+                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                          {form.formState.errors[item.name]?.message}
+                        </Text>
+                      )}
+                      </Box>
+                    )}
+                  />
+                )}
 
-                {
-                    item.type == "relationship" && item.many &&
-
-                    <Controller
-                      control={form.control}
-                      name={item.fieldName}
-                      render={({ field }) => (
-                        <Box
+                {item.type == "relationship" && item.many && (
+                  <Controller
+                    control={form.control}
+                    name={item.name}
+                    render={({ field }) => (
+                      <Box
                         styles={{
                           base: {
                             display: "flex",
@@ -244,24 +293,28 @@ const DynamicForm = ({
                           },
                         }}
                       >
-                          <Text styles={{base:{fontWeight:500,fontSize:"15px"}}}>{_.startCase(item.label)}</Text>
-                          {/* <FormControl>
-                            <MultiSelector values={form.watch(item.fieldName) || []} onValuesChange={(values) => {
-                              form.setValue(item.fieldName, values)
-                            }} loop>
-                              <MultiSelectorTrigger>
-                                <MultiSelectorInput placeholder={`select ${item.ref}s`} />
-                              </MultiSelectorTrigger>
-                              <MultiSelectorContent> */}
-                                <GenerateMultiRelationshipItems fieldData={item} form={form}  {...field}/>
-                              {/* </MultiSelectorContent>
-                            </MultiSelector>
-                          </FormControl>
-                          <FormMessage /> */}
-                        </Box>
+                        <Text
+                          styles={{
+                            base: { fontWeight: 500, fontSize: "15px" },
+                          }}
+                        >
+                          {_.startCase(item.label)}
+                        </Text>
+                        <GenerateMultiRelationshipItems
+                          fieldData={item}
+                          form={form}
+                          {...field}
+                        />
+                        {form.formState.errors[item.name] && (
+                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                          {form.formState.errors[item.name]?.message}
+                        </Text>
                       )}
-                    />
-                  }
+
+                      </Box>
+                    )}
+                  />
+                )}
                 {["number", "float"].includes(item.type) && !item.many && (
                   <Controller
                     control={form.control}
@@ -276,12 +329,23 @@ const DynamicForm = ({
                           },
                         }}
                       >
-                        <Text styles={{base:{fontWeight:500,fontSize:"15px"}}}>{_.startCase(item.label)}</Text>
+                        <Text
+                          styles={{
+                            base: { fontWeight: 500, fontSize: "15px" },
+                          }}
+                        >
+                          {_.startCase(item.label)}
+                        </Text>
                         <CustomeInput
                           placeholder={item.name}
                           {...field}
                           type="number"
                         />
+                        {form.formState.errors[item.name] && (
+                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                          {form.formState.errors[item.name]?.message}
+                        </Text>
+                      )}
                         {/* <FormMessage /> */}
                       </Box>
                     )}
@@ -293,22 +357,42 @@ const DynamicForm = ({
                     control={form.control}
                     name={item.name}
                     render={({ field }) => (
-                      <Box
-                        styles={{
-                          base: {
-                            display: "flex",
-                            flexDirection: "row",
-                            gap: 5,
-                          },
-                        }}
-                      >
-                        <CustomeInput
-                          checked={field.value}
-                          onChange={field.onChange}
-                        />
-                        <div className="space-y-1 leading-none">
-                        <Text styles={{base:{fontWeight:500,fontSize:"15px"}}}>{_.startCase(item.label)}</Text>
-                        </div>
+                      <Box  styles={{
+                        base: {
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 5,
+                        },
+                      }}>
+
+                        <Box
+                          styles={{
+                            base: {
+                              display: "flex",
+                              flexDirection: "row",
+                              gap: 5,
+                            },
+                          }}
+                        >
+                          <CustomeInput
+                            checked={field.value}
+                            onChange={field.onChange}
+                          />
+                          <div className="space-y-1 leading-none">
+                            <Text
+                              styles={{
+                                base: { fontWeight: 500, fontSize: "15px" },
+                              }}
+                            >
+                              {_.startCase(item.label)}
+                            </Text>
+                          </div>
+                        </Box>
+                        {form.formState.errors[item.name] && (
+                          <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                            {form.formState.errors[item.name]?.message}
+                          </Text>
+                        )}
                       </Box>
                     )}
                   />
@@ -327,7 +411,13 @@ const DynamicForm = ({
                           },
                         }}
                       >
-                        <Text styles={{base:{fontWeight:500,fontSize:"15px"}}}>{_.startCase(item.label)}</Text>
+                        <Text
+                          styles={{
+                            base: { fontWeight: 500, fontSize: "15px" },
+                          }}
+                        >
+                          {_.startCase(item.label)}
+                        </Text>
 
                         <Box
                           styles={{
@@ -339,7 +429,9 @@ const DynamicForm = ({
                           }}
                         >
                           <Select
+                            {...field}
                             onValueChange={(value) => {
+                              console.log(value, "enum value");
                               form.setValue(item.name, value);
                             }}
                             value={form.watch(item.name)}
@@ -382,6 +474,46 @@ const DynamicForm = ({
                             <ChevronDown size={20} color="#555" />
                           </Box>
                         </Box>
+                        {form.formState.errors[item.name] && (
+                          <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                            {form.formState.errors[item.name]?.message}
+                          </Text>
+                        )}
+                      </Box>
+                    )}
+                  />
+                )}
+                {item.type === "textarea" && (
+                  <Controller
+                    control={form.control}
+                    name={item.name}
+                    render={({ field }) => (
+                      <Box
+                        styles={{
+                          base: {
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 5,
+                          },
+                        }}
+                      >
+                        <Text
+                          styles={{
+                            base: { fontWeight: 500, fontSize: "15px" },
+                          }}
+                        >
+                          {_.startCase(item.label)}
+                        </Text>
+                        <textarea
+                          {...field}
+                          placeholder={item.label}
+                          className="border border-gray-300 rounded-md p-2 w-full h-24"
+                        />
+                          {form.formState.errors[item.name] && (
+                          <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                            {form.formState.errors[item.name]?.message}
+                          </Text>
+                        )}
                       </Box>
                     )}
                   />
@@ -391,8 +523,9 @@ const DynamicForm = ({
           })}
         </div>
         <div className="flex justify-center items-center">
-          <CustomeButton type="submit" 
-          children={loading ? "loading..." : "Submit"}
+          <CustomeButton
+            type="submit"
+            children={loading ? "loading..." : "Submit"}
           />
         </div>{" "}
       </form>

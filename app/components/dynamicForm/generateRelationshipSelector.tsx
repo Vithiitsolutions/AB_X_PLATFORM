@@ -20,13 +20,9 @@ const GenerateRelationshipValues = ({ fieldData, form }: { fieldData: any, form:
     listModelFields(where: $where, limit: $limit) {
       docs {
         id
-        fieldName
+        name
         enumValues
-        createdBy {
-          id
-          firstName
-          
-        }
+ref
         label
         managed
         required
@@ -39,14 +35,14 @@ const GenerateRelationshipValues = ({ fieldData, form }: { fieldData: any, form:
           id
           name
           label
-          key
-          prefix
-        }
-        updatedBy {
-          id
-          firstName
+          recordKey {
+            id
+            name
+            label
+          }
           
         }
+
       }
       limit
     }
@@ -66,6 +62,7 @@ const GenerateRelationshipValues = ({ fieldData, form }: { fieldData: any, form:
     }, [])
     useEffect(() => {
         if (listModelFieldsResponse.data) {
+            console.log(fieldData.ref,"fieldDat",fieldData)
             console.log(listModelFieldsResponse.data);
 
             GET_DYNAMIC_MODEL_LIST(fieldData.ref, listModelFieldsResponse?.data?.listModelFields?.docs).then((str) => {
@@ -75,7 +72,8 @@ const GenerateRelationshipValues = ({ fieldData, form }: { fieldData: any, form:
                         sort: {
                             createdOn: "desc",
                         },
-                        limit: 1000
+                        limit: 1000,
+                        offset: 0
                     },
                     {
 
@@ -88,7 +86,7 @@ const GenerateRelationshipValues = ({ fieldData, form }: { fieldData: any, form:
 
     useEffect(() => {
         if (data) {
-            console.log(form.watch(fieldData.fieldName));
+            console.log(form.watch(fieldData.name));
 
         }
     }, [data])

@@ -147,7 +147,15 @@ function SideBar({ loaderData }) {
     );
     console.log(data);
 
-    setTabs(data.listTabs.docs);
+    let sortedTabs = data.listTabs.docs.sort((a, b) => a.order - b.order);
+
+    // Sort child tabs inside each main tab
+    sortedTabs = sortedTabs.map((tab) => ({
+      ...tab,
+      childTabs: tab.childTabs.sort((a, b) => a.order - b.order),
+    }));
+  
+    setTabs(sortedTabs);
   };
 
   const toggleItem = (id: string) => {

@@ -6,24 +6,19 @@ export const getModelFieldRefModelKey = async (modelName: string) => {
       id
       name
       label
-      prefix
+      
       managed
-      key
-      createdBy {
-        id
-        firstName
-        email
-      }
-      updatedBy {
-        id
-        firstName
-        email
-      }
+      recordKey {
+            id
+            name
+            label
+          }
+
       createdOn
       updatedOn
     }
   }`, { where: { name: { is: modelName } } }, { cache: "no-store" });
-    return data?.getModel?.key || "";
+    return data?.getModel?.recordKey?.name || "";
   }
 
 
