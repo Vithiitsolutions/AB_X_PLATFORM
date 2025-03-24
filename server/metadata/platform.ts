@@ -11,7 +11,7 @@ export class Platform {
   }
 
   async initialize() {
-    console.time("Platform Initialization Time"); // More descriptive label
+    console.time("Platform Initialization Time");
     try {
       const models = await mercury.db.Model.list(
         {},
@@ -33,7 +33,7 @@ export class Platform {
     } catch (error) {
       console.error("Error during platform initialization:", error);
     } finally {
-      console.timeEnd("Platform Initialization Time"); // Ensure this runs even if there's an error
+      console.timeEnd("Platform Initialization Time"); 
     }
   }
 
@@ -59,7 +59,7 @@ export class Platform {
     return fields.reduce((schema: Record<string, any>, field: any) => {
       const fieldName = field["name"];
       const fieldObj: TField = { type: field["type"] };
-
+// Handle for relationship and virutal types
       for (const key of Object.keys(field["_doc"])) {
         if (skipFields.has(key)) continue;
         if (key !== "enumValues") {
