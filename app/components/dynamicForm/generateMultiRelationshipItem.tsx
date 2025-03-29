@@ -24,7 +24,7 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
                         id
                         name
                         enumValues
-                       
+                        
                         label
                         managed
                         required
@@ -39,10 +39,12 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
                             label
                             recordKey {
             id
-            name
             label
           }
-                            
+                        }
+                        updatedBy {
+                            id
+                            firstName
                         }
                         
                     }

@@ -33,6 +33,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
       },
       onPaginationChange: setPagination,
       onSortingChange: setSorting,
+      enableSorting: true,
       getCoreRowModel: getCoreRowModel(),
       getPaginationRowModel: getPaginationRowModel(),
       manualPagination: true,

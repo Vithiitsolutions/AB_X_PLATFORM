@@ -25,7 +25,7 @@ function DynamicTableContainer() {
     pageIndex: 0,
     pageSize: 10,
   });
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>([]);
 
   useEffect(() => {
     getAllModelFields(
@@ -121,7 +121,7 @@ function DynamicTableContainer() {
                       onClick={() =>
                         column.toggleSorting(column.getIsSorted() === "asc")
                       }
-                      className="font-bold"
+                      className="font-bold w-full flex justify-start items-center gap-1"
                     >
                       {_.startCase(field?.label)}
                       {/* ({field.ref}) */}
@@ -142,6 +142,7 @@ function DynamicTableContainer() {
                             }`}
                             onClick={(e) => e.stopPropagation()}
                             className="hover:underline"
+                            title={JSON.stringify(item, null, 2)}
                           >
                             {(refKeyMap[field.name] &&
                               item?.[`${refKeyMap[field.name]}`]) ||
@@ -306,7 +307,7 @@ function DynamicTableContainer() {
         dynamicQueryString,
         {
           sort: {
-            [sorting[0]?.id || "createdOn"]: sorting[0]?.desc ? "desc": "asc",
+            [sorting[0]?.id || "createdOn"]: sorting[0]?.desc ? "desc" : "asc",
           },
           limit: pagination.pageSize,
           offset: pagination.pageIndex * pagination.pageSize,
@@ -329,14 +330,15 @@ function DynamicTableContainer() {
     listModelDataResponse.error,
     listModelDataResponse.loading,
   ]);
-  console.log(columns, "columns");
   return (
     <div>
       {!loading ? (
         <DynamicTable
           data={listModelDataResponse.data?.[`list${model}s`]?.docs || []}
           columns={columns}
-          rowCount={listModelDataResponse.data?.[`list${model}s`]?.totalDocs || 0}
+          rowCount={
+            listModelDataResponse.data?.[`list${model}s`]?.totalDocs || 0
+          }
           pagination={pagination}
           setPagination={setPagination}
           setSorting={setSorting}

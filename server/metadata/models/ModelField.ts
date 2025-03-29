@@ -100,4 +100,14 @@ export const modelField = mercury.createModel("ModelField", {
   many: { 
     type: "boolean",
   },
+}, {
+  historyTracking: true,
+  indexes: [
+    {
+      fields: {model: 1, name: 1},
+      options: {
+        unique: true
+      } 
+    }
+  ]
 });
