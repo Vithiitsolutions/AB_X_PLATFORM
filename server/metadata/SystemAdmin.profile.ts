@@ -128,7 +128,34 @@ export const SystemAdminRules = [
     },
   },
   {
+    modelName: "View",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
+    modelName: "ViewField",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
     modelName: "Employee",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
+    modelName: "Department",
     access: {
       create: true,
       read: true,
