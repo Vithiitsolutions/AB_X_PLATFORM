@@ -51,3 +51,36 @@ export const getModelFieldRefModelKey = async (modelName: string) => {
   
     return str;
   }
+
+
+//   export const getModelFieldRefModelKey = async (modelName: string) => {
+//   const data = await serverFetch(GET_MODEL, { where: { name: { is: modelName } } }, { cache: "no-store" });
+//   return data?.getModel?.key || "";
+// }
+
+
+export const GET_DYNAMIC_RECORD_DATA = async (modelName: string, modelFields: any[]) => {
+  console.log(modelFields,"model fields")
+  let str = `query Get${modelName}($where: where${modelName}Input!) {
+    get${modelName}(where: $where) {
+            id`;
+  const fieldPromises = modelFields.map(async (item: any) => {
+    if (item.type === "virtual" || item.type === "relationship") {
+      const refModelKey = await getModelFieldRefModelKey(item.ref);
+      return `
+                      ${item.name} {
+                          id
+                          ${refModelKey}
+                      }`;
+    }
+    return `
+                      ${item.name}`;
+  });
+
+  const fieldStrings = await Promise.all(fieldPromises);
+  str += fieldStrings.join('');
+  str += `
+            }
+    }`;
+  return str;
+}
