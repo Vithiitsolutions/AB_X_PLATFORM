@@ -62,8 +62,6 @@ ref
     }, [])
     useEffect(() => {
         if (listModelFieldsResponse.data) {
-            console.log(fieldData.ref,"fieldDat",fieldData)
-            console.log(listModelFieldsResponse.data);
 
             GET_DYNAMIC_MODEL_LIST(fieldData.ref, listModelFieldsResponse?.data?.listModelFields?.docs).then((str) => {
                 listRecords(

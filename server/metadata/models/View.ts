@@ -5,6 +5,10 @@ export const view = mercury.createModel("View", {
         type: "string",
         required: true,
     },
+    modelName: {
+        type: "string",
+        required: true
+    }, 
     description: {
         type: "string",
         required: false,
