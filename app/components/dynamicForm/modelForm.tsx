@@ -245,7 +245,7 @@ const DynamicForm = ({
                               },
                             })}
                           >
-                            <Option disabled>
+                            <Option disabled selected>
                               Select a {_.startCase(item.ref)}
                             </Option>
                             <GenerateRelationshipValues
