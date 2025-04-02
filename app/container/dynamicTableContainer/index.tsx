@@ -319,6 +319,7 @@ function DynamicTableContainer() {
   }, [pagination.pageSize, pagination.pageSize, dynamicQueryString, sorting]);
   useEffect(() => {
     if (listModelDataResponse.data) {
+      console.log(listModelDataResponse.data?.[`list${model}s`]?.totalDocs, "Pagination---");
       console.log(listModelDataResponse.data, "data11");
     }
 
@@ -330,9 +331,13 @@ function DynamicTableContainer() {
     listModelDataResponse.error,
     listModelDataResponse.loading,
   ]);
+
+  
   return (
     <div>
-      {!loading ? (
+      {loading || listModelDataResponse.loading  ? (
+        <Text>Loading...</Text>
+      ) : (
         <DynamicTable
           data={listModelDataResponse.data?.[`list${model}s`]?.docs || []}
           columns={columns}
@@ -344,9 +349,7 @@ function DynamicTableContainer() {
           setSorting={setSorting}
           sorting={sorting}
         />
-      ) : (
-        <Text>Loading...</Text>
-      )}
+      ) }
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { A, Box, Table, Tbody, Tr, Th, Button, Select, Option } from "@mercury-js/mess";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
-import React, { forwardRef } from "react";
+import React, { forwardRef, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -11,6 +11,7 @@ import {
   SortingState,
 } from "@tanstack/react-table";
 import { CustomSelect } from "../inputs";
+import { useNavigate, useParams } from "react-router";
 
 interface TableProps<T extends object> {
   data: T[];
@@ -41,7 +42,9 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
       rowCount,
       debugTable: true,
     });
-
+    
+    let navigate = useNavigate();
+    let params = useParams();
     const renderPagination = () => {
       const totalPages = table.getPageCount();
       const pageIndex = table.getState().pagination.pageIndex;
@@ -157,6 +160,9 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
               {table.getRowModel().rows.map((row) => (
                 <Tr
                   key={row.id}
+                  onClick={()=>{
+                    navigate(`/dashboard/o/${params?.model}/r/${row.original.id}`)
+                  }}
                   styles={{
                     base: {
                       borderTop: "1px solid #E5E7EB",
@@ -199,7 +205,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
           }}
         >
           <A
-            onClick={() => table.firstPage()}
+            onClick={() => table.getCanPreviousPage() && table.firstPage()}
             disabled={!table.getCanPreviousPage()}
             styles={{
               base: {
@@ -210,14 +216,14 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
                 fontWeight: 600,
                 textAlign: "center",
                 lineHeight: 0,
-                cursor: "pointer",
+                cursor: table.getCanPreviousPage() ? "pointer": "not-allowed",
               },
             }}
           >
             <ChevronsLeft size={12} className="mt-[2px]" />
           </A>
           <A
-            onClick={() => table.previousPage()}
+            onClick={() => table.getCanPreviousPage() && table.previousPage()}
             disabled={!table.getCanPreviousPage()}
             styles={{
               base: {
@@ -228,7 +234,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
                 fontWeight: 600,
                 textAlign: "center",
                 lineHeight: 0,
-                cursor: "pointer",
+                cursor: table.getCanPreviousPage() ? "pointer": "not-allowed",
               },
             }}
           >
@@ -236,7 +242,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
           </A>
           {renderPagination()}
           <A
-            onClick={() => table.nextPage()}
+            onClick={() => table.getCanNextPage() && table.nextPage()}
             disabled={!table.getCanNextPage()}
             styles={{
               base: {
@@ -247,14 +253,14 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
                 fontWeight: 600,
                 textAlign: "center",
                 lineHeight: 0,
-                cursor: "pointer",
+                cursor: table.getCanNextPage() ? "pointer": "not-allowed",
               },
             }}
           >
             Next <ChevronRight size={12} className="mt-[2px]" />
           </A>
           <A
-            onClick={() => table.lastPage()}
+            onClick={() => table.getCanNextPage() && table.lastPage()}
             disabled={!table.getCanNextPage()}
             styles={{
               base: {
@@ -265,7 +271,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
                 fontWeight: 600,
                 textAlign: "center",
                 lineHeight: 0,
-                cursor: "pointer",
+                cursor: table.getCanNextPage() ? "pointer": "not-allowed",
               },
             }}
           >
