@@ -7,6 +7,7 @@ import "./models";
 
 // hooks
 import "./hooks/Model.hook.ts";
+import "./hooks/modelField.ts";
 
 // Profiles
 import "./SystemAdmin.profile.ts";
@@ -17,6 +18,7 @@ interface IMetaApiConfig {
 }
 
 export default class MetaApi {
+  public platform: Platform;
   schema = applyMiddleware(
     makeExecutableSchema({
       typeDefs: mercury.typeDefs,
@@ -32,8 +34,8 @@ export default class MetaApi {
     mercury.connect(db || "mongodb://localhost:27017")
   }
   async start() {
-    const platform = new Platform();
-    await platform.initialize();
+    this.platform = new Platform();
+    await this.platform.initialize();
     await this.restart();
   }
   async restart() {

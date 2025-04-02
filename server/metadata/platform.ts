@@ -1,4 +1,5 @@
 import mercury, { TField, TFields, TOptions } from "@mercury-js/core";
+import _ from "lodash";
 
 export class Platform {
   typeMapping: Record<string, (val: any) => any> = {
@@ -7,6 +8,8 @@ export class Platform {
     string: (val) => String(val),
   };
   constructor() {
+    // Pending - Model, Model Options, Field Options
+    // Finished - Model Fields
     console.log("Platform is created");
   }
 
@@ -26,25 +29,46 @@ export class Platform {
 
       for (const model of models) {
         const schema: TFields = this.composeSchema(model.fields);
-        console.log("Schema", schema);
         const options: TOptions = this.composeOptions(model.options);
         mercury.createModel(model.name, schema, options);
       }
     } catch (error) {
       console.error("Error during platform initialization:", error);
     } finally {
-      console.timeEnd("Platform Initialization Time"); 
+      console.timeEnd("Platform Initialization Time");
     }
   }
 
-  composeSchema(fields: [Record<string, any>]): TFields {
+  // Next step - Profile and Profile Groups
+  public async composeModel(modelName: string) {
+    try {
+      const model: any = await mercury.db.Model.get(
+        { name: modelName },
+        { id: "1", profile: "SystemAdmin" },
+        {
+          populate: [
+            { path: "fields", populate: [{ path: "options" }] },
+            { path: "options" },
+          ],
+        }
+      )
+      if (_.isEmpty(model)) return {};
+      const schema: TFields = this.composeSchema(model.fields);
+      const options: TOptions = this.composeOptions(model.options);
+      mercury.deleteModel(model.name);
+      mercury.createModel(model.name, schema, options);
+    } catch (error: any) {
+      console.log("Error in composing model!", error);
+    }
+  }
+
+  public composeSchema(fields: [Record<string, any>]): TFields {
     const skipFields = new Set([
       "id",
       "_id",
       "type",
       "name",
       "model",
-      "name",
       "modelName",
       "label",
       "createdBy",
@@ -59,8 +83,8 @@ export class Platform {
     return fields.reduce((schema: Record<string, any>, field: any) => {
       const fieldName = field["name"];
       const fieldObj: TField = { type: field["type"] };
-// Handle for relationship and virutal types
-      for (const key of Object.keys(field["_doc"])) {
+      // Handle for relationship and virutal types
+      for (const key of Object.keys(field["_doc"] ?? field)) { // field["_doc"]
         if (skipFields.has(key)) continue;
         if (key !== "enumValues") {
           fieldObj[key] = field[key];

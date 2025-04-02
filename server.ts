@@ -46,7 +46,7 @@ const app = express();
 // });
 // Metadata API server
 const metaServer = new MetaApi({
-  db: "mongodb://localhost:27017",
+  db: "mongodb://localhost:27017/deno-platform",
 });
 await metaServer.start();
 
@@ -67,6 +67,7 @@ app.use(
           id: 1,
           profile: "SystemAdmin",
         },
+        platform: metaServer.platform
       };
     },
   }) as unknown as express.RequestHandler

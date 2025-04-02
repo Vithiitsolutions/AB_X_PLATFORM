@@ -155,7 +155,7 @@ export const SystemAdminRules = [
     },
   },
   {
-    modelName: "Department",
+    modelName: "Manager",
     access: {
       create: true,
       read: true,
