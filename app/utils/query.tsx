@@ -98,3 +98,49 @@ export const LIST_LAYOUT_STRUCTURES = `query Docs($sort: sortLayoutStructureInpu
       }
     }
   }`
+
+
+  export const GET_VIEW=`
+  query GetView($where: whereViewInput!) {
+  getView(where: $where) {
+    id
+    description
+    name
+  }
+}`
+
+export const  LIST_VIEW=`
+query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput) {
+  listViewFields(sort: $sort, where: $where) {
+    docs {
+      id
+      order
+      field {
+        id
+        enumValues
+        label
+        managed
+        required
+        enumType
+        ref
+        many
+        unique
+        type
+        model {
+          id
+          name
+          label
+          recordKey {
+            id
+            name
+            label
+          }
+        }
+        name
+        localField
+        modelName
+        foreignField
+      }
+    }
+  }
+}`
