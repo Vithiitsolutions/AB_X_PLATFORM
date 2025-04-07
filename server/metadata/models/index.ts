@@ -12,3 +12,5 @@ export { viewField } from "./ViewField";
 export { component } from "./Component";
 export { user } from "./User";
 export { tab } from "./Tab";
+export { layout } from "./Layout";
+export { layoutStructure } from "./LayoutStructure";

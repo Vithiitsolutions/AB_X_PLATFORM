@@ -11,6 +11,9 @@ import { metaEvents } from "./server/metadata/Events.ts";
 import { meta } from "./app/routes/counter.tsx";
 import { profile } from "node:console";
 import { Platform } from "./server/metadata/platform.ts";
+import { transformSync } from "@babel/core";
+import presetReact from "@babel/preset-react";
+
 
 let interval: number;
 // Websocket setup
@@ -49,6 +52,116 @@ const metaServer = new MetaApi({
   db: "mongodb://localhost:27017/deno-platform",
 });
 await metaServer.start();
+
+function rewriteImports(code: string) {
+  return code.replace(
+    /import\s+(?:(\w+)\s*(?:,\s*)?)?(?:\{([^}]+)\})?\s+from\s+["']([^"']+)["']/g,
+    (_, defaultImport, namedImports, pkg) => {
+      const imports: string[] = [];
+
+      // Handle default import
+      if (defaultImport) {
+        imports.push(`import ${defaultImport} from "https://esm.sh/${pkg}";`);
+      }
+
+      // Handle named imports
+      if (namedImports) {
+        namedImports
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .forEach((name) => {
+            const [orig, alias] = name.split(" as ").map((n) => n.trim());
+            const finalName = alias || orig;
+            imports.push(`import ${finalName} from "https://esm.sh/${pkg}/${orig}";`);
+          });
+      }
+
+      return imports.join("\n");
+    }
+  );
+}
+
+
+
+app.use(cors<cors.CorsRequest>());
+app.use(bodyParser.json());
+
+app.get("/api", (req: Request, res: Response) => {
+
+      // compile.ts
+      console.log("------------into the block");
+      
+  const jsxCode = `import React from "react";
+import dayjs from "dayjs";
+import classNames from "classnames";
+import {isString, isEmpty} from "lodash";
+
+const GreetingCard = () => {
+  const userName = "Praveen ✨";
+  const today = dayjs();
+  const isWeekend = today.day() === 0 || today.day() === 6;
+
+  const cardClass = classNames("card", {
+    weekend: isWeekend,
+    weekday: !isWeekend,
+  });
+
+  return (
+    <div
+      className={cardClass}
+      style={{
+        fontFamily: "Segoe UI, sans-serif",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "20px",
+        backgroundColor: isWeekend ? "#FFFBF0" : "#F0F9FF",
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "#fff",
+          padding: "24px",
+          borderRadius: "12px",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+          textAlign: "center",
+          width: "350px",
+        }}
+      >
+        <h2 style={{ marginBottom: "12px", color: "#333" }}>
+          {isString(userName) ? userName : "Welcome, Guest"}
+        </h2>
+        <p style={{ fontSize: "14px", color: "#555" }}>
+          Today is <strong>{today.format("dddd, MMMM D, YYYY")}</strong>
+        </p>
+        <p style={{ marginTop: "8px", color: "#888", fontStyle: "italic" }}>
+          {isWeekend ? "Chill! It's weekend 😎" : "Back to grind 💻"}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default GreetingCard;
+  `;
+  
+  const output = transformSync(rewriteImports(jsxCode), {
+    presets: [presetReact],
+    sourceType: "module",
+  });
+  
+  const base64 = Buffer.from(output?.code!).toString("base64");
+  console.log("Base64 Encoded:", base64);
+
+  res.json({
+    base64
+  });
+});
+
+
+
+
 
 metaEvents.on("CREATE_MODEL_RECORD", async (data: any) => {
   console.log("Model Record Created: ");
@@ -109,6 +222,8 @@ if (DEVELOPMENT) {
     "/assets",
     express.static("build/client/assets", { immutable: true, maxAge: "1y" })
   );
+
+
   app.use(
     "/components",
     express.static("components", { immutable: true, maxAge: "1y" })
@@ -122,6 +237,8 @@ if (DEVELOPMENT) {
 }
 
 app.use(morgan("tiny"));
+
+
 
 // await new Promise<void>((resolve) =>
 //   httpServer.listen({ port: 4000 }, resolve)

@@ -3,19 +3,26 @@ import React, { useEffect, useState } from "react";
 import { useLazyQuery } from "../../utils/hook";
 import { serverFetch } from "../../utils/action";
 import { useParams } from "react-router";
-import { GET_LIST_MODEL_FIELDS, GET_MODEL, LIST_LAYOUT_STRUCTURES, LIST_LAYOUTS } from "../../utils/query";
+import {
+  GET_LIST_MODEL_FIELDS,
+  GET_MODEL,
+  LIST_LAYOUT_STRUCTURES,
+  LIST_LAYOUTS,
+} from "../../utils/query";
 import { Box, Text } from "@mercury-js/mess";
 import { GET_DYNAMIC_RECORD_DATA } from "../../utils/functions";
+import DynamicComponentLoader from "../../components/DynamicComponentLoader";
+import { ErrorBoundary } from "../../root";
 function RecordView() {
   const [ListLayouts, ListLayoutsResponse] = useLazyQuery(serverFetch);
   const [getModel, GetModelResponse] = useLazyQuery(serverFetch);
   const { model, record } = useParams();
-  const[openPopUp,setPopUp]=useState(false)
+  const [openPopUp, setPopUp] = useState(false);
   const [getCurrentLayoutStructures, getCurrentLayoutStructuresResponse] =
     useLazyQuery(serverFetch);
   const [getAllModelFields, { data, loading, error }] =
     useLazyQuery(serverFetch);
-  const [dynamicGetQuary, DynamicGetQuaryResponse] = useLazyQuery(serverFetch)
+  const [dynamicGetQuary, DynamicGetQuaryResponse] = useLazyQuery(serverFetch);
   useEffect(() => {
     getModel(GET_MODEL, {
       where: {
@@ -25,14 +32,14 @@ function RecordView() {
       },
     });
     getAllModelFields(
-        GET_LIST_MODEL_FIELDS,
+      GET_LIST_MODEL_FIELDS,
       {
         where: {
           modelName: {
             is: model,
           },
         },
-        limit: 200
+        limit: 200,
       },
       {
         cache: "no-store",
@@ -66,19 +73,17 @@ function RecordView() {
           cache: "no-store",
         }
       );
-
     }
   }, [GetModelResponse?.data]);
 
   useEffect(() => {
     if (ListLayoutsResponse?.data) {
-      let layoutId 
+      let layoutId;
 
       if (!layoutId) {
-
         layoutId = ListLayoutsResponse?.data?.listLayouts?.docs.find(
           (item: any) => item.profiles && item.profiles.length === 0
-        )?.id
+        )?.id;
       }
       getCurrentLayoutStructures(
         LIST_LAYOUT_STRUCTURES,
@@ -106,34 +111,39 @@ function RecordView() {
   useEffect(() => {
     if (data) {
       (async () => {
-        const str = await GET_DYNAMIC_RECORD_DATA(model as string, data?.listModelFields?.docs);
-        console.log(str)
+        const str = await GET_DYNAMIC_RECORD_DATA(
+          model as string,
+          data?.listModelFields?.docs
+        );
+        console.log(str);
         dynamicGetQuary(
           str,
           {
-            "where": {
-              "id": {
-                "is": record
-              }
-            }
-          }, {
-          cache: "no-store",
-        }
-        )
-      })()
-
+            where: {
+              id: {
+                is: record,
+              },
+            },
+          },
+          {
+            cache: "no-store",
+          }
+        );
+      })();
     }
-
-  }, [data, loading, error])
+  }, [data, loading, error]);
 
   useEffect(() => {
     if (DynamicGetQuaryResponse?.data) {
-      console.log(DynamicGetQuaryResponse?.data, "dynamic data")
+      console.log(DynamicGetQuaryResponse?.data, "dynamic data");
+    } else if (DynamicGetQuaryResponse?.error) {
+      console.log(DynamicGetQuaryResponse?.error);
     }
-    else if (DynamicGetQuaryResponse?.error) {
-      console.log(DynamicGetQuaryResponse?.error)
-    }
-  }, [DynamicGetQuaryResponse?.data, DynamicGetQuaryResponse?.loading, DynamicGetQuaryResponse?.error])
+  }, [
+    DynamicGetQuaryResponse?.data,
+    DynamicGetQuaryResponse?.loading,
+    DynamicGetQuaryResponse?.error,
+  ]);
   return (
     // <div className="w-full">
     //   <div className="ml-5 mb-4">
@@ -190,136 +200,153 @@ function RecordView() {
     //   </div>
     // </div>
 
-    <Box styles={{base:{
-        width:"full"
-    }}}>
-  {/* <Box ml={5} mb={4}></Box> */}
-  <Box
-  styles={{
-    base: {
-      display: "grid",
-      gridTemplateColumns: "1fr",
-      gap: "0.5rem", // Assuming gap of 2 is equivalent to 0.5rem
-      padding: "0.5rem", // Assuming p of 2 is equivalent to 0.5rem
-      backgroundColor: "white", // Default light background
-    },
-    md: {
-      gridTemplateColumns: "repeat(2, 1fr)",
-    },
-    lg: {
-      gridTemplateColumns: "repeat(3, 1fr)",
-    },
-    _dark: {
-      backgroundColor: "black", // Dark background
-    },
-  }}
->
-    {getCurrentLayoutStructuresResponse.loading ||
-    loading ||
-    ListLayoutsResponse?.loading ||
-    GetModelResponse?.loading ||
-    DynamicGetQuaryResponse?.loading ? (
-      [...Array(5)].map((_, index) => (
-        <Box
-        key={index}
+    <Box
+      styles={{
+        base: {
+          width: "full",
+        },
+      }}
+    >
+      {/* <Box ml={5} mb={4}></Box> */}
+      <Box
         styles={{
           base: {
-            padding: "1rem",
-            border: "1px solid",
-            borderColor: "#a1a9c6",
-            borderRadius: "md",
-            background: "linear-gradient(90deg, #7e8ab2 25%, #a1a9c6 50%, #7e8ab2 75%)",
-            backgroundSize: "200% 100%",
-            animation: "loading 1.5s infinite",
+            display: "grid",
+            gridTemplateColumns: "1fr",
+            gap: "0.5rem", // Assuming gap of 2 is equivalent to 0.5rem
+            padding: "0.5rem", // Assuming p of 2 is equivalent to 0.5rem
+            backgroundColor: "white", // Default light background
+          },
+          md: {
+            gridTemplateColumns: "repeat(2, 1fr)",
+          },
+          lg: {
+            gridTemplateColumns: "repeat(3, 1fr)",
+          },
+          _dark: {
+            backgroundColor: "black", // Dark background
           },
         }}
       >
-        <Box
-          styles={{
-            base: {
-              height: "4rem",
-              marginBottom: "1rem",
-              background: "#a1a9c6",
-              borderRadius: "md",
-            },
-          }}
-        />
-        <Box
-          styles={{
-            base: {
-              height: "0.625rem",
-              width: "12rem",
-              marginBottom: "1rem",
-              background: "#a1a9c6",
-              borderRadius: "full",
-            },
-          }}
-        />
-        <Box
-          styles={{
-            base: {
-              height: "0.5rem",
-              marginBottom: "0.625rem",
-              background: "#a1a9c6",
-              borderRadius: "full",
-            },
-          }}
-        />
-        <Box
-          styles={{
-            base: {
-              height: "0.5rem",
-              marginBottom: "0.625rem",
-              background: "#a1a9c6",
-              borderRadius: "full",
-            },
-          }}
-        />
-        <Box
-          styles={{
-            base: {
-              height: "0.5rem",
-              background: "#a1a9c6",
-              borderRadius: "full",
-            },
-          }}
-        />
+        {getCurrentLayoutStructuresResponse.loading ||
+        loading ||
+        ListLayoutsResponse?.loading ||
+        GetModelResponse?.loading ||
+        DynamicGetQuaryResponse?.loading
+          ? [...Array(5)].map((_, index) => (
+              <Box
+                key={index}
+                styles={{
+                  base: {
+                    padding: "1rem",
+                    border: "1px solid",
+                    borderColor: "#a1a9c6",
+                    borderRadius: "md",
+                    background:
+                      "linear-gradient(90deg, #7e8ab2 25%, #a1a9c6 50%, #7e8ab2 75%)",
+                    backgroundSize: "200% 100%",
+                    animation: "loading 1.5s infinite",
+                  },
+                }}
+              >
+                <Box
+                  styles={{
+                    base: {
+                      height: "4rem",
+                      marginBottom: "1rem",
+                      background: "#a1a9c6",
+                      borderRadius: "md",
+                    },
+                  }}
+                />
+                <Box
+                  styles={{
+                    base: {
+                      height: "0.625rem",
+                      width: "12rem",
+                      marginBottom: "1rem",
+                      background: "#a1a9c6",
+                      borderRadius: "full",
+                    },
+                  }}
+                />
+                <Box
+                  styles={{
+                    base: {
+                      height: "0.5rem",
+                      marginBottom: "0.625rem",
+                      background: "#a1a9c6",
+                      borderRadius: "full",
+                    },
+                  }}
+                />
+                <Box
+                  styles={{
+                    base: {
+                      height: "0.5rem",
+                      marginBottom: "0.625rem",
+                      background: "#a1a9c6",
+                      borderRadius: "full",
+                    },
+                  }}
+                />
+                <Box
+                  styles={{
+                    base: {
+                      height: "0.5rem",
+                      background: "#a1a9c6",
+                      borderRadius: "full",
+                    },
+                  }}
+                />
+              </Box>
+            ))
+          : getCurrentLayoutStructuresResponse.data?.listLayoutStructures.docs.map(
+              (item) => (
+                // <Box
+                //   key={item.id}
+                //   styles={{
+                //     base: {
+                //       padding: "1rem",
+                //       borderRadius: "md",
+                //       backgroundColor: "white",
+                //     },
+                //   }}
+                // >
+                //   <Text>{item.name || "Hi Record"}</Text>
+                // </Box>
+                <Box
+                  styles={{
+                    base: {
+                      gridColumn: `span ${item.col}`,
+                      gridRow: `span ${item.row}`,
+                      // maxHeight: `${item.row * 250}px`,
+                      height: "auto",
+                      overflowY: "auto",
+                      borderRadius: "20px",
+                      backgroundColor: "red",
+                      color: "white",
+                    },
+                  }}
+                >
+                  <Text
+                    styles={{
+                      base: {
+                        maxHeight: `${item.row * 250}px`,
+                        background: "black",
+                      },
+                    }}
+                  >
+                    {/* <ErrorBoundary> */}
+                    
+                    <DynamicComponentLoader code={item.code}/>
+                    {/* </ErrorBoundary> */}
+                  </Text>
+                </Box>
+              )
+            )}
       </Box>
-      ))
-    ) : (
-      getCurrentLayoutStructuresResponse.data?.listLayoutStructures.docs.map((item) => (
-        // <Box
-        //   key={item.id}
-        //   styles={{
-        //     base: {
-        //       padding: "1rem",
-        //       borderRadius: "md",
-        //       backgroundColor: "white",
-        //     },
-        //   }}
-        // >
-        //   <Text>{item.name || "Hi Record"}</Text>
-        // </Box>
-        <Box
-  styles={{
-    base: {
-      gridColumn: `span ${item.col}`,
-      gridRow: `span ${item.row}`,
-      // maxHeight: `${item.row * 250}px`,
-      height:"auto",
-      overflowY: "auto",
-      borderRadius: "20px", 
-      backgroundColor: "red",
-      color: "white", 
-    },
-  }}
->
-  <Text styles={{base:{maxHeight: `${item.row * 250}px`,background:"yellow"}}}>{item.name || "Hi Record"}</Text>
-</Box>
-      ))
-    )}
-  </Box>
-</Box>
+    </Box>
   );
 }
 

@@ -4,6 +4,9 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { applyMiddleware } from "graphql-middleware";
 import { IResolvers } from "graphql-middleware/types";
 import "./models";
+import { transformSync } from "@babel/core";
+import presetReact from "@babel/preset-react";
+
 
 // hooks
 import "./hooks/Model.hook.ts";
@@ -32,6 +35,7 @@ export default class MetaApi {
   server = new ApolloServer(this.config);
   constructor({ db }: IMetaApiConfig) {
     mercury.connect(db || "mongodb://localhost:27017")
+   
   }
   async start() {
     this.platform = new Platform();
