@@ -9,7 +9,7 @@ import {
   LIST_LAYOUT_STRUCTURES,
   LIST_LAYOUTS,
 } from "../../utils/query";
-import { Box, Text } from "@mercury-js/mess";
+import { Box, Button, Text } from "@mercury-js/mess";
 import { GET_DYNAMIC_RECORD_DATA } from "../../utils/functions";
 import DynamicComponentLoader from "../../components/DynamicComponentLoader";
 import { ErrorBoundary } from "../../root";
@@ -331,7 +331,11 @@ function RecordView() {
                 >
                   {/* <ErrorBoundary> */}
                     <Suspense>
-                      <DynamicComponentLoader code={item.component?.code} />
+                      <DynamicComponentLoader code={item.component?.code} props={{
+                        Std: {
+                          Button: Button
+                        }
+                      }}/>
                     </Suspense>
                   {/* </ErrorBoundary> */}
                 </Box>
