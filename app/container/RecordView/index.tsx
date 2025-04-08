@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useLazyQuery } from "../../utils/hook";
 import { serverFetch } from "../../utils/action";
 import { useParams } from "react-router";
@@ -323,25 +323,17 @@ function RecordView() {
                       // maxHeight: `${item.row * 250}px`,
                       height: "auto",
                       overflowY: "auto",
-                      borderRadius: "20px",
-                      backgroundColor: "red",
+                      borderRadius: "5  px",
+                      // backgroundColor: "red",
                       color: "white",
                     },
                   }}
                 >
-                  <Text
-                    styles={{
-                      base: {
-                        maxHeight: `${item.row * 250}px`,
-                        background: "black",
-                      },
-                    }}
-                  >
-                    {/* <ErrorBoundary> */}
-                    
-                    <DynamicComponentLoader code={item.code}/>
-                    {/* </ErrorBoundary> */}
-                  </Text>
+                  {/* <ErrorBoundary> */}
+                    <Suspense>
+                      <DynamicComponentLoader code={item.component?.code} />
+                    </Suspense>
+                  {/* </ErrorBoundary> */}
                 </Box>
               )
             )}
