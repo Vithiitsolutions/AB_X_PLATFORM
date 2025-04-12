@@ -299,7 +299,7 @@ function DynamicTableContainer() {
   }else if(listViewResponse?.error){
     console.log(listViewResponse?.error,"error")
   }
-  }, [listViewResponse?.data,listViewResponse?.loading,listViewResponse?.error])
+  }, [listViewResponse?.data,listViewResponse?.loading,listViewResponse?.error,pagination])
 
   useEffect(() => {
     if (dynamicQueryString)

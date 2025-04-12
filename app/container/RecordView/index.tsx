@@ -9,10 +9,14 @@ import {
   LIST_LAYOUT_STRUCTURES,
   LIST_LAYOUTS,
 } from "../../utils/query";
-import { Box, Button, Text } from "@mercury-js/mess";
+import {
+  Box
+} from "@mercury-js/mess";
 import { GET_DYNAMIC_RECORD_DATA } from "../../utils/functions";
 import DynamicComponentLoader from "../../components/DynamicComponentLoader";
 import { ErrorBoundary } from "../../root";
+import { MESS_TAGS } from "../../utils/constant";
+import ManagedComponent from "../../components/managedComponent";
 function RecordView() {
   const [ListLayouts, ListLayoutsResponse] = useLazyQuery(serverFetch);
   const [getModel, GetModelResponse] = useLazyQuery(serverFetch);
@@ -145,60 +149,7 @@ function RecordView() {
     DynamicGetQuaryResponse?.error,
   ]);
   return (
-    // <div className="w-full">
-    //   <div className="ml-5 mb-4">
-    //     {/* <BreadcrumbComp breadcrumb={[{name: "Dashboard", url: "/dashboard", active: false}, {name: modelName as string || "Model", url: `/dashboard/o/${modelName}/list`, active: false}, {name: `Current ${modelName}`, active: true}]}/> */}
-    //   </div>
-    //   <div className="h-auto w-[100vw - 100px] grid lg:grid-cols-3 gap-2 md:grid-cols-2 grid-cols-1 dark:bg-black bg-white p-2">
-    //     {getCurrentLayoutStructuresResponse.loading || loading || ListLayoutsResponse?.loading || GetModelResponse?.loading || getCurrentLayoutStructuresResponse.loading || DynamicGetQuaryResponse?.loading ?
-    //       <>
-    //         {[1, 2, 3, 4, 5].map((_, index) => (
 
-    //           <div role="status" key={index} className="max-w-sm p-4 border border-gray-200 rounded  animate-pulse md:p-6 dark:border-gray-700">
-    //             <div className="flex items-center justify-center h-16 mb-4 bg-gray-300 rounded dark:bg-gray-700">
-    //             </div>
-    //             <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-48 mb-4"></div>
-    //             <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
-    //             <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700 mb-2.5"></div>
-    //             <div className="h-2 bg-gray-200 rounded-full dark:bg-gray-700"></div>
-    //             <div className="flex items-center mt-4">
-    //               <svg className="w-10 h-10 me-3 text-gray-200 dark:text-gray-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-    //                 <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z" />
-    //               </svg>
-    //               <div>
-    //                 <div className="h-2.5 bg-gray-200 rounded-full dark:bg-gray-700 w-32 mb-2"></div>
-    //                 <div className="w-48 h-2 bg-gray-200 rounded-full dark:bg-gray-700"></div>
-    //               </div>
-    //             </div>
-    //             <span className="sr-only">Loading...</span>
-    //           </div>))}
-    //       </>
-    //       :
-    //       <>
-    //         {getCurrentLayoutStructuresResponse.data?.listLayoutStructures.docs.map(
-    //           (item: any) => (
-    //             <Box>
-    //                 Hii Record
-    //             </Box>
-    //             // <Card
-    //             //   classNames={`col-span-${item.col} row-span-${item.row} bg-white`}
-    //             //   rows={item.row}
-    //             // >
-    //             //   {/* <App
-    //             //     jsxString={decodeURIComponent(escape(atob(item.component.code)))}
-    //             //     onClick={() => console.log("Clicked A button")}
-    //             //     metaData={{ recordData: DynamicGetQuaryResponse?.data?.[`get${modelName}`], model: GetModelResponse?.data?.getModel, modelFields: data?.listModelFields?.docs }}
-    //             //     managed={item.component?.managed} componentName={item.component?.name}
-    //             //   /> */}
-    //             //   <Box>
-    //             //     <Text>reacord ciew card</Text>
-    //             //   </Box>
-    //             // </Card>
-    //           )
-    //         )}
-    //       </>}
-    //   </div>
-    // </div>
 
     <Box
       styles={{
@@ -228,7 +179,7 @@ function RecordView() {
           },
         }}
       >
-        {getCurrentLayoutStructuresResponse.loading ||
+        {getCurrentLayoutStructuresResponse.loading || 
         loading ||
         ListLayoutsResponse?.loading ||
         GetModelResponse?.loading ||
@@ -330,13 +281,18 @@ function RecordView() {
                   }}
                 >
                   {/* <ErrorBoundary> */}
-                    <Suspense>
-                      <DynamicComponentLoader code={item.component?.code} props={{
+                  { item.component?.managed ?<ManagedComponent managed={item.component?.managed} componentName={item.component?.name} />: 
+                  <Suspense>
+                    <DynamicComponentLoader
+                      code={item.component?.code}
+                      props={{
                         Std: {
-                          Button: Button
-                        }
-                      }}/>
-                    </Suspense>
+                          ...MESS_TAGS,
+                          data: DynamicGetQuaryResponse?.data?.[`get${model}`],
+                        },
+                      }}
+                    />
+                  </Suspense>}
                   {/* </ErrorBoundary> */}
                 </Box>
               )
