@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy } from "react";
 import _, { map, set } from "lodash";
-import dynamic from "next/dynamic";
 
 type DyComProps = {
   onClick: () => void;
@@ -19,7 +18,7 @@ function ManagedComponent({
 
   let MyComponent =
     managed && componentName
-      && dynamic(() =>
+      && lazy(() =>
           import(`./CustomLayoutComponents`).then(
             (mod: any) => mod[componentName]
           )
