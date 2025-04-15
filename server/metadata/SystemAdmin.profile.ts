@@ -181,6 +181,24 @@ export const SystemAdminRules = [
       delete: true,
     },
   },
+  {
+    modelName: "Form",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
+    modelName: "FormField",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
 ];
 
 

@@ -51,6 +51,9 @@ export const modelField = mercury.createModel("ModelField", {
     type: "relationship",
     ref: "Package",
   },
+  default: {
+    type: "string",
+  },
   immutable: {
     type: "boolean",
   },

@@ -9,9 +9,7 @@ import {
   LIST_LAYOUT_STRUCTURES,
   LIST_LAYOUTS,
 } from "../../utils/query";
-import {
-  Box
-} from "@mercury-js/mess";
+import { Box } from "@mercury-js/mess";
 import { GET_DYNAMIC_RECORD_DATA } from "../../utils/functions";
 import DynamicComponentLoader from "../../components/DynamicComponentLoader";
 import { ErrorBoundary } from "../../root";
@@ -149,8 +147,6 @@ function RecordView() {
     DynamicGetQuaryResponse?.error,
   ]);
   return (
-
-
     <Box
       styles={{
         base: {
@@ -179,7 +175,7 @@ function RecordView() {
           },
         }}
       >
-        {getCurrentLayoutStructuresResponse.loading || 
+        {getCurrentLayoutStructuresResponse.loading ||
         loading ||
         ListLayoutsResponse?.loading ||
         GetModelResponse?.loading ||
@@ -280,20 +276,26 @@ function RecordView() {
                     },
                   }}
                 >
-                  {/* <ErrorBoundary> */}
-                  { item.component?.managed ?<ManagedComponent managed={item.component?.managed} componentName={item.component?.name} />: 
-                  <Suspense>
-                    <DynamicComponentLoader
-                      code={item.component?.code}
-                      props={{
-                        Std: {
-                          ...MESS_TAGS,
-                          data: DynamicGetQuaryResponse?.data?.[`get${model}`],
-                        },
-                      }}
-                    />
-                  </Suspense>}
-                  {/* </ErrorBoundary> */}
+                    {item.component?.managed ? (
+                      <ManagedComponent
+                      managed={item.component?.managed}
+                      componentName={item.component?.name}
+                      />
+                    ) : (
+                      <Suspense>
+                        <DynamicComponentLoader
+                          code={item.component?.code}
+                          props={{
+                            Std: {
+                              ...MESS_TAGS,
+                              data: DynamicGetQuaryResponse?.data?.[
+                                `get${model}`
+                              ],
+                            },
+                          }}
+                          />
+                      </Suspense>
+                    )}
                 </Box>
               )
             )}

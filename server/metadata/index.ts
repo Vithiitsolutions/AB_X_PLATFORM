@@ -6,7 +6,8 @@ import { IResolvers } from "graphql-middleware/types";
 import "./models";
 import { transformSync } from "@babel/core";
 import presetReact from "@babel/preset-react";
-
+import { typeDefs } from "./schema";
+import resolvers from "./resolvers";
 
 // hooks
 import "./hooks/Model.hook.ts";
@@ -22,6 +23,7 @@ interface IMetaApiConfig {
 
 export default class MetaApi {
   public platform: Platform;
+  
   schema = applyMiddleware(
     makeExecutableSchema({
       typeDefs: mercury.typeDefs,
@@ -35,7 +37,7 @@ export default class MetaApi {
   server = new ApolloServer(this.config);
   constructor({ db }: IMetaApiConfig) {
     mercury.connect(db || "mongodb://localhost:27017")
-   
+    mercury.addGraphqlSchema(typeDefs, resolvers);
   }
   async start() {
     this.platform = new Platform();
