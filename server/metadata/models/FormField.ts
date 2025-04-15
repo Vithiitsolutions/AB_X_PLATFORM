@@ -12,10 +12,14 @@ export const formField = mercury.createModel("FormField", {
     type: "string",
   },
   refModel: {
-    type: "string",
+    type: "relationship",
+    ref: "Model",
+    required: true,
   },
   refField: {
-    type: "string",
+    type: "relationship",
+    ref: "ModelField",
+    required: true,
   },
   regexp: {
     type: "string"

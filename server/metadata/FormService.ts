@@ -1,7 +1,6 @@
 import mercury from "@mercury-js/core";
 import { GraphQLError } from "graphql";
 import _ from "lodash";
-import { model } from "./models";
 export class Form {
   formId: string;
   user: any;
@@ -46,7 +45,8 @@ export class Form {
           many: form?.fields?.some(
             (formField: any) =>
               formField.refField?.type === "relationship" &&
-              formField.refField?.ref == model?.name
+              formField.refField?.ref == model?.name &&
+              formField.refField?.many
           ),
           fields: form?.fields
             ?.filter(

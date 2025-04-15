@@ -164,24 +164,6 @@ export const SystemAdminRules = [
     },
   },
   {
-    modelName: "Layout",
-    access: {
-      create: true,
-      read: true,
-      update: true,
-      delete: true,
-    },
-  },
-  {
-    modelName: "LayoutStructure",
-    access: {
-      create: true,
-      read: true,
-      update: true,
-      delete: true,
-    },
-  },
-  {
     modelName: "Form",
     access: {
       create: true,
