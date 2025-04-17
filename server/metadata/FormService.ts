@@ -70,4 +70,55 @@ export class Form {
     };
     return formConfig;
   }
+  async createRecordsUsingForm(formData: JSON) {
+    const formConfig = await this.getFormMetadata();
+    await formConfig.models.map((model: any) => {
+      return this.modelResolution(model, model.fields, formData, formConfig);
+    });
+  }
+  async modelResolution(
+    modelName: string,
+    fields: any[],
+    formData: any,
+    formConfig: any
+  ) {
+    const modelData = formData[modelName];
+    const modelFields = fields.filter(
+      (field: any) => field.type == "relationship"
+    );
+
+    if (modelFields.length > 0) {
+      await Promise.all(modelFields.map(async (field: any) => {
+        const fieldData = formData[field.ref];
+        if (fieldData) {
+          const record = await this.modelResolution(
+            field.ref,
+            formConfig.models.find((mod: any) => mod.name === field.ref)
+              ?.fields,
+            formData,
+            formConfig
+          );
+          if (record) {
+            modelData[field.name] = record.id;
+          }
+        }
+      }));
+    }
+    if (modelData) {
+      if (!Array.isArray(modelData))
+        return this.createRecordForModel(modelName, modelData);
+      else {
+        const records = await Promise.all(
+          modelData.map(async (data: any) => {
+            return this.createRecordForModel(modelName, data);
+          })
+        );
+        return records;
+      }
+    }
+  }
+  async createRecordForModel(modelName: string, data: any) {
+    const model = await mercury.db[modelName].create(data, this.user);
+    return model.id;
+  }
 }
