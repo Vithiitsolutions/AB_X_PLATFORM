@@ -14,7 +14,6 @@ import { Platform } from "./server/metadata/platform.ts";
 import { transformSync } from "@babel/core";
 import presetReact from "@babel/preset-react";
 
-
 let interval: number;
 // Websocket setup
 const wss = new WebSocketServer(9080);
@@ -49,7 +48,7 @@ const app = express();
 // });
 // Metadata API server
 const metaServer = new MetaApi({
-  db: "mongodb://localhost:27017/deno-platform",
+  db: DB_URL,
 });
 await metaServer.start();
 
@@ -73,7 +72,9 @@ function rewriteImports(code: string) {
           .forEach((name) => {
             const [orig, alias] = name.split(" as ").map((n) => n.trim());
             const finalName = alias || orig;
-            imports.push(`import ${finalName} from "https://esm.sh/${pkg}/${orig}";`);
+            imports.push(
+              `import ${finalName} from "https://esm.sh/${pkg}/${orig}";`
+            );
           });
       }
 
@@ -82,16 +83,13 @@ function rewriteImports(code: string) {
   );
 }
 
-
-
 app.use(cors<cors.CorsRequest>());
 app.use(bodyParser.json());
 
 app.get("/api", (req: Request, res: Response) => {
+  // compile.ts
+  console.log("------------into the block");
 
-      // compile.ts
-      console.log("------------into the block");
-      
   const jsxCode = `import React from "react";
 import dayjs from "dayjs";
 import classNames from "classnames";
@@ -145,23 +143,19 @@ const GreetingCard = () => {
 
 export default GreetingCard;
   `;
-  
+
   const output = transformSync(rewriteImports(jsxCode), {
     presets: [presetReact],
     sourceType: "module",
   });
-  
+
   const base64 = Buffer.from(output?.code!).toString("base64");
   console.log("Base64 Encoded:", base64);
 
   res.json({
-    base64
+    base64,
   });
 });
-
-
-
-
 
 metaEvents.on("CREATE_MODEL_RECORD", async (data: any) => {
   console.log("Model Record Created: ");
@@ -180,7 +174,7 @@ app.use(
           id: 1,
           profile: "SystemAdmin",
         },
-        platform: metaServer.platform
+        platform: metaServer.platform,
       };
     },
   }) as unknown as express.RequestHandler
@@ -223,7 +217,6 @@ if (DEVELOPMENT) {
     express.static("build/client/assets", { immutable: true, maxAge: "1y" })
   );
 
-
   app.use(
     "/components",
     express.static("components", { immutable: true, maxAge: "1y" })
@@ -237,8 +230,6 @@ if (DEVELOPMENT) {
 }
 
 app.use(morgan("tiny"));
-
-
 
 // await new Promise<void>((resolve) =>
 //   httpServer.listen({ port: 4000 }, resolve)

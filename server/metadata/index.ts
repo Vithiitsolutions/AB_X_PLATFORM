@@ -23,7 +23,7 @@ interface IMetaApiConfig {
 
 export default class MetaApi {
   public platform: Platform;
-  
+
   schema = applyMiddleware(
     makeExecutableSchema({
       typeDefs: mercury.typeDefs,
@@ -32,11 +32,11 @@ export default class MetaApi {
   );
   config: ApolloServerOptions<BaseContext> = {
     schema: this.schema,
-    introspection: true
+    introspection: true,
   };
   server = new ApolloServer(this.config);
   constructor({ db }: IMetaApiConfig) {
-    mercury.connect(db || "mongodb://localhost:27017")
+    mercury.connect(db);
     mercury.addGraphqlSchema(typeDefs, resolvers);
   }
   async start() {

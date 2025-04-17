@@ -1,26 +1,23 @@
 # Use Node.js version 20 as base image
-FROM node:20-alpine
+FROM denoland/deno
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files
-COPY package*.json yarn.lock ./
+COPY package*.json deno.json deno.lock ./
 
 # Install dependencies
-RUN yarn install
+RUN deno install
 
 # Copy the rest of the application
 COPY . .
 
+# Patch Apollo server
+RUN deno task patch-server
+
 # Expose ports for both services
-EXPOSE 4000 5173
-
-# Install Deno
-RUN npm i deno -g
-
-# Start Node.js/Vite service
-RUN yarn dev
+EXPOSE 4000
 
 # Run both services
-CMD ["./start.sh"]
+CMD ["task", "dev"]
