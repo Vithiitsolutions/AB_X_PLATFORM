@@ -32,4 +32,7 @@ export default defineConfig(({ isSsrBuild }) => ({
     },
   },
   plugins: [tailwindcss(), deno(), reactRouter()],
+  server: {
+    allowedHosts: ["qr-gate-dev.mercuryx.cloud"],
+  },
 }));
