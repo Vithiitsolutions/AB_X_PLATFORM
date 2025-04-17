@@ -3,4 +3,7 @@ export const typeDefs = `
         hello: String,
         getFormMetadataRecordCreate(formId: String): JSON
     }
+    type Mutation {
+        createRecordsUsingForm(formId: String, formData: JSON): JSON
+    }
 `

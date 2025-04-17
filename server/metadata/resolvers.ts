@@ -27,6 +27,7 @@ export default {
     ) => {
       const form = new Form(formId, ctx.user);
       await form.createRecordsUsingForm(formData);
+      return {};
     },
   },
 };
