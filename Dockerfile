@@ -13,7 +13,7 @@ RUN deno install
 # Copy the rest of the application
 COPY . .
 
-# Patch Apollo server
+# Patch Apollo server for restarts
 RUN deno task patch-server
 
 # Expose ports for both services
