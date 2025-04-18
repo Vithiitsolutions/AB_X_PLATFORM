@@ -36,4 +36,13 @@ export default defineConfig(({ isSsrBuild }) => ({
     cors: true,
     allowedHosts: true,
   },
+  resolve: {
+    alias: isSsrBuild
+      ? {
+          "react-dom/server": "react-dom/server.node",
+        }
+      : {
+          "react-dom/server": "react-dom/client", //Need to verify if this is correct
+        },
+  },
 }));
