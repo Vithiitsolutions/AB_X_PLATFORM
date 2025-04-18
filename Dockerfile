@@ -16,8 +16,11 @@ COPY . .
 # Patch Apollo server for restarts
 RUN deno task patch-server
 
+# Build the application
+RUN deno task build
+
 # Expose ports for both services
 EXPOSE 4000
 
 # Run both services
-CMD ["task", "dev"]
+CMD ["task", "start"]

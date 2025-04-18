@@ -33,6 +33,7 @@ export default defineConfig(({ isSsrBuild }) => ({
   plugins: [tailwindcss(), deno(), reactRouter()],
   server: {
     host: true,
+    cors: true,
     allowedHosts: true,
   },
 }));
