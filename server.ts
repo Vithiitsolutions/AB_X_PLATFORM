@@ -48,7 +48,7 @@ const app = express();
 // });
 // Metadata API server
 const metaServer = new MetaApi({
-  db: DB_URL,
+  db: DB_URL || "mongodb+srv://techsupport:0505@cluster0.bdsfs.mongodb.net/qr-gate",
 });
 await metaServer.start();
 
@@ -83,7 +83,7 @@ function rewriteImports(code: string) {
   );
 }
 
-app.use(cors<cors.CorsRequest>());
+app.use(cors<cors.CorsRequest>({origin: "*"}));
 app.use(bodyParser.json());
 
 app.get("/api", (req: Request, res: Response) => {

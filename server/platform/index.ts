@@ -24,7 +24,7 @@ export default class PlatformApi {
   constructor({
     db,
   }: IPlatformApiConfig) {
-    mercury.connect(db || "mongodb://localhost:27017");
+    mercury.connect(db || "mongodb+srv://techsupport:0505@cluster0.bdsfs.mongodb.net/qr-gate");
   }
   async start() {
     await this.server.start();

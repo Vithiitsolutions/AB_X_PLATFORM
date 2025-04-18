@@ -24,7 +24,7 @@ interface TableProps<T extends object> {
 }
 
 const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
-  ({ data, columns = [], rowCount, pagination, setPagination, sorting, setSorting }, ref) => {
+  ({ data, columns, rowCount, pagination, setPagination, sorting, setSorting }, ref) => {
     const table = useReactTable({
       data,
       columns,
@@ -103,6 +103,11 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
       ));
     };
 
+    useEffect(()=>{
+      console.log(columns, "columns ----- ");
+      
+    }, [columns])
+    
     return (
       <Box styles={{ base: { width: "100%" } }} ref={ref}>
         <Box

@@ -101,7 +101,7 @@ function Navbar() {
             },
           }}
         >
-          Avinash K
+          Roshan Kumar
         </Text>
         <FaChevronDown size={14} color="#161616" />
 
