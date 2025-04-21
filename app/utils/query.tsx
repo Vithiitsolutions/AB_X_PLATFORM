@@ -144,3 +144,52 @@ query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput) {
     }
   }
 }`
+
+
+export const GET_FORM=`
+query GetForm($where: whereFormInput!) {
+  getForm(where: $where) {
+    id
+    label
+    name
+    description
+    fields {
+      id
+      label
+      placeholder
+      refField {
+        id
+        enumType
+        enumValues
+        foreignField
+        immutable
+        label
+        localField
+       
+        many
+        model {
+          id
+          label
+        }
+        modelName
+        name
+        ref
+        required
+        type
+        unique
+        default
+      }
+      refModel {
+        id
+        label
+        name
+        recordKey {
+          id
+          label
+        }
+      }
+      regExpError
+      regexp
+    }
+  }
+}`
