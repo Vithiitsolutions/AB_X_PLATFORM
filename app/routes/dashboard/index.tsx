@@ -72,7 +72,7 @@ const dashboard = ({ loaderData }: { loaderData: any }) => {
       <ThemeProvider>
         <Navbar />
         <Box styles={{ base: { display: "flex", flexDirection: "row" } }}>
-          {loaderData?.length && <SideBar tabs={loaderData} />}
+          <SideBar tabs={loaderData} />
           <Box
             styles={{
               base: {

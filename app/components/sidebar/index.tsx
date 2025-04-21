@@ -125,7 +125,7 @@ function SideBar({tabs}: {tabs: any[]}) {
           base: { display: "flex", flexDirection: "column", gap: "15px" },
         }}
       >
-        {items?.map((item) => (
+        {items?.length ? items?.map((item) => (
           <Box
             key={item.id}
             styles={{
@@ -251,7 +251,7 @@ function SideBar({tabs}: {tabs: any[]}) {
                 </Box>
               )}
           </Box>
-        ))}
+        )): null}
       </Box>
     );
   };
