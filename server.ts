@@ -172,7 +172,7 @@ app.use(
         ...req,
         user: {
           id: 1,
-          profile: "SystemAdmin",
+          profile: req.headers.profile ?? "Anonymous"
         },
         platform: metaServer.platform,
       };

@@ -11,7 +11,10 @@ import resolvers from "./resolvers";
 
 // hooks
 import "./hooks/Model.hook.ts";
+import "./hooks/permission.ts";
 import "./hooks/modelField.ts";
+import "./hooks/fieldPermission.ts"
+import "./hooks/profile.ts";
 
 // Profiles
 import "./SystemAdmin.profile.ts";
