@@ -41,7 +41,7 @@ function DynamicCustomeForm ({
                     (!item.refField?.many || item?.refField?.many == null) && (
                       <Controller
                         control={form.control}
-                        name={item.refField.name}
+                        name={item?.refField?.name}
                         render={({ field }) => (
                           <Box
                             styles={{
@@ -60,7 +60,7 @@ function DynamicCustomeForm ({
                               {_.startCase(item.refField.label)}
                             </Text>
                             <CustomeInput
-                              placeholder={item.refField.name}
+                              placeholder={item?.refField?.name}
                               {...field}
                               type="text"
                             />

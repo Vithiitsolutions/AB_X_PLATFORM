@@ -193,3 +193,9 @@ query GetForm($where: whereFormInput!) {
     }
   }
 }`
+
+
+export const CREATE_RECORD_FORM=`
+mutation CreateRecordsUsingForm($formId: String, $formData: JSON) {
+  createRecordsUsingForm(formId: $formId, formData: $formData)
+}`

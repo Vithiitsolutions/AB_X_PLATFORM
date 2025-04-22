@@ -2,11 +2,12 @@ import { Box, Text } from "@mercury-js/mess";
 import React, { useEffect } from "react";
 import { useLazyQuery } from "../utils/hook";
 import { serverFetch } from "../utils/action";
-import { GET_FORM } from "../utils/query";
+import { CREATE_RECORD_FORM, GET_FORM } from "../utils/query";
 import { z, ZodTypeAny } from "zod";
 import { SubmitHandler, useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import DynamicCustomeForm from "../components/dynamicForm/customeForm";
+import { useParams } from "react-router";
 
 type FieldType = {
     refField: {
@@ -26,60 +27,110 @@ type FormType = {
     };
 };
 
-export function generateZodSchemaWithRegexFallback(formJson: FormType) {
-    const shape: Record<string, ZodTypeAny> = {};
+export const generateSchema = (metadata: any) => {
+    const schemaObj: Record<string, ZodTypeAny> = {};
 
-    formJson?.data?.getForm?.fields.forEach((field) => {
-        const { name, required, type } = field.refField;
-        const userRegexp = field.regexp;
-        const userRegExpError = field.regExpError;
-
-        let zodType: ZodTypeAny;
-
-        // Default regexes for types
-        const defaultRegexMap: Record<string, { pattern: RegExp; error: string }> = {
-            string: {
-                pattern: /^[\w\s]+$/, // letters, digits, underscores, spaces
-                error: "Only letters, numbers, and spaces allowed",
-            },
-            number: {
-                pattern: /^\d+$/, // digits only
-                error: "Only numeric values allowed",
-            },
-        };
-
-        // Fallback regex if none is provided
-        const fallback = defaultRegexMap[type];
-
-        if (type === "string" || type === "number") {
-            const finalRegex = userRegexp || fallback?.pattern?.source || ".*";
-            const finalError = userRegExpError || fallback?.error || "Invalid value";
-
-            // All values are initially strings, apply regex manually
-            zodType = z
-                .string()
-                .regex(new RegExp(finalRegex), finalError);
-
-            if (type === "number") {
-                zodType = zodType.transform((val) => parseFloat(val));
-            }
-        } else {
-            // If it's not a string/number, fallback to any
-            zodType = z.any();
-        }
-
-        // Handle optional
-        if (!required) {
-            zodType = zodType.optional();
-        }
-
-        shape[name] = zodType;
+    const defaultRegexMap: Record<string, { pattern: RegExp; error: string }> = {
+      string: {
+        pattern: /^[\w\s]+$/, // letters, digits, underscores, spaces
+        error: "Only letters, numbers, and spaces allowed",
+      },
+      number: {
+        pattern: /^\d+$/, // digits only
+        error: "Only numeric values allowed",
+      },
+    };
+  
+    metadata?.getForm?.fields?.forEach((field) => {
+      const { name, type, required, enumType, label, many } = field.refField;
+      const userRegexp = field.regexp;
+      const userRegExpError = field.regExpError;
+  
+      const wrapMany = (schema: any) => (many ? z.array(schema) : schema);
+  
+      const getRegexZod = (fallbackKey: "string" | "number") => {
+        const fallback = defaultRegexMap[fallbackKey];
+        const pattern = userRegexp ? new RegExp(userRegexp) : fallback.pattern;
+        const message = userRegExpError || fallback.error;
+        return z.string().regex(pattern, message);
+      };
+  
+      switch (type) {
+        case "string":
+          const stringZod = getRegexZod("string");
+          schemaObj[name] = required
+            ? wrapMany(stringZod)
+            : wrapMany(stringZod.optional());
+          break;
+  
+        case "number":
+        case "float":
+          const numberZod = getRegexZod("number").transform((val) => parseFloat(val));
+          schemaObj[name] = required
+            ? wrapMany(numberZod)
+            : wrapMany(numberZod.optional());
+          break;
+  
+        case "boolean":
+          schemaObj[name] = required
+            ? wrapMany(z.boolean({ required_error: `${label} is required` }))
+            : wrapMany(z.boolean()).optional();
+          break;
+  
+        case "enum":
+          if (enumType === "number") {
+            schemaObj[name] = required
+              ? wrapMany(z.coerce.number({ required_error: `${label} is required` }))
+              : wrapMany(z.coerce.number()).optional();
+          } else if (enumType === "string") {
+            schemaObj[name] = required
+              ? wrapMany(z.string({ required_error: `${label} is required` }))
+              : wrapMany(z.string()).optional();
+          }
+          break;
+  
+        case "relationship":
+          schemaObj[name] = required
+            ? wrapMany(z.string({ required_error: `${label} is required` }))
+            : wrapMany(z.string()).optional();
+          break;
+  
+        case "date":
+          schemaObj[name] = required
+            ? wrapMany(z.coerce.date({ required_error: `${label} is required` }))
+            : wrapMany(z.coerce.date()).optional();
+          break;
+  
+        default:
+          schemaObj[name] = z.any(); // fallback for unknown types
+          break;
+      }
     });
-
-    return z.object(shape);
-}
-
+  
+    return z.object(schemaObj);
+  };
+  const generateStructuredPayload = (fields: any[], values: Record<string, any>) => {
+    const result: Record<string, Record<string, any>> = {};
+  
+    fields.forEach((field) => {
+      const modelName = field?.refModel?.name;
+      const fieldName = field?.refField?.name;
+  
+      if (modelName && fieldName) {
+        if (!result[modelName]) {
+          result[modelName] = {};
+        }
+        result[modelName][fieldName] = values[fieldName];
+      }
+    });
+  
+    return result;
+  };
+  
+  
 function CustomeForm({data}:{data:any}) {
+    const [createRecordForm,createRecordFormResponse]=useLazyQuery(serverFetch)
+    const {formId}=useParams()
     useEffect(()=>{
 
     },[data])
@@ -87,7 +138,7 @@ function CustomeForm({data}:{data:any}) {
 
     const formSchema = React.useMemo(() => {
         if (!formJson) return z.object({});
-        return generateZodSchemaWithRegexFallback(formJson);
+        return generateSchema(formJson);
     }, [formJson]);
 
     type FormSchema = z.infer<typeof formSchema>;
@@ -116,10 +167,26 @@ console.log(defaultValues,"defaultValues")
         }
     }, [formJson]);
 
-    const onSubmit: SubmitHandler<FormSchema> = (values) => {
-        console.log("Form submitted with values:", values);
-    };
+    const onSubmit = async(values) => {
+        console.log(values,"values")
+        const payload =await generateStructuredPayload(formJson?.getForm?.fields,values)
+        console.log("Form submitted with values:", payload);
+        createRecordForm(CREATE_RECORD_FORM,{
+            "formId": formId,
+            "formData": payload
+          }, {
+            cache: "no-store",
+          })
 
+    };
+useEffect(()=>{
+    if(createRecordFormResponse?.data){
+        console.log(createRecordFormResponse?.data,"data")
+
+    }else if(createRecordFormResponse?.error){
+        console.log(createRecordFormResponse?.error,"error")
+    }
+},[createRecordFormResponse?.data,createRecordFormResponse?.error,createRecordFormResponse.loading])
     if (!formJson) return <p>Loading...</p>;
 
     return (
