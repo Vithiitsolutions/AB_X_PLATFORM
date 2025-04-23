@@ -10,36 +10,32 @@ export class Form {
     this.formId = formId;
   }
   async getFormMetadata() {
-    let form: any = await mercury.db.Form.get(
-      { _id: this.formId },
-      this.user,
-      {
-        populate: [
-          {
-            path: "fields",
-            populate: [
-              {
-                path: "refField",
-              },
-              {
-                path: "refModel",
-              },
-            ],
-          },
-        ],
-      }
-    );
+    let form: any = await mercury.db.Form.get({ _id: this.formId }, this.user, {
+      populate: [
+        {
+          path: "fields",
+          populate: [
+            {
+              path: "refField",
+            },
+            {
+              path: "refModel",
+            },
+          ],
+        },
+      ],
+    });
     form = form.toObject();
     if (_.isEmpty(form)) {
       throw new GraphQLError("Form not found");
     }
-    
+
     const modelsData = _.uniqBy(
       form.fields?.map((field: any) => ({
-      name: field?.refModel.name,
-      label: field?.refModel.name,
+        name: field?.refModel.name,
+        label: field?.refModel.name,
       })),
-      'name'
+      "name"
     );
     const formConfig = {
       formId: form.id,
@@ -70,19 +66,23 @@ export class Form {
                   formField.refField.type
                 ),
               };
-            })
+            }),
         };
       }),
     };
-    
+
     return formConfig;
   }
-
 
   async createRecordsUsingForm(formData: JSON) {
     const formConfig = await this.getFormMetadata();
     await formConfig.models.map((model: any) => {
-      return this.modelResolution(model.name, model.fields, formData, formConfig);
+      return this.modelResolution(
+        model.name,
+        model.fields,
+        formData,
+        formConfig
+      );
     });
   }
   async modelResolution(
@@ -95,23 +95,27 @@ export class Form {
     const modelFields = fields.filter(
       (field: any) => field.type == "relationship"
     );
-    
+
     if (modelFields.length > 0) {
-      await Promise.all(modelFields.map(async (field: any) => {
-        const fieldData = formData[field.ref];
-        if (fieldData) {
-          const record = await this.modelResolution(
-            field.ref,
-            formConfig.models.find((mod: any) => mod.name === field.ref)
-              ?.fields,
-            formData,
-            formConfig
-          );
-          if (record) {
-            modelData[field.name] = record.id;
+      await Promise.all(
+        modelFields.map(async (field: any) => {
+          const fieldData = formData[field.ref];
+          if (fieldData) {
+            const record = await this.modelResolution(
+              field.ref,
+              formConfig.models.find((mod: any) => mod.name === field.ref)
+                ?.fields,
+              formData,
+              formConfig
+            );
+            if (record) {
+              modelData[field.name] = Array.isArray(record)
+                ? record?.map((item) => item.id)
+                : record.id;
+            }
           }
-        }
-      }));
+        })
+      );
     }
     if (modelData) {
       if (!Array.isArray(modelData))
