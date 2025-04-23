@@ -3,7 +3,7 @@ import { metaEvents } from "../Events.ts";
 import type { Platform } from "../platform.ts";
 
 
-mercury.hook.after("CREATE_MODELFIELD_RECORD", async function (this: any) {
+mercury.hook.after("CREATE_MODELFIELD_RECORD", async function (this: any) { // TODO: revist the logic to fetch the record
   const platform: Platform = this.options.ctx.platform;
   const input = this.options.args.input;
   await platform.composeModel(input.modelName);

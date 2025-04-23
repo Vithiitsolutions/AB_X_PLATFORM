@@ -22,18 +22,14 @@ export class Platform {
     console.time("Platform Initialization Time");
     console.time("Models Initialization Time");
     try {
-      const models = await mercury.db.Model.list(
-        {},
+      const model = await mercury.db.Model.list(
+        { name: "User"},
         { id: "1", profile: "SystemAdmin" },
-        {
-          populate: [
-            { path: "fields", populate: [{ path: "options" }] },
-            { path: "options" },
-          ],
-        }
       );
+
+      console.log("Model---", model);
       mercury.deleteModel("User");
-      if (!models.some((mod: any) => mod?.name == "User")) {
+      if(!model.length) {
         const model = await mercury.db.Model.create(
           {
             name: "User",
@@ -52,9 +48,20 @@ export class Platform {
             modelName: "User",
             managed: false,
           },
-          { id: "1", profile: "SystemAdmin" }
+          { id: "1", profile: "SystemAdmin" },
+          { ctx: {platform: this}, args: { input: {modelName: "User"}}}
         );
       }
+      const models = await mercury.db.Model.list(
+        {},
+        { id: "1", profile: "SystemAdmin" },
+        {
+          populate: [
+            { path: "fields", populate: [{ path: "options" }] },
+            { path: "options" },
+          ],
+        }
+      );
       for (const model of models) {
         const schema: TFields = this.composeSchema(model.fields);
         const options: TOptions = this.composeOptions(model.options);
