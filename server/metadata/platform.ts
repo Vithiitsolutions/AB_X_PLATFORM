@@ -1,6 +1,10 @@
 import mercury, { Rule, TField, TFields, TOptions } from "@mercury-js/core";
 import _ from "lodash";
-import { mergeProfilePermissions, overrideWithExplicitPermissions, profilePipeline } from "./utility";
+import {
+  mergeProfilePermissions,
+  overrideWithExplicitPermissions,
+  profilePipeline,
+} from "./utility";
 
 export class Platform {
   profilesMapper = new Map();
@@ -28,7 +32,29 @@ export class Platform {
           ],
         }
       );
-
+      mercury.deleteModel("User");
+      if (!models.some((mod: any) => mod?.name == "User")) {
+        const model = await mercury.db.Model.create(
+          {
+            name: "User",
+            label: "User",
+            description: "User model",
+            managed: true,
+          },
+          { id: "1", profile: "SystemAdmin" }
+        );
+        await mercury.db.ModelField.create(
+          {
+            name: "name",
+            label: "Name",
+            model: model?.id,
+            type: "string",
+            modelName: "User",
+            managed: false,
+          },
+          { id: "1", profile: "SystemAdmin" }
+        );
+      }
       for (const model of models) {
         const schema: TFields = this.composeSchema(model.fields);
         const options: TOptions = this.composeOptions(model.options);
@@ -56,7 +82,9 @@ export class Platform {
     // Profiles from db and from mercury handle both during intialization step and also during api calls
     console.time("Profiles Initialization Time");
     try {
-      const profiles = await mercury.db.Profile.mongoModel.aggregate(profilePipeline);
+      const profiles = await mercury.db.Profile.mongoModel.aggregate(
+        profilePipeline
+      );
       if (_.isEmpty(profiles)) {
         console.log("No profiles found.");
         return;
@@ -68,13 +96,18 @@ export class Platform {
           name: profile.name,
           label: profile.label,
           permissions: profile.permissions || [],
-          inheritedProfiles: profile.inheritedProfiles || []
+          inheritedProfiles: profile.inheritedProfiles || [],
         };
       });
 
       for (const profileId in this.profileIdMapper) {
-        this.profileIdMapper[profileId].permissions = this.composePermissions(this.profileIdMapper[profileId]);
-        mercury.access.createProfile(this.profileIdMapper[profileId].name, this.profileIdMapper[profileId].permissions);
+        this.profileIdMapper[profileId].permissions = this.composePermissions(
+          this.profileIdMapper[profileId]
+        );
+        mercury.access.createProfile(
+          this.profileIdMapper[profileId].name,
+          this.profileIdMapper[profileId].permissions
+        );
       }
 
       console.log("Profiles initialized successfully!");
@@ -97,12 +130,16 @@ export class Platform {
       const inheritedPermissions = this.composePermissions(inheritedProfile);
       permissions = mergeProfilePermissions(permissions, inheritedPermissions);
     }
-    const customPermissions = this.composeProfilePermissions(profile.permissions);
-    permissions = overrideWithExplicitPermissions(permissions, customPermissions);
+    const customPermissions = this.composeProfilePermissions(
+      profile.permissions
+    );
+    permissions = overrideWithExplicitPermissions(
+      permissions,
+      customPermissions
+    );
     this.profilesMapper.set(profile.name, permissions);
     return permissions;
   }
-
 
   public composeProfilePermissions(permissions: any) {
     const rules: Rule[] = [];
@@ -112,18 +149,19 @@ export class Platform {
         access: this.composeModelPermission(permission),
       };
       if (permission.fieldLevelAccess) {
-        rule['fieldLevelAccess'] = permission.fieldLevelAccess;
-        rule['fields'] =
-          this.composeFieldPermissions(permission.fieldPermissions);
+        rule["fieldLevelAccess"] = permission.fieldLevelAccess;
+        rule["fields"] = this.composeFieldPermissions(
+          permission.fieldPermissions
+        );
       }
       rules.push(rule);
-    })
+    });
     return rules;
   }
 
   public composeModelPermission(permission: any) {
     const access: any = {};
-    ['create', 'update', 'delete', 'read'].map((action: string) => {
+    ["create", "update", "delete", "read"].map((action: string) => {
       access[action] = permission[action];
     });
     return access;
@@ -132,8 +170,9 @@ export class Platform {
   public composeFieldPermissions(fieldPermissions: any) {
     const fields: any = {};
     fieldPermissions.map((fieldPermission: any) => {
-      if (_.isEmpty(fields[fieldPermission.fieldName])) fields[fieldPermission.fieldName] = {};
-      ['create', 'update', 'delete', 'read'].map((action: string) => {
+      if (_.isEmpty(fields[fieldPermission.fieldName]))
+        fields[fieldPermission.fieldName] = {};
+      ["create", "update", "delete", "read"].map((action: string) => {
         fields[fieldPermission.fieldName][action] = fieldPermission[action];
       });
     });
@@ -151,7 +190,7 @@ export class Platform {
             { path: "options" },
           ],
         }
-      )
+      );
       if (_.isEmpty(model)) return {};
       const schema: TFields = this.composeSchema(model.fields);
       const options: TOptions = this.composeOptions(model.options);
@@ -161,7 +200,6 @@ export class Platform {
       console.log("Error in composing model!", error);
     }
   }
-
 
   public composeSchema(fields: [Record<string, any>]): TFields {
     const skipFields = new Set([
