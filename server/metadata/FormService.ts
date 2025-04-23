@@ -10,7 +10,7 @@ export class Form {
     this.formId = formId;
   }
   async getFormMetadata() {
-    const form: any = await mercury.db.Form.get(
+    let form: any = await mercury.db.Form.get(
       { _id: this.formId },
       this.user,
       {
@@ -29,14 +29,18 @@ export class Form {
         ],
       }
     );
+    form = form.toObject();
     if (_.isEmpty(form)) {
       throw new GraphQLError("Form not found");
     }
     
-    const modelsData = form.fields?.map((field: any) => ({
+    const modelsData = _.uniqBy(
+      form.fields?.map((field: any) => ({
       name: field?.refModel.name,
       label: field?.refModel.name,
-    }));
+      })),
+      'name'
+    );
     const formConfig = {
       formId: form.id,
       name: form.name,
@@ -66,10 +70,11 @@ export class Form {
                   formField.refField.type
                 ),
               };
-            }).map((item) => item["_doc"]),
+            })
         };
       }),
     };
+    
     return formConfig;
   }
 
