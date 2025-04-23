@@ -181,6 +181,15 @@ export const SystemAdminRules = [
       delete: true,
     },
   },
+  {
+    modelName: "LeaveManagement",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
 ];
 
 

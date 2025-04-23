@@ -48,7 +48,15 @@ export async function loader({ params }: { params: { model: string } }) {
       cache: "no-store",
     }
   );
-
+  const refKeyMap: Record<string, string> = {};
+  
+  for (const field of response1?.listViewFields?.docs || []) {
+    if (field.field.type === "relationship" || field.field.type === "virtual") {
+      refKeyMap[field.field.name] = await getModelFieldRefModelKey(
+        field.field.ref
+      );
+    }
+  }
   const str = await GET_DYNAMIC_MODEL_LIST(
     params?.model as string,
     response1?.listViewFields?.docs.map((doc: any) => doc.field)
@@ -72,7 +80,8 @@ export async function loader({ params }: { params: { model: string } }) {
     modelData: modelData?.[`list${params?.model}s`]?.docs,
     totalDocs: modelData?.[`list${params?.model}s`]?.totalDocs,
     modelName: params?.model,
-    viewFields: response1?.listViewFields
+    viewFields: response1?.listViewFields,
+    refKeyMap
   };
 }
 
@@ -86,8 +95,11 @@ const dashboard = ({
     totalDocs: number;
     modelName: string;
     viewFields: any;
+    refKeyMap: any
   };
 }) => {
+  console.log(loaderData, "loaderData");
+  
   return (
     <div>
       {loaderData?.totalDocs && (
@@ -98,6 +110,7 @@ const dashboard = ({
           modelName={loaderData?.modelName}
           totalDocs={loaderData?.totalDocs}
           viewId={loaderData.view?.id}
+          refKeyMap={loaderData?.refKeyMap}
         />
       )}
     </div>

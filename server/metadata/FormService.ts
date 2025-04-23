@@ -1,6 +1,7 @@
 import mercury from "@mercury-js/core";
 import { GraphQLError } from "graphql";
 import _ from "lodash";
+import { object } from "zod";
 export class Form {
   formId: string;
   user: any;
@@ -31,6 +32,7 @@ export class Form {
     if (_.isEmpty(form)) {
       throw new GraphQLError("Form not found");
     }
+    
     const modelsData = form.fields?.map((field: any) => ({
       name: field?.refModel.name,
       label: field?.refModel.name,
@@ -53,7 +55,7 @@ export class Form {
               (formField: any) => formField.refField.modelName === model.name
             )
             .map((formField: any) => {
-              const fieldTemp = formField;
+              let fieldTemp = JSON.parse(JSON.stringify(formField));
               delete fieldTemp.refField;
               delete fieldTemp.refModel;
               return {
@@ -64,16 +66,18 @@ export class Form {
                   formField.refField.type
                 ),
               };
-            }),
+            }).map((item) => item["_doc"]),
         };
       }),
     };
     return formConfig;
   }
+
+
   async createRecordsUsingForm(formData: JSON) {
     const formConfig = await this.getFormMetadata();
     await formConfig.models.map((model: any) => {
-      return this.modelResolution(model, model.fields, formData, formConfig);
+      return this.modelResolution(model.name, model.fields, formData, formConfig);
     });
   }
   async modelResolution(
@@ -86,7 +90,7 @@ export class Form {
     const modelFields = fields.filter(
       (field: any) => field.type == "relationship"
     );
-
+    
     if (modelFields.length > 0) {
       await Promise.all(modelFields.map(async (field: any) => {
         const fieldData = formData[field.ref];

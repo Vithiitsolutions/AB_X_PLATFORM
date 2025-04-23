@@ -18,14 +18,16 @@ function DynamicTableContainer({
   modelName,
   dynamicQueryString,
   viewId,
-  viewFields 
+  viewFields,
+  refKeyMap
 }: {
   modelData: any;
   totalDocs: number;
   modelName: string;
   dynamicQueryString: string;
   viewId: string,
-  viewFields: any
+  viewFields: any,
+  refKeyMap:  Record<string, string>
 }) {
 
   const [listModelData, listModelDataResponse] = useLazyQuery(serverFetch);
@@ -40,17 +42,7 @@ function DynamicTableContainer({
 
   useEffect(()=>{
     (async() => {
-      
-      
-      const refKeyMap: Record<string, string> = {};
-  
-      for (const field of viewFields?.docs || []) {
-        if (field.field.type === "relationship" || field.field.type === "virtual") {
-          refKeyMap[field.field.name] = await getModelFieldRefModelKey(
-            field.field.ref
-          );
-        }
-      }
+
     
       const columns = viewFields?.docs?.map((field: any) => {
         switch (field?.field?.type) {
