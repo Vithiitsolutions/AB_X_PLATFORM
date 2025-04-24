@@ -1,7 +1,7 @@
 export async function serverFetch(query: string, variables: any, options: any) {
   const metaApiUrl =
     process.env.NODE_ENV == "development"
-      ? "http://localhost:3000/meta-api"
+      ? "http://localhost:4000/meta-api"
       : "https://qr-gate-dev.mercuryx.cloud/meta-api";
   try {
     const data = await fetch(metaApiUrl, {

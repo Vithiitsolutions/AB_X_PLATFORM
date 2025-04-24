@@ -54,7 +54,7 @@ function DynamicTableContainer({
               header: ({ column }: any) => (
                 <Box
                   onClick={() =>
-                    column.toggleSorting(column.getIsSorted() === "desc")
+                    column.toggleSorting(column.getIsSorted() === "asc")
                   }
                   className="flex items-center cursor-pointer"
                 >
@@ -241,7 +241,7 @@ function DynamicTableContainer({
           cache: "no-store",
         }
       );
-  }, [pagination.pageSize, pagination.pageSize, sorting, dynamicQueryString]);
+  }, [pagination.pageSize, pagination.pageSize, sorting, dynamicQueryString, pagination]);
   useEffect(() => {
     if (listModelDataResponse.data) {
       setObjectDataList(

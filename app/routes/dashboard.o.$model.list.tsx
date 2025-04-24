@@ -98,11 +98,10 @@ const dashboard = ({
     refKeyMap: any
   };
 }) => {
-  console.log(loaderData, "loaderData");
   
   return (
     <div>
-      {loaderData?.totalDocs && (
+      {loaderData?.viewFields?.totalDocs && (
         <DynamicTableContainer
           viewFields={loaderData?.viewFields}
           dynamicQueryString={loaderData?.dynamicQueryString}

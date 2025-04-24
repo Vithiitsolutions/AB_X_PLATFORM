@@ -112,6 +112,7 @@ export const LIST_LAYOUT_STRUCTURES = `query Docs($sort: sortLayoutStructureInpu
 export const  LIST_VIEW=`
 query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput) {
   listViewFields(sort: $sort, where: $where) {
+  totalDocs
     docs {
       id
       order
