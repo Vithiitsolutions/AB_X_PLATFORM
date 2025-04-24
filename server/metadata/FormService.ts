@@ -1,7 +1,6 @@
 import mercury from "@mercury-js/core";
 import { GraphQLError } from "graphql";
 import _ from "lodash";
-import { object } from "zod";
 export class Form {
   formId: string;
   user: any;
@@ -75,16 +74,22 @@ export class Form {
   }
 
   async createRecordsUsingForm(formData: JSON) {
-    const formConfig = await this.getFormMetadata();
-    await formConfig.models.map((model: any) => {
-      return this.modelResolution(
-        model.name,
-        model.fields,
-        formData,
-        formConfig
-      );
-    });
+    try {
+      const formConfig = await this.getFormMetadata();
+      await formConfig.models.map((model: any) => {
+        return this.modelResolution(
+          model.name,
+          model.fields,
+          formData,
+          formConfig
+        );
+      });
+      return "Created records!!";
+    } catch (error: any) {
+      throw new GraphQLError(error?.message);
+    }
   }
+
   async modelResolution(
     modelName: string,
     fields: any[],
@@ -109,9 +114,7 @@ export class Form {
               formConfig
             );
             if (record) {
-              modelData[field.name] = Array.isArray(record)
-                ? record?.map((item) => item.id)
-                : record.id;
+              modelData[field.name] = record;
             }
           }
         })
@@ -131,7 +134,11 @@ export class Form {
     }
   }
   async createRecordForModel(modelName: string, data: any) {
-    const model = await mercury.db[modelName].create(data, this.user);
-    return model.id;
+    try {
+      const model = await mercury.db[modelName].create(data, this.user);
+      return model.id;
+    } catch (error: any) {
+      throw new GraphQLError(error?.message);
+    }
   }
 }
