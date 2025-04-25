@@ -24,7 +24,6 @@ function DynamicCustomeForm ({
     form: any;
     loading?: boolean;
   }){
-    console.log(handleSubmit,modelFields,form,loading)
     return(
         <div>
         <form
@@ -34,14 +33,13 @@ function DynamicCustomeForm ({
         >
           <div className="grid md:grid-cols-2 grid-cols-1 gap-5">
             {modelFields?.map((item) => {
-
               return (
                 <div>
-                  {item?.refField?.type === "string" &&
-                    (!item.refField?.many || item?.refField?.many == null) && (
+                  {item?.type === "string" &&
+                    (!item?.many || item?.many == null) && (
                       <Controller
                         control={form.control}
-                        name={item?.refField?.name}
+                        name={item?.name}
                         render={({ field }) => (
                           <Box
                             styles={{
@@ -57,16 +55,16 @@ function DynamicCustomeForm ({
                                 base: { fontWeight: 500, fontSize: "15px" },
                               }}
                             >
-                              {_.startCase(item.refField.label)}
+                              {_.startCase(item.label)}
                             </Text>
                             <CustomeInput
-                              placeholder={item?.refField?.name}
+                              placeholder={item?.placeholder || item?.name}
                               {...field}
                               type="text"
                             />
-                            {form.formState.errors[item.refField.name] && (
+                            {form.formState.errors[item.name] && (
                           <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                            {form.formState.errors[item.refField.name]?.message}
+                            {form.formState.errors[item.name]?.message}
                           </Text>
                         )}
                             {/* <FormMessage /> */}
@@ -75,10 +73,10 @@ function DynamicCustomeForm ({
                       />
                     )}
   
-                  {item.refField.type == "date" && (
+                  {item.type == "date" && (
                     <Controller
                       control={form.control}
-                      name={item.refField.name}
+                      name={item.name}
                       render={({ field }) => (
                         <Box
                           styles={{
@@ -94,7 +92,7 @@ function DynamicCustomeForm ({
                               base: { fontWeight: 500, fontSize: "15px" },
                             }}
                           >
-                            {_.startCase(item.refField.label)}
+                            {_.startCase(item.label)}
                           </Text>
   
                           {/* <DateTimePicker
@@ -104,13 +102,13 @@ function DynamicCustomeForm ({
                                 onJsDateChange={field.onChange}
                               /> */}
                           <CustomeInput
-                            placeholder={item.refField.name}
+                            placeholder={item?.placeholder || item?.name}
                             {...field}
                             type="datetime-local"
                           />
-                          {form.formState.errors[item.refField.name] && (
+                          {form.formState.errors[item.name] && (
                           <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                            {form.formState.errors[item.refField.name]?.message}
+                            {form.formState.errors[item.name]?.message}
                           </Text>
                         )}
                           {/* <FormMessage /> */}
@@ -119,11 +117,11 @@ function DynamicCustomeForm ({
                     />
                   )}
   
-                  {["string", "number", "boolean"].includes(item.refField.type) &&
-                    item.refField.many && (
+                  {["string", "number", "boolean"].includes(item.type) &&
+                    item.many && (
                       <Controller
                         control={form.control}
-                        name={item.refField.name}
+                        name={item.name}
                         render={({ field }) => (
                           <Box
                             styles={{
@@ -139,7 +137,7 @@ function DynamicCustomeForm ({
                                 base: { fontWeight: 500, fontSize: "15px" },
                               }}
                             >
-                              {_.startCase(item.refField.label)}
+                              {_.startCase(item.label)}
                             </Text>
   
                             {/* <FormControl> */}
@@ -152,11 +150,11 @@ function DynamicCustomeForm ({
                                   .split(",")
                                   .map((value: string) => {
                                     const trimmedValue = value.trim();
-                                    if (item.refField.type === "number") {
+                                    if (item.type === "number") {
                                       return isNaN(Number(trimmedValue))
                                         ? null
                                         : trimmedValue;
-                                    } else if (item.refField.type === "boolean") {
+                                    } else if (item.type === "boolean") {
                                       return ["t", "T", "true", true].includes(
                                         trimmedValue
                                       )
@@ -171,9 +169,9 @@ function DynamicCustomeForm ({
                                     }
                                   })
                                   .filter((value: any) => {
-                                    if (item.refField.type === "number") {
+                                    if (item.type === "number") {
                                       return value !== null;
-                                    } else if (item.refField.type === "boolean") {
+                                    } else if (item.type === "boolean") {
                                       return value !== null;
                                     }
                                     return true;
@@ -182,9 +180,9 @@ function DynamicCustomeForm ({
                                 field.onChange(arrayValues);
                               }}
                             />
-                            {form.formState.errors[item.refField.name] && (
+                            {form.formState.errors[item.name] && (
                           <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                            {form.formState.errors[item.refField.name]?.message}
+                            {form.formState.errors[item.name]?.message}
                           </Text>
                         )}
                             {/* </FormControl> */}
@@ -194,10 +192,10 @@ function DynamicCustomeForm ({
                       />
                     )}
   
-                  {item.refField.type == "relationship" && !item.refField.many && (
+                  {item.type == "relationship" && !item.many && !item?.hidden && (
                     <Controller
                       control={form.control}
-                      name={item.refField.name}
+                      name={item.name}
                       render={({ field }) => (
                         <Box
                           styles={{
@@ -213,7 +211,7 @@ function DynamicCustomeForm ({
                               base: { fontWeight: 500, fontSize: "15px" },
                             }}
                           >
-                            {_.startCase(item.refField.ref)}s
+                            {_.startCase(item.ref)}s
                           </Text>
   
                           <Box
@@ -247,10 +245,10 @@ function DynamicCustomeForm ({
                               })}
                             >
                               <Option disabled selected>
-                                Select a {_.startCase(item.refField.ref)}
+                                Select a {_.startCase(item.ref)}
                               </Option>
                               <GenerateRelationshipValues
-                                fieldData={item.refField}
+                                fieldData={item}
                                 form={form}
                               />
                             </Select>
@@ -270,9 +268,9 @@ function DynamicCustomeForm ({
                               <ChevronDown size={20} color="#555" />
                             </Box>
                           </Box>
-                          {form.formState.errors[item.refField.name] && (
+                          {form.formState.errors[item.name] && (
                           <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                            {form.formState.errors[item.refField.name]?.message}
+                            {form.formState.errors[item.name]?.message}
                           </Text>
                         )}
                         </Box>
@@ -280,10 +278,10 @@ function DynamicCustomeForm ({
                     />
                   )}
   
-                  {item.type == "relationship" && item.refField.many && (
+                  {item.type == "relationship" && item.many && !item?.hidden && (
                     <Controller
                       control={form.control}
-                      name={item.refField.name}
+                      name={item.name}
                       render={({ field }) => (
                         <Box
                           styles={{
@@ -299,16 +297,16 @@ function DynamicCustomeForm ({
                               base: { fontWeight: 500, fontSize: "15px" },
                             }}
                           >
-                            {_.startCase(item.refField.label)}
+                            {_.startCase(item.label)}
                           </Text>
                           <GenerateMultiRelationshipItems
-                            fieldData={item.refField}
+                            fieldData={item}
                             form={form}
                             {...field}
                           />
-                          {form.formState.errors[item.refField.name] && (
+                          {form.formState.errors[item.name] && (
                           <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                            {form.formState.errors[item.refField.name]?.message}
+                            {form.formState.errors[item.name]?.message}
                           </Text>
                         )}
   
@@ -316,10 +314,10 @@ function DynamicCustomeForm ({
                       )}
                     />
                   )}
-                  {["number", "float"].includes(item.refField.type) && !item.refField.many && (
+                  {["number", "float"].includes(item.type) && !item.many && (
                     <Controller
                       control={form.control}
-                      name={item.refField.name}
+                      name={item.name}
                       render={({ field }) => (
                         <Box
                           styles={{
@@ -335,16 +333,16 @@ function DynamicCustomeForm ({
                               base: { fontWeight: 500, fontSize: "15px" },
                             }}
                           >
-                            {_.startCase(item.refField.label)}
+                            {_.startCase(item.label)}
                           </Text>
                           <CustomeInput
-                            placeholder={item.refField.name}
+                            placeholder={item?.placeholder || item?.name}
                             {...field}
                             type="number"
                           />
-                          {form.formState.errors[item.refField.name] && (
+                          {form.formState.errors[item.name] && (
                           <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                            {form.formState.errors[item.refField.name]?.message}
+                            {form.formState.errors[item.name]?.message}
                           </Text>
                         )}
                           {/* <FormMessage /> */}
@@ -353,10 +351,10 @@ function DynamicCustomeForm ({
                     />
                   )}
   
-                  {item.refField.type === "boolean" && !item.refField.many && (
+                  {item.type === "boolean" && !item.many && (
                     <Controller
                       control={form.control}
-                      name={item.refField.name}
+                      name={item.name}
                       render={({ field }) => (
                         <Box  styles={{
                           base: {
@@ -385,23 +383,23 @@ function DynamicCustomeForm ({
                                   base: { fontWeight: 500, fontSize: "15px" },
                                 }}
                               >
-                                {_.startCase(item.refField.label)}
+                                {_.startCase(item.label)}
                               </Text>
                             </div>
                           </Box>
-                          {form.formState.errors[item.refField.name] && (
+                          {form.formState.errors[item.name] && (
                             <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                              {form.formState.errors[item.refField.name]?.message}
+                              {form.formState.errors[item.name]?.message}
                             </Text>
                           )}
                         </Box>
                       )}
                     />
                   )}
-                  {item.refField.type === "enum" && (
+                  {item.type === "enum" && (
                     <Controller
                       control={form.control}
-                      name={item.refField.name}
+                      name={item.name}
                       render={({ field }) => (
                         <Box
                           styles={{
@@ -417,7 +415,7 @@ function DynamicCustomeForm ({
                               base: { fontWeight: 500, fontSize: "15px" },
                             }}
                           >
-                            {_.startCase(item.refField.label)}
+                            {_.startCase(item.label)}
                           </Text>
   
                           <Box
@@ -433,9 +431,9 @@ function DynamicCustomeForm ({
                               {...field}
                               onValueChange={(value) => {
                                 console.log(value, "enum value");
-                                form.setValue(item.refField.name, value);
+                                form.setValue(item.name, value);
                               }}
-                              value={form.watch(item.refField.name)}
+                              value={form.watch(item.name)}
                               styles={Clx({
                                 base: {
                                   height: 46,
@@ -451,7 +449,7 @@ function DynamicCustomeForm ({
                               })}
                             >
                               <Option disabled>
-                                Select {_.startCase(item.refField.label)}
+                                Select {_.startCase(item.label)}
                               </Option>
                               {item?.enumValues.map((option) => (
                                 <Option key={option} value={option}>
@@ -475,9 +473,9 @@ function DynamicCustomeForm ({
                               <ChevronDown size={20} color="#555" />
                             </Box>
                           </Box>
-                          {form.formState.errors[item.refField.name] && (
+                          {form.formState.errors[item.name] && (
                             <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                              {form.formState.errors[item.refField.name]?.message}
+                              {form.formState.errors[item.name]?.message}
                             </Text>
                           )}
                         </Box>
@@ -487,7 +485,7 @@ function DynamicCustomeForm ({
                   {item.type === "textarea" && (
                     <Controller
                       control={form.control}
-                      name={item.refField.name}
+                      name={item.name}
                       render={({ field }) => (
                         <Box
                           styles={{
@@ -503,16 +501,16 @@ function DynamicCustomeForm ({
                               base: { fontWeight: 500, fontSize: "15px" },
                             }}
                           >
-                            {_.startCase(item.refField.label)}
+                            {_.startCase(item.label)}
                           </Text>
                           <textarea
                             {...field}
-                            placeholder={item.refField.label}
+                            placeholder={item?.placeholder || item?.name}
                             className="border border-gray-300 rounded-md p-2 w-full h-24"
                           />
-                            {form.formState.errors[item.refField.name] && (
+                            {form.formState.errors[item.name] && (
                             <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                              {form.formState.errors[item.refField.name]?.message}
+                              {form.formState.errors[item.name]?.message}
                             </Text>
                           )}
                         </Box>

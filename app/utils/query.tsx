@@ -200,3 +200,9 @@ export const CREATE_RECORD_FORM=`
 mutation CreateRecordsUsingForm($formId: String, $formData: JSON) {
   createRecordsUsingForm(formId: $formId, formData: $formData)
 }`
+
+
+export const GET_META_DATA_RECORD_CREATE =`
+query Query($formId: String) {
+  getFormMetadataRecordCreate(formId: $formId)
+}`

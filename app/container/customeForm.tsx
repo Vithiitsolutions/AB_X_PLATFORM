@@ -28,94 +28,103 @@ type FormType = {
 };
 
 export const generateSchema = (metadata: any) => {
-    const schemaObj: Record<string, ZodTypeAny> = {};
+  const schemaObj: Record<string, ZodTypeAny> = {};
+  const defaultRegexMap: Record<string, { pattern: RegExp; error: string }> = {
+    string: {
+      pattern: /^[\w\s]+$/,
+      error: "Only letters, numbers, and spaces allowed",
+    },
+    number: {
+      pattern: /^\d+$/,
+      error: "Only numeric values allowed",
+    },
+  };
 
-    const defaultRegexMap: Record<string, { pattern: RegExp; error: string }> = {
-      string: {
-        pattern: /^[\w\s]+$/, // letters, digits, underscores, spaces
-        error: "Only letters, numbers, and spaces allowed",
-      },
-      number: {
-        pattern: /^\d+$/, // digits only
-        error: "Only numeric values allowed",
-      },
-    };
-  
-    metadata?.getForm?.fields?.forEach((field) => {
-      const { name, type, required, enumType, label, many } = field.refField;
+  metadata?.getFormMetadataRecordCreate?.models?.forEach((model) => {
+    model.fields
+    .filter((field: any) => !field.hidden)
+    .forEach((field: any) => {  
+          const {
+        name,
+        type,
+        required,
+        label,
+        enumType,
+        many,
+      } = field;
+
+      const wrapMany = (schema: any) => (many ? z.array(schema) : schema);
       const userRegexp = field.regexp;
       const userRegExpError = field.regExpError;
-  
-      const wrapMany = (schema: any) => (many ? z.array(schema) : schema);
-  
+
       const getRegexZod = (fallbackKey: "string" | "number") => {
         const fallback = defaultRegexMap[fallbackKey];
         const pattern = userRegexp ? new RegExp(userRegexp) : fallback.pattern;
         const message = userRegExpError || fallback.error;
         return z.string().regex(pattern, message);
       };
-  
+
       switch (type) {
         case "string":
           const stringZod = getRegexZod("string");
-          schemaObj[name] = required
-            ? wrapMany(stringZod)
-            : wrapMany(stringZod.optional());
+          schemaObj[name] = required ? wrapMany(stringZod) : wrapMany(stringZod.optional());
           break;
-  
+
         case "number":
         case "float":
           const numberZod = getRegexZod("number").transform((val) => parseFloat(val));
-          schemaObj[name] = required
-            ? wrapMany(numberZod)
-            : wrapMany(numberZod.optional());
+          schemaObj[name] = required ? wrapMany(numberZod) : wrapMany(numberZod.optional());
           break;
-  
+
         case "boolean":
           schemaObj[name] = required
             ? wrapMany(z.boolean({ required_error: `${label} is required` }))
-            : wrapMany(z.boolean()).optional();
+            : wrapMany(z.boolean().optional());
           break;
-  
+
         case "enum":
           if (enumType === "number") {
             schemaObj[name] = required
               ? wrapMany(z.coerce.number({ required_error: `${label} is required` }))
-              : wrapMany(z.coerce.number()).optional();
+              : wrapMany(z.coerce.number().optional());
           } else if (enumType === "string") {
             schemaObj[name] = required
               ? wrapMany(z.string({ required_error: `${label} is required` }))
-              : wrapMany(z.string()).optional();
+              : wrapMany(z.string().optional());
           }
           break;
-  
+
         case "relationship":
           schemaObj[name] = required
             ? wrapMany(z.string({ required_error: `${label} is required` }))
-            : wrapMany(z.string()).optional();
+            : wrapMany(z.string().optional());
           break;
-  
+
         case "date":
           schemaObj[name] = required
             ? wrapMany(z.coerce.date({ required_error: `${label} is required` }))
-            : wrapMany(z.coerce.date()).optional();
+            : wrapMany(z.coerce.date().optional());
           break;
-  
+
         default:
-          schemaObj[name] = z.any(); // fallback for unknown types
+          schemaObj[name] = z.any(); // fallback
           break;
       }
     });
-  
-    return z.object(schemaObj);
-  };
-  const generateStructuredPayload = (fields: any[], values: Record<string, any>) => {
-    const result: Record<string, Record<string, any>> = {};
-  
-    fields.forEach((field) => {
-      const modelName = field?.refModel?.name;
-      const fieldName = field?.refField?.name;
-  
+  });
+
+  return z.object(schemaObj);
+};
+
+const generateStructuredPayload = (models: any[], values: Record<string, any>) => {
+  const result: Record<string, Record<string, any>> = {};
+
+  models.forEach((model) => {
+    model.fields.filter((field: any) => !field.hidden)
+    .forEach((field: any) => {
+      const modelName = model.name;
+      const fieldName = field.name;
+
       if (modelName && fieldName) {
         if (!result[modelName]) {
           result[modelName] = {};
@@ -123,9 +132,11 @@ export const generateSchema = (metadata: any) => {
         result[modelName][fieldName] = values[fieldName];
       }
     });
-  
-    return result;
-  };
+  });
+
+  return result;
+};
+
   
   
 function CustomeForm({data}:{data:any}) {
@@ -137,24 +148,23 @@ function CustomeForm({data}:{data:any}) {
     const formJson = data;
 
     const formSchema = React.useMemo(() => {
-        if (!formJson) return z.object({});
-        return generateSchema(formJson);
+      if (!formJson) return z.object({});
+      return generateSchema(formJson);
     }, [formJson]);
-
+    
     type FormSchema = z.infer<typeof formSchema>;
-
+    
     const defaultValues = React.useMemo(() => {
-        if (!formJson?.getForm?.fields) return {};
-        return formJson?.getForm.fields.reduce((acc: any, field: any) => {
-          const name = field.refField.name;
-          const type = field.refField.type;
-    
-          acc[name] =
-            type === "boolean" ? false : type === "number" ? 0 : ""; // default to empty string
-    
-          return acc;
-        }, {} as Record<string, any>);
+      if (!formJson?.getFormMetadataRecordCreate?.models) return {};
+      return formJson.getFormMetadataRecordCreate.models.reduce((acc: any, model: any) => {
+        model.fields.filter((field: any) => !field.hidden)
+        .forEach((field: any) => {
+          acc[field.name] = "";
+        });
+        return acc;
+      }, {});
     }, [formJson]);
+    
 console.log(defaultValues,"defaultValues")
     const form = useForm<FormSchema>({
         resolver: zodResolver(formSchema),
@@ -169,24 +179,22 @@ console.log(defaultValues,"defaultValues")
 
     const onSubmit = async(values) => {
         console.log(values,"values")
-        const payload =await generateStructuredPayload(formJson?.getForm?.fields,values)
+        const payload =await generateStructuredPayload(formJson?.getFormMetadataRecordCreate.models,values)
         console.log("Form submitted with values:", payload);
-        createRecordForm(CREATE_RECORD_FORM,{
+        const response = await serverFetch(
+          CREATE_RECORD_FORM,
+          {
             "formId": formId,
             "formData": payload
           }, {
             cache: "no-store",
-          })
-
+          }
+        );
+        console.log(response,"response")
+        if (response.error) {
+          return response.error; 
+        }
     };
-useEffect(()=>{
-    if(createRecordFormResponse?.data){
-        console.log(createRecordFormResponse?.data,"data")
-
-    }else if(createRecordFormResponse?.error){
-        console.log(createRecordFormResponse?.error,"error")
-    }
-},[createRecordFormResponse?.data,createRecordFormResponse?.error,createRecordFormResponse.loading])
     if (!formJson) return <p>Loading...</p>;
 
     return (
@@ -198,8 +206,10 @@ useEffect(()=>{
             <DynamicCustomeForm
                 form={form}
                 handleSubmit={onSubmit}
-                modelFields={formJson?.getForm?.fields}
-                loading={false}
+                modelFields={formJson?.getFormMetadataRecordCreate.models.flatMap(model =>
+                  model.fields.filter((field: any) => !field.hidden)
+                )}
+                                loading={false}
             />
         </Box>
     );

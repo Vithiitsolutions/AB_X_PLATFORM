@@ -1,16 +1,13 @@
 import React from 'react'
 import CustomeForm from '../container/customeForm'
 import { serverFetch } from '../utils/action';
-import { GET_FORM } from '../utils/query';
-export async function loader() {
+import { GET_FORM, GET_META_DATA_RECORD_CREATE } from '../utils/query';
+import { useParams } from 'react-router';
+export async function loader({params}:{params:{formId:string}}) {
   const response = await serverFetch(
-    GET_FORM,
+    GET_META_DATA_RECORD_CREATE,
     {
-        "where": {
-            "id": {
-                "is": "6803431c441dc5338056a096"
-            }
-        }
+      "formId": params?.formId
     },
     {
       cache: "no-store",
@@ -22,7 +19,7 @@ export async function loader() {
   console.log(response,"response")
   return response;
 }
-function CustomeFormPage({ loaderData }: { loaderData: any }) {
+function customeFormPage({ loaderData }: { loaderData: any }) {
     return (
         <div>    
               <CustomeForm data={loaderData}/>
@@ -30,4 +27,4 @@ function CustomeFormPage({ loaderData }: { loaderData: any }) {
     )
 }
 
-export default CustomeFormPage
+export default customeFormPage
