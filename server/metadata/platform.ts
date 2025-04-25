@@ -23,13 +23,11 @@ export class Platform {
     console.time("Models Initialization Time");
     try {
       const model = await mercury.db.Model.list(
-        { name: "User"},
+        { name: "User" },
         { id: "1", profile: "SystemAdmin" },
       );
-
-      console.log("Model---", model);
       mercury.deleteModel("User");
-      if(!model.length) {
+      if (!model.length) {
         const model = await mercury.db.Model.create(
           {
             name: "User",
@@ -49,7 +47,7 @@ export class Platform {
             managed: false,
           },
           { id: "1", profile: "SystemAdmin" },
-          { ctx: {platform: this}, args: { input: {modelName: "User"}}}
+          { ctx: { platform: this }, args: { input: { modelName: "User" } } }
         );
       }
       const models = await mercury.db.Model.list(
@@ -65,8 +63,10 @@ export class Platform {
       for (const model of models) {
         const schema: TFields = this.composeSchema(model.fields);
         const options: TOptions = this.composeOptions(model.options);
+        if (_.isEmpty(schema)) continue;
         mercury.createModel(model.name, schema, options);
       }
+
       console.log("Models initialized successfully!");
       console.timeEnd("Models Initialization Time");
       await this.initializeProfiles();
@@ -202,9 +202,10 @@ export class Platform {
       const schema: TFields = this.composeSchema(model.fields);
       const options: TOptions = this.composeOptions(model.options);
       mercury.deleteModel(model.name);
+      if (_.isEmpty(schema)) return;
       mercury.createModel(model.name, schema, options);
     } catch (error: any) {
-      console.log("Error in composing model!", error);
+      console.log("Error in composing model!", error.message);
     }
   }
 

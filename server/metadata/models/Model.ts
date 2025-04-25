@@ -4,10 +4,12 @@ import mercury from "@mercury-js/core";
 export const model = mercury.createModel("Model", {
   name: {
     type: "string",
-    unique: true
+    unique: true,
+    required: true
   },
   label: {
     type: "string",
+    required: true
   },
   description: {
     type: "string",

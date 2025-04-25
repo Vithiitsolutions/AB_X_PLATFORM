@@ -15,6 +15,8 @@ import "./hooks/permission.ts";
 import "./hooks/modelField.ts";
 import "./hooks/fieldPermission.ts"
 import "./hooks/profile.ts";
+import "./hooks/modelOption.ts";
+import "./hooks/fieldOption.ts";
 
 // Profiles
 import "./SystemAdmin.profile.ts";

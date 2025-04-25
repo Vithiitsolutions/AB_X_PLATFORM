@@ -158,8 +158,8 @@ export default GreetingCard;
 });
 
 metaEvents.on("CREATE_MODEL_RECORD", async (data: any) => {
-  console.log("Model Record Created: ");
   await metaServer.restart();
+  console.log("GraphQL Schema updated because:", data?.msg);
 });
 
 app.use(
