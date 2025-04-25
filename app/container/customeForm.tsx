@@ -7,7 +7,7 @@ import { z, ZodTypeAny } from "zod";
 import { SubmitHandler, useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import DynamicCustomeForm from "../components/dynamicForm/customeForm";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 type FieldType = {
     refField: {
@@ -142,6 +142,7 @@ const generateStructuredPayload = (models: any[], values: Record<string, any>) =
 function CustomeForm({data}:{data:any}) {
     const [createRecordForm,createRecordFormResponse]=useLazyQuery(serverFetch)
     const {formId}=useParams()
+    let navigate =useNavigate()
     useEffect(()=>{
 
     },[data])
@@ -193,6 +194,8 @@ console.log(defaultValues,"defaultValues")
         console.log(response,"response")
         if (response.error) {
           return response.error; 
+        }else {
+          navigate(-1)
         }
     };
     if (!formJson) return <p>Loading...</p>;

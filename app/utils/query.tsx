@@ -106,6 +106,16 @@ export const LIST_LAYOUT_STRUCTURES = `query Docs($sort: sortLayoutStructureInpu
     id
     description
     name
+    buttons {
+      id
+      icon
+      href
+      disabled
+      type
+      variant
+      text
+      iconPosition
+    }
   }
 }`
 

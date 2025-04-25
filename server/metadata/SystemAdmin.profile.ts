@@ -190,6 +190,15 @@ export const SystemAdminRules = [
       delete: true,
     },
   },
+  {
+    modelName: "Button",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
 ];
 
 

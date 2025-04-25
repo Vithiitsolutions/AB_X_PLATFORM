@@ -10,7 +10,7 @@ import { serverFetch } from "../../utils/action";
 // }
 
 
-function DynamicIcon({ iconName }) {
+export function DynamicIcon({ iconName }) {
   const [IconComponent, setIconComponent] =
     useState<React.ComponentType | null>(null);
   useEffect(() => {

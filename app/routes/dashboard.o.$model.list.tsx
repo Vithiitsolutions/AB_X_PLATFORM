@@ -110,6 +110,7 @@ const dashboard = ({
           totalDocs={loaderData?.totalDocs}
           viewId={loaderData.view?.id}
           refKeyMap={loaderData?.refKeyMap}
+          buttons={loaderData.view?.buttons}
         />
       )}
     </div>

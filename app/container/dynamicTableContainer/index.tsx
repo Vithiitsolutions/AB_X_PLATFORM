@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useLazyQuery } from "../../utils/hook";
 import { serverFetch } from "../../utils/action";
 
-import { A, Text, Box } from "@mercury-js/mess";
+import { A, Text, Box, Input } from "@mercury-js/mess";
 import DynamicTable from "../../components/table";
 
 import { PaginationState, SortingState } from "@tanstack/react-table";
@@ -11,6 +11,7 @@ import { LIST_VIEW } from "../../utils/query";
 import { getModelFieldRefModelKey } from "../../utils/functions";
 import _ from 'lodash';
 import { CustomeInput } from "../../components/inputs";
+import { DynamicButton } from "../../components/Button";
 
 function DynamicTableContainer({
   totalDocs,
@@ -19,7 +20,8 @@ function DynamicTableContainer({
   dynamicQueryString,
   viewId,
   viewFields,
-  refKeyMap
+  refKeyMap,
+  buttons
 }: {
   modelData: any;
   totalDocs: number;
@@ -27,9 +29,10 @@ function DynamicTableContainer({
   dynamicQueryString: string;
   viewId: string,
   viewFields: any,
-  refKeyMap:  Record<string, string>
+  refKeyMap:  Record<string, string>;
+  buttons:any
 }) {
-
+console.log(buttons,viewFields,"buttonsbuttons")
   const [listModelData, listModelDataResponse] = useLazyQuery(serverFetch);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -244,6 +247,7 @@ function DynamicTableContainer({
   }, [pagination.pageSize, pagination.pageSize, sorting, dynamicQueryString, pagination]);
   useEffect(() => {
     if (listModelDataResponse.data) {
+      console.log("enter to ",listModelDataResponse.data?.[`list${modelName}s`]?.docs )
       setObjectDataList(
         listModelDataResponse.data?.[`list${modelName}s`]?.docs || []
       );
@@ -261,7 +265,32 @@ function DynamicTableContainer({
     listModelDataResponse.loading,
   ]);
   return (
-    <div>
+    <Box styles={{base:{
+      display:"flex",
+          flexDirection:"column",
+          gap:10
+    }}}>
+      <Box styles={{
+        base:{
+          display:"flex",
+          flexDirection:"row",
+          justifyContent:"flex-end",
+          gap:10
+        }
+      }}>
+      <CustomeInput addonstyles={{base:{
+        width:"300px"
+      }}}
+      placeholder="Search" onChange={(e)=>console.log(e.target.value,"dfg")}/>
+
+      {buttons?.map((button:any)=>{
+return(
+      <DynamicButton children={button?.text} iconPosition={button?.iconPosition} variant={button?.variant} icon={button?.icon} type={button?.type} href={button?.href}/>
+)
+      })}
+
+      </Box>
+     
       {listModelDataResponse.loading && !columnsData?.length ? (
         <Text>Loading...</Text>
       ) : (
@@ -275,7 +304,7 @@ function DynamicTableContainer({
           sorting={sorting}
         />
       )}
-    </div>
+    </Box>
   );
 }
 

@@ -30,6 +30,11 @@ export const view = mercury.createModel("View", {
         localField: "_id",
         foreignField: "view",
     },
+    buttons:{
+        type:"relationship",
+        ref:"Button",
+        many:true
+    }
 }, {
     historyTracking: false,
     indexes: [
