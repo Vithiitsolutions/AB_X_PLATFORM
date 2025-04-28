@@ -42,17 +42,28 @@ export default CustomeButton;
 
 
 export const DynamicButton: React.FC<DynamicButtonProps> = ({ addOnStyles= {}, children, onClick, ...props }) => {
+  const getBackgroundColor = () => {
+    if (props.variant === "primary") return theme.colors.black[0];
+    if (props.variant === "danger") return theme.colors.red[8]; 
+    return theme.colors.gray[9];
+  };
+
+  const getTextColor = () => {
+    if (props.variant === "primary") return theme.colors.white[0];
+    if (props.variant === "danger") return theme.colors.white[0]; 
+    return theme.colors.black[0];
+  };
   const button=(
     <Button
     styles={
       Clx({
         base: {
-          background: props.variant == "primary"?theme.colors.black[0]:theme.colors.gray[9],
+          background: getBackgroundColor(),
           fontSize: "14px",
           fontWeight: 600,
           lineHeight: "16px",
           borderRadius: "7px",
-          color:props.variant == "primary"?theme.colors.white[0]:theme.colors.black[0],
+          color:getTextColor(),
           padding:"10px 20px",
           cursor:"pointer"
         },

@@ -6,12 +6,13 @@ import { useForm, Controller } from "react-hook-form";
 // import GenerateMultiRelationshipItems from "./GenerateMultiRelationshipItems";
 import _ from "lodash";
 import React from "react";
-import { Box, Button, Clx, Option, Select, Text } from "@mercury-js/mess";
+import { Box, Button, Clx, H1, Option, Select, Text } from "@mercury-js/mess";
 import { CustomeInput } from "../inputs";
 import { ChevronDown } from "lucide-react";
-import CustomeButton from "../Button";
+import CustomeButton, { DynamicButton } from "../Button";
 import GenerateRelationshipValues from "./generateRelationshipSelector";
 import GenerateMultiRelationshipItems from "./generateMultiRelationshipItem";
+import { useNavigate, useParams } from "react-router";
 
 const DynamicForm = ({
   handleSubmit,
@@ -24,9 +25,33 @@ const DynamicForm = ({
   form: any;
   loading?: boolean;
 }) => {
+  const navigate=useNavigate()
+  const params =useParams()
   console.log(modelFields, "modelFields");
+  const capitalizeFirstLetter = (str?: string) => {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+  
   return (
-    <div>
+    <Box styles={{
+      base:{
+        display:"flex",
+        flexDirection:"column",
+        gap:20
+      }
+    }}>
+<Text as={H1} styles={{
+  base: {
+    fontSize: "20px",
+    fontWeight: 500
+  }
+}}>
+  {params?.recordId
+    ? `Update ${capitalizeFirstLetter(params?.model)}`
+    : `Create ${capitalizeFirstLetter(params?.model)}`
+  }
+</Text>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-8"
@@ -522,14 +547,22 @@ const DynamicForm = ({
             );
           })}
         </div>
-        <div className="flex justify-center items-center">
+        <Box styles={{
+          base:{
+            display:"flex",
+            flexDirection:"row",
+            justifyContent:"flex-start",
+            gap:10
+          }
+        }}>
           <CustomeButton
             type="submit"
             children={loading ? "loading..." : "Submit"}
           />
-        </div>{" "}
+                          <DynamicButton children={"Cancel"}  variant={"secondary"}  type={"action"} onClick={()=>navigate(-1)}/>
+        </Box>{" "}
       </form>
-    </div>
+    </Box>
   );
 };
 

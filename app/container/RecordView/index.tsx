@@ -1,18 +1,65 @@
 "use client";
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useMemo } from "react";
 
 import { Box } from "@mercury-js/mess";
 import DynamicComponentLoader from "../../components/DynamicComponentLoader";
 import { MESS_TAGS } from "../../utils/constant";
 import ManagedComponent from "../../components/managedComponent";
 import { ErrorBoundary } from "../../root";
+import { DynamicButton } from "../../components/Button";
+import { useNavigate, useParams } from "react-router";
+import { useLazyQuery } from "../../utils/hook";
+import { serverFetch } from "../../utils/action";
 function RecordView({
   layoutStructuresData,
   recordData,
 }: {
   layoutStructuresData: any;
   recordData: any;
+
 }) {
+  const params=useParams()
+  const [DeleteRecordd, DeleteRecorddResponse] = useLazyQuery(serverFetch);
+const navigate =useNavigate()
+  const Delete_Query = useMemo(() => {
+    return `mutation Delete${params?.model}($delete${params?.model}Id: ID!) {
+  delete${params?.model}(id: $delete${params?.model}Id)
+}`;
+  }, []);
+  function DeleteRecord(id: string) {
+    console.log(id);
+    DeleteRecordd(
+      Delete_Query,
+      {
+        [`delete${params?.model}Id`]: id,
+      },
+      {
+        cache: "no-store",
+      }
+    );
+  }
+  useEffect(() => {
+    if (DeleteRecorddResponse?.data) {
+      // toast({
+      //   title: "Success",
+      //   description: "Successful deleted",
+      // });
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 2000);
+      navigate(`/dashboard/o/${params?.model}/list`)
+    } else if (DeleteRecorddResponse?.error) {
+      // toast({
+      //   variant: "destructive",
+      //   title: "Uh oh! Something went wrong.",
+      //   description: DeleteRecorddResponse?.error?.message,
+      // });
+    }
+  }, [
+    DeleteRecorddResponse?.data,
+    DeleteRecorddResponse?.loading,
+    DeleteRecorddResponse?.error,
+  ]);
   return (
     <Box
       styles={{
@@ -21,6 +68,17 @@ function RecordView({
         },
       }}
     >
+      <Box styles={{base:{
+              display:"flex",
+              flexDirection:"row",
+              justifyContent:"flex-end",
+              gap:10
+            }}}>
+            <DynamicButton children={"Delete"} iconPosition={"left"} variant={"danger"} icon={"Trash"} type={"action"} onClick={()=>DeleteRecord(params?.record!)}/>
+      
+                          <DynamicButton children={"Update"} iconPosition={"left"} variant={"primary"} icon={"Pencil"} type={"link"} href={`/dashboard/o/${params?.model}/r/${params?.record}/update`} />
+              
+            </Box>
       {/* <Box ml={5} mb={4}></Box> */}
       <Box
         styles={{

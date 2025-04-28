@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useLazyQuery } from "../../utils/hook";
 import { serverFetch } from "../../utils/action";
 import { useEffect, useMemo } from "react";
@@ -8,15 +8,16 @@ import { generateSchema } from "../../containers/createDynamicForm";
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import DynamicForm from "./modelForm";
+import DynamicForm from "../../components/dynamicForm/modelForm";
 import React from "react";
 
 const UpdateDynamicRecord = () => {
     // const router = useRouter()
 
     const {model} = useParams();
-    const {record} = useParams();
-    console.log(model,record,"enter")
+    const navigate =useNavigate()
+    const {recordId} = useParams();
+    console.log(model,recordId,"enter")
     const [getAllModelFields, { data, loading, error }] = useLazyQuery(serverFetch);
     const [dynamicGetQuary, DynamicGetQuaryResponse] = useLazyQuery(serverFetch)
     const Update_Query = useMemo(() => {
@@ -109,7 +110,7 @@ const UpdateDynamicRecord = () => {
                 {
                     "where": {
                         "id": {
-                            "is": record
+                            "is": recordId
                         }
                     }
                 }, {
@@ -126,6 +127,7 @@ const UpdateDynamicRecord = () => {
     useEffect(() => {
         if (updateRecordResponse?.data) {
             console.log(updateRecordResponse?.data);
+            navigate(-1)
             // toast({
             //     title: "Success",
             //     description: "Successful updated",
@@ -145,7 +147,7 @@ const UpdateDynamicRecord = () => {
     }, [updateRecordResponse?.data, updateRecordResponse?.loading, updateRecordResponse?.error])
 
     const onSubmit: SubmitHandler<FormSchema> = (values) => {
-        values.id = record;
+        values.id = recordId;
         console.log(values);
         updateRecord(
             Update_Query,
@@ -158,6 +160,7 @@ const UpdateDynamicRecord = () => {
 
     useEffect(() => {
         if (DynamicGetQuaryResponse?.data) {
+            console.log(DynamicGetQuaryResponse?.data,"DynamicGetQuaryResponse")
             data.listModelFields?.docs.forEach((item: any) => {
                 if (item.type === "relationship") {
                     if (item.many == true) {
@@ -175,7 +178,10 @@ const UpdateDynamicRecord = () => {
             console.log(DynamicGetQuaryResponse?.error)
         }
     }, [DynamicGetQuaryResponse?.data, DynamicGetQuaryResponse?.loading, DynamicGetQuaryResponse?.error])
+    useEffect(()=>{
+    console.log(form,"form")
 
+},[form])
     return (
         <div>
 

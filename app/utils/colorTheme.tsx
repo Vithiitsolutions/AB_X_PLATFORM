@@ -87,7 +87,9 @@ const black = {
   }
   const red = {
     0: "#B3261E",
+    8:"#ED5E68",
     9:"#FCF1F1"
+
   }
   const green = {
     0: "#00AC46",

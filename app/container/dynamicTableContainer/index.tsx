@@ -29,10 +29,10 @@ function DynamicTableContainer({
   dynamicQueryString: string;
   viewId: string,
   viewFields: any,
-  refKeyMap:  Record<string, string>;
-  buttons:any
+  refKeyMap: Record<string, string>;
+  buttons: any
 }) {
-console.log(buttons,viewFields,"buttonsbuttons")
+  console.log(buttons, viewFields, "buttonsbuttons")
   const [listModelData, listModelDataResponse] = useLazyQuery(serverFetch);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -42,11 +42,12 @@ console.log(buttons,viewFields,"buttonsbuttons")
   const [objectDataList, setObjectDataList] = React.useState<any>(modelData);
   const [totalDocsCount, setTotalDocsCount] = React.useState(totalDocs);
   const [columnsData, setColumnsData] = React.useState([]);
+  const [searchText, setSearchText] = React.useState("");
 
-  useEffect(()=>{
-    (async() => {
+  useEffect(() => {
+    (async () => {
 
-    
+
       const columns = viewFields?.docs?.map((field: any) => {
         switch (field?.field?.type) {
           case "string":
@@ -73,7 +74,7 @@ console.log(buttons,viewFields,"buttonsbuttons")
                 </div>
               ),
             };
-    
+
           case "relationship":
           case "virtual":
             return {
@@ -98,11 +99,10 @@ console.log(buttons,viewFields,"buttonsbuttons")
                     <div className="flex justify-center items-center flex-wrap gap-2">
                       {row.original[field?.field?.name]?.map((item: any) => (
                         <A
-                          href={`${
-                            item?.id
+                          href={`${item?.id
                               ? `/dashboard/o/${field?.field?.ref}/r/${item?.id}`
                               : "#"
-                          }`}
+                            }`}
                           onClick={(e) => e.stopPropagation()}
                           className="hover:underline"
                           title={JSON.stringify(item, null, 2)}
@@ -119,19 +119,17 @@ console.log(buttons,viewFields,"buttonsbuttons")
                 } else {
                   return (
                     <A
-                      href={`${
-                        row.original[field.field?.name]?.id
-                          ? `/dashboard/o/${field.field?.ref}/r/${
-                              row.original[field.field?.name]?.id
-                            }`
+                      href={`${row.original[field.field?.name]?.id
+                          ? `/dashboard/o/${field.field?.ref}/r/${row.original[field.field?.name]?.id
+                          }`
                           : "#"
-                      }`}
+                        }`}
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {(refKeyMap[field.field?.name] &&
                         row.original[field.field?.name]?.[
-                          `${refKeyMap[field.field?.name]}`
+                        `${refKeyMap[field.field?.name]}`
                         ]) ||
                         row.original[field.field?.name]?.id ||
                         "-"}
@@ -184,6 +182,8 @@ console.log(buttons,viewFields,"buttonsbuttons")
                     onClick={() =>
                       column.toggleSorting(column.getIsSorted() === "asc")
                     }
+                    className="flex items-center cursor-pointer"
+
                   >
                     {_.startCase(field.field?.label)}
                     <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -194,9 +194,9 @@ console.log(buttons,viewFields,"buttonsbuttons")
                 <div className="">
                   {field.field?.many
                     ? row
-                        .getValue(field.field?.name)
-                        ?.map((item: string) => new Date(item).toLocaleString())
-                        ?.join(", ")
+                      .getValue(field.field?.name)
+                      ?.map((item: string) => new Date(item).toLocaleString())
+                      ?.join(", ")
                     : new Date(row.getValue(field.field?.name)).toLocaleString()}
                 </div>
               ),
@@ -210,6 +210,8 @@ console.log(buttons,viewFields,"buttonsbuttons")
                     onClick={() =>
                       column.toggleSorting(column.getIsSorted() === "asc")
                     }
+                    className="flex items-center cursor-pointer"
+
                   >
                     {_.startCase(field.field?.label)}
                     <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -247,7 +249,7 @@ console.log(buttons,viewFields,"buttonsbuttons")
   }, [pagination.pageSize, pagination.pageSize, sorting, dynamicQueryString, pagination]);
   useEffect(() => {
     if (listModelDataResponse.data) {
-      console.log("enter to ",listModelDataResponse.data?.[`list${modelName}s`]?.docs )
+      console.log("enter to ", listModelDataResponse.data?.[`list${modelName}s`]?.docs)
       setObjectDataList(
         listModelDataResponse.data?.[`list${modelName}s`]?.docs || []
       );
@@ -265,32 +267,36 @@ console.log(buttons,viewFields,"buttonsbuttons")
     listModelDataResponse.loading,
   ]);
   return (
-    <Box styles={{base:{
-      display:"flex",
-          flexDirection:"column",
-          gap:10
-    }}}>
+    <Box styles={{
+      base: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 10
+      }
+    }}>
       <Box styles={{
-        base:{
-          display:"flex",
-          flexDirection:"row",
-          justifyContent:"flex-end",
-          gap:10
+        base: {
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-end",
+          gap: 10
         }
       }}>
-      <CustomeInput addonstyles={{base:{
-        width:"300px"
-      }}}
-      placeholder="Search" onChange={(e)=>console.log(e.target.value,"dfg")}/>
+        <CustomeInput addonstyles={{
+          base: {
+            width: "300px"
+          }
+        }}
+          placeholder="Search" onChange={(e) => setSearchText(e.target.value)} />
 
-      {buttons?.map((button:any)=>{
-return(
-      <DynamicButton children={button?.text} iconPosition={button?.iconPosition} variant={button?.variant} icon={button?.icon} type={button?.type} href={button?.href}/>
-)
-      })}
+        {buttons?.map((button: any) => {
+          return (
+            <DynamicButton children={button?.text} iconPosition={button?.iconPosition} variant={button?.variant} icon={button?.icon} type={button?.type} href={button?.href} />
+          )
+        })}
 
       </Box>
-     
+
       {listModelDataResponse.loading && !columnsData?.length ? (
         <Text>Loading...</Text>
       ) : (
