@@ -76,6 +76,7 @@ export async function loader({ params }: { params: { model: string } }) {
     }
   );
   const searchComposition = getSearchCompostion(response1?.listViewFields?.docs.map((doc: any) => doc.field), "")
+  
   return {
     view: response?.getView,
     dynamicQueryString: str,

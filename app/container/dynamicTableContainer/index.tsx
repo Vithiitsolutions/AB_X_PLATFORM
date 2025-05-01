@@ -8,7 +8,10 @@ import DynamicTable from "../../components/table";
 import { PaginationState, SortingState } from "@tanstack/react-table";
 import { ChevronsUpDown } from "lucide-react";
 import { LIST_VIEW } from "../../utils/query";
-import { getModelFieldRefModelKey, getSearchCompostion } from "../../utils/functions";
+import {
+  getModelFieldRefModelKey,
+  getSearchCompostion,
+} from "../../utils/functions";
 import _ from "lodash";
 import { CustomeInput } from "../../components/inputs";
 import { DynamicButton } from "../../components/Button";
@@ -22,7 +25,7 @@ function DynamicTableContainer({
   viewFields,
   refKeyMap,
   buttons,
-  searchVaraiables
+  searchVaraiables,
 }: {
   modelData: any;
   totalDocs: number;
@@ -34,7 +37,6 @@ function DynamicTableContainer({
   buttons: any;
   searchVaraiables: any;
 }) {
-  console.log(buttons, viewFields, "buttonsbuttons");
   const [listModelData, listModelDataResponse] = useLazyQuery(serverFetch);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -45,7 +47,6 @@ function DynamicTableContainer({
   const [totalDocsCount, setTotalDocsCount] = React.useState(totalDocs);
   const [columnsData, setColumnsData] = React.useState([]);
   const [searchText, setSearchText] = React.useState("");
-  const [whereConditions, setWhereConditions] = React.useState(searchVaraiables);
 
   useEffect(() => {
     (async () => {
@@ -100,10 +101,11 @@ function DynamicTableContainer({
                     <div className="flex justify-center items-center flex-wrap gap-2">
                       {row.original[field?.field?.name]?.map((item: any) => (
                         <A
-                          href={`${item?.id
+                          href={`${
+                            item?.id
                               ? `/dashboard/o/${field?.field?.ref}/r/${item?.id}`
                               : "#"
-                            }`}
+                          }`}
                           onClick={(e) => e.stopPropagation()}
                           className="hover:underline"
                           title={JSON.stringify(item, null, 2)}
@@ -120,17 +122,19 @@ function DynamicTableContainer({
                 } else {
                   return (
                     <A
-                      href={`${row.original[field.field?.name]?.id
-                          ? `/dashboard/o/${field.field?.ref}/r/${row.original[field.field?.name]?.id
-                          }`
+                      href={`${
+                        row.original[field.field?.name]?.id
+                          ? `/dashboard/o/${field.field?.ref}/r/${
+                              row.original[field.field?.name]?.id
+                            }`
                           : "#"
-                        }`}
+                      }`}
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {(refKeyMap[field.field?.name] &&
                         row.original[field.field?.name]?.[
-                        `${refKeyMap[field.field?.name]}`
+                          `${refKeyMap[field.field?.name]}`
                         ]) ||
                         row.original[field.field?.name]?.id ||
                         "-"}
@@ -184,7 +188,6 @@ function DynamicTableContainer({
                       column.toggleSorting(column.getIsSorted() === "asc")
                     }
                     className="flex items-center cursor-pointer"
-
                   >
                     {_.startCase(field.field?.label)}
                     <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -214,7 +217,6 @@ function DynamicTableContainer({
                       column.toggleSorting(column.getIsSorted() === "asc")
                     }
                     className="flex items-center cursor-pointer"
-
                   >
                     {_.startCase(field.field?.label)}
                     <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -234,14 +236,22 @@ function DynamicTableContainer({
       setColumnsData(columns);
     })();
   }, []);
+  const debouncedListModelData = React.useCallback(
+    _.debounce((query, variables, options) => {
+      listModelData(query, variables, options);
+    }, 500),
+    []
+  );
   useEffect(() => {
+
     if (dynamicQueryString)
-      console.log(whereConditions, "------------where conditions-------------");
-      
-      listModelData(
+      debouncedListModelData(
         dynamicQueryString,
         {
-          ...whereConditions,
+          ...getSearchCompostion(
+            viewFields?.docs?.map((field: any) => field?.field),
+            searchText
+          ),
           sort: {
             [sorting[0]?.id || "createdOn"]: sorting[0]?.desc ? "desc" : "asc",
           },
@@ -258,18 +268,11 @@ function DynamicTableContainer({
     sorting,
     dynamicQueryString,
     pagination,
-    searchVaraiables
+    searchText,
   ]);
 
-  useEffect(()=> {
-    setWhereConditions(getSearchCompostion(viewFields?.docs?.map((field: any) => field?.field) , searchText))
-  }, [searchText])
   useEffect(() => {
     if (listModelDataResponse.data) {
-      console.log(
-        "enter to ",
-        listModelDataResponse.data?.[`list${modelName}s`]?.docs
-      );
       setObjectDataList(
         listModelDataResponse.data?.[`list${modelName}s`]?.docs || []
       );
@@ -287,32 +290,46 @@ function DynamicTableContainer({
     listModelDataResponse.loading,
   ]);
   return (
-    <Box styles={{
-      base: {
-        display: "flex",
-        flexDirection: "column",
-        gap: 10
-      }
-    }}>
-      <Box styles={{
+    <Box
+      styles={{
         base: {
           display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          gap: 10
-        }
-      }}>
-        <CustomeInput addonstyles={{
+          flexDirection: "column",
+          gap: 10,
+        },
+      }}
+    >
+      <Box
+        styles={{
           base: {
-            width: "300px"
-          }
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            gap: 10,
+          },
         }}
-          placeholder="Search" onChange={(e) => setSearchText(e.target.value)} />
+      >
+        <CustomeInput
+          addonstyles={{
+            base: {
+              width: "300px",
+            },
+          }}
+          placeholder="Search"
+          onChange={(e) => setSearchText(e.target.value)}
+        />
 
         {buttons?.map((button: any) => {
           return (
-            <DynamicButton children={button?.text} iconPosition={button?.iconPosition} variant={button?.variant} icon={button?.icon} type={button?.type} href={button?.href} />
-          )
+            <DynamicButton
+              children={button?.text}
+              iconPosition={button?.iconPosition}
+              variant={button?.variant}
+              icon={button?.icon}
+              type={button?.type}
+              href={button?.href}
+            />
+          );
         })}
 
         {buttons?.map((button: any) => {

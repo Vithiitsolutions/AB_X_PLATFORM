@@ -29,8 +29,8 @@ export const GET_DYNAMIC_MODEL_LIST = async (
   modelName: string,
   modelFields: any[]
 ) => {
-  let str = `query List${modelName}($sort: sort${modelName}Input, $limit: Int!, $offset: Int!) {
-      list${modelName}s(sort: $sort, limit: $limit, offset: $offset) {
+  let str = `query List${modelName}($where: where${modelName}Input, $sort: sort${modelName}Input, $limit: Int!, $offset: Int!) {
+      list${modelName}s(where: $where, sort: $sort, limit: $limit, offset: $offset) {
           totalDocs
           docs {
               id`;
@@ -104,21 +104,27 @@ export const getSearchCompostion = (fields: any[], searchText: string) => {
         };
       case "number":
       case "float":
-        return {
-          [field.name]: {
-            is: Number(searchText),
-          },
-        };
+        const isValidNumber = !isNaN(Number(searchText));
+        return isValidNumber
+          ? {
+              [field.name]: {
+                is: Number(searchText),
+              },
+            }
+          : null;
       case "boolean":
         return {
           [field.name]: Boolean(searchText == "true"),
         };
       case "date":
-        return {
-          [field.name]: {
-            is: searchText,
-          },
-        };
+        const isValidDate = !isNaN(Date.parse(searchText));
+        return isValidDate
+          ? {
+              [field.name]: {
+                is: Date.parse(searchText),
+              },
+            }
+          : null;
       case "enum":
         return {
           [field.name]: {
@@ -127,17 +133,22 @@ export const getSearchCompostion = (fields: any[], searchText: string) => {
         };
       case "relationship":
       case "virutal":
-        return {
-          [field.name]: {
-            is: searchText,
-          },
-        };
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(searchText);
+        return isValidObjectId
+          ? {
+              [field.name]: {
+                id: {
+                  is: searchText,
+                },
+              },
+            }
+          : null;
     }
   });
 
   const variables = {
     where: {
-      OR: orFields,
+      OR: orFields.filter((obj) => obj),
     },
   };
   return variables;
