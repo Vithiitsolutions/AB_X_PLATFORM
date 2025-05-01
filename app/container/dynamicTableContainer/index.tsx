@@ -8,8 +8,8 @@ import DynamicTable from "../../components/table";
 import { PaginationState, SortingState } from "@tanstack/react-table";
 import { ChevronsUpDown } from "lucide-react";
 import { LIST_VIEW } from "../../utils/query";
-import { getModelFieldRefModelKey } from "../../utils/functions";
-import _ from 'lodash';
+import { getModelFieldRefModelKey, getSearchCompostion } from "../../utils/functions";
+import _ from "lodash";
 import { CustomeInput } from "../../components/inputs";
 import { DynamicButton } from "../../components/Button";
 
@@ -21,18 +21,20 @@ function DynamicTableContainer({
   viewId,
   viewFields,
   refKeyMap,
-  buttons
+  buttons,
+  searchVaraiables
 }: {
   modelData: any;
   totalDocs: number;
   modelName: string;
   dynamicQueryString: string;
-  viewId: string,
-  viewFields: any,
+  viewId: string;
+  viewFields: any;
   refKeyMap: Record<string, string>;
-  buttons: any
+  buttons: any;
+  searchVaraiables: any;
 }) {
-  console.log(buttons, viewFields, "buttonsbuttons")
+  console.log(buttons, viewFields, "buttonsbuttons");
   const [listModelData, listModelDataResponse] = useLazyQuery(serverFetch);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -43,11 +45,10 @@ function DynamicTableContainer({
   const [totalDocsCount, setTotalDocsCount] = React.useState(totalDocs);
   const [columnsData, setColumnsData] = React.useState([]);
   const [searchText, setSearchText] = React.useState("");
+  const [whereConditions, setWhereConditions] = React.useState(searchVaraiables);
 
   useEffect(() => {
     (async () => {
-
-
       const columns = viewFields?.docs?.map((field: any) => {
         switch (field?.field?.type) {
           case "string":
@@ -194,10 +195,12 @@ function DynamicTableContainer({
                 <div className="">
                   {field.field?.many
                     ? row
-                      .getValue(field.field?.name)
-                      ?.map((item: string) => new Date(item).toLocaleString())
-                      ?.join(", ")
-                    : new Date(row.getValue(field.field?.name)).toLocaleString()}
+                        .getValue(field.field?.name)
+                        ?.map((item: string) => new Date(item).toLocaleString())
+                        ?.join(", ")
+                    : new Date(
+                        row.getValue(field.field?.name)
+                      ).toLocaleString()}
                 </div>
               ),
             };
@@ -229,13 +232,16 @@ function DynamicTableContainer({
         }
       });
       setColumnsData(columns);
-    })()
-  }, [])
+    })();
+  }, []);
   useEffect(() => {
     if (dynamicQueryString)
+      console.log(whereConditions, "------------where conditions-------------");
+      
       listModelData(
         dynamicQueryString,
         {
+          ...whereConditions,
           sort: {
             [sorting[0]?.id || "createdOn"]: sorting[0]?.desc ? "desc" : "asc",
           },
@@ -246,10 +252,24 @@ function DynamicTableContainer({
           cache: "no-store",
         }
       );
-  }, [pagination.pageSize, pagination.pageSize, sorting, dynamicQueryString, pagination]);
+  }, [
+    pagination.pageSize,
+    pagination.pageSize,
+    sorting,
+    dynamicQueryString,
+    pagination,
+    searchVaraiables
+  ]);
+
+  useEffect(()=> {
+    setWhereConditions(getSearchCompostion(viewFields?.docs?.map((field: any) => field?.field) , searchText))
+  }, [searchText])
   useEffect(() => {
     if (listModelDataResponse.data) {
-      console.log("enter to ", listModelDataResponse.data?.[`list${modelName}s`]?.docs)
+      console.log(
+        "enter to ",
+        listModelDataResponse.data?.[`list${modelName}s`]?.docs
+      );
       setObjectDataList(
         listModelDataResponse.data?.[`list${modelName}s`]?.docs || []
       );
@@ -295,6 +315,18 @@ function DynamicTableContainer({
           )
         })}
 
+        {buttons?.map((button: any) => {
+          return (
+            <DynamicButton
+              children={button?.text}
+              iconPosition={button?.iconPosition}
+              variant={button?.variant}
+              icon={button?.icon}
+              type={button?.type}
+              href={button?.href}
+            />
+          );
+        })}
       </Box>
 
       {listModelDataResponse.loading && !columnsData?.length ? (

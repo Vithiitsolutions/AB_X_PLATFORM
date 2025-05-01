@@ -6,6 +6,7 @@ import { GET_VIEW, LIST_VIEW } from "../utils/query";
 import {
   GET_DYNAMIC_MODEL_LIST,
   getModelFieldRefModelKey,
+  getSearchCompostion,
 } from "../utils/functions";
 import { A, Box } from "@mercury-js/mess";
 import { ChevronsUpDown } from "lucide-react";
@@ -74,6 +75,7 @@ export async function loader({ params }: { params: { model: string } }) {
       cache: "no-store",
     }
   );
+  const searchComposition = getSearchCompostion(response1?.listViewFields?.docs.map((doc: any) => doc.field), "")
   return {
     view: response?.getView,
     dynamicQueryString: str,
@@ -81,7 +83,8 @@ export async function loader({ params }: { params: { model: string } }) {
     totalDocs: modelData?.[`list${params?.model}s`]?.totalDocs,
     modelName: params?.model,
     viewFields: response1?.listViewFields,
-    refKeyMap
+    refKeyMap,
+    searchVariables: searchComposition
   };
 }
 
@@ -95,7 +98,8 @@ const dashboard = ({
     totalDocs: number;
     modelName: string;
     viewFields: any;
-    refKeyMap: any
+    refKeyMap: any;
+    searchVaraiables: any;
   };
 }) => {
   
@@ -111,6 +115,7 @@ const dashboard = ({
           viewId={loaderData.view?.id}
           refKeyMap={loaderData?.refKeyMap}
           buttons={loaderData.view?.buttons}
+          searchVaraiables={loaderData?.searchVaraiables}
         />
       )}
     </div>
