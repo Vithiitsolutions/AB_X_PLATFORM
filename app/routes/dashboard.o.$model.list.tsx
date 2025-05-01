@@ -103,6 +103,7 @@ const dashboard = ({
     searchVaraiables: any;
   };
 }) => {
+  console.log(loaderData);
   
   return (
     <div>

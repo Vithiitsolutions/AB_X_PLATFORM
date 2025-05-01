@@ -25,33 +25,37 @@ const DynamicForm = ({
   form: any;
   loading?: boolean;
 }) => {
-  const navigate=useNavigate()
-  const params =useParams()
+  const navigate = useNavigate();
+  const params = useParams();
   console.log(modelFields, "modelFields");
   const capitalizeFirstLetter = (str?: string) => {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
-  
+
   return (
-    <Box styles={{
-      base:{
-        display:"flex",
-        flexDirection:"column",
-        gap:20
-      }
-    }}>
-<Text as={H1} styles={{
-  base: {
-    fontSize: "20px",
-    fontWeight: 500
-  }
-}}>
-  {params?.recordId
-    ? `Update ${capitalizeFirstLetter(params?.model)}`
-    : `Create ${capitalizeFirstLetter(params?.model)}`
-  }
-</Text>
+    <Box
+      styles={{
+        base: {
+          display: "flex",
+          flexDirection: "column",
+          gap: 20,
+        },
+      }}
+    >
+      <Text
+        as={H1}
+        styles={{
+          base: {
+            fontSize: "20px",
+            fontWeight: 500,
+          },
+        }}
+      >
+        {params?.recordId
+          ? `Update ${capitalizeFirstLetter(params?.model)}`
+          : `Create ${capitalizeFirstLetter(params?.model)}`}
+      </Text>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-8"
@@ -89,10 +93,14 @@ const DynamicForm = ({
                             type="text"
                           />
                           {form.formState.errors[item.name] && (
-                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                          {form.formState.errors[item.name]?.message}
-                        </Text>
-                      )}
+                            <Text
+                              styles={{
+                                base: { color: "red", fontSize: "12px" },
+                              }}
+                            >
+                              {form.formState.errors[item.name]?.message}
+                            </Text>
+                          )}
                           {/* <FormMessage /> */}
                         </Box>
                       )}
@@ -133,10 +141,14 @@ const DynamicForm = ({
                           type="datetime-local"
                         />
                         {form.formState.errors[item.name] && (
-                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                          {form.formState.errors[item.name]?.message}
-                        </Text>
-                      )}
+                          <Text
+                            styles={{
+                              base: { color: "red", fontSize: "12px" },
+                            }}
+                          >
+                            {form.formState.errors[item.name]?.message}
+                          </Text>
+                        )}
                         {/* <FormMessage /> */}
                       </Box>
                     )}
@@ -207,10 +219,14 @@ const DynamicForm = ({
                             }}
                           />
                           {form.formState.errors[item.name] && (
-                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                          {form.formState.errors[item.name]?.message}
-                        </Text>
-                      )}
+                            <Text
+                              styles={{
+                                base: { color: "red", fontSize: "12px" },
+                              }}
+                            >
+                              {form.formState.errors[item.name]?.message}
+                            </Text>
+                          )}
                           {/* </FormControl> */}
                           {/* <FormMessage /> */}
                         </Box>
@@ -250,12 +266,12 @@ const DynamicForm = ({
                           }}
                         >
                           <Select
-                         {...field} // Use field props directly
-                         onValueChange={(value) => {
-                           console.log(value, "enum value");
-                           field.onChange(value); // Correct way to update value
-                         }}
-                         value={field.value}
+                            {...field} // Use field props directly
+                            // onChange={(value) => {
+                            //   console.log(value, "enum value");
+                            //   field.onChange(value); // Correct way to update value
+                            // }}
+                            // value={field.value}
                             styles={Clx({
                               base: {
                                 height: 46,
@@ -270,7 +286,7 @@ const DynamicForm = ({
                               },
                             })}
                           >
-                            <Option disabled selected>
+                            <Option disabled>
                               Select a {_.startCase(item.ref)}
                             </Option>
                             <GenerateRelationshipValues
@@ -295,10 +311,14 @@ const DynamicForm = ({
                           </Box>
                         </Box>
                         {form.formState.errors[item.name] && (
-                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                          {form.formState.errors[item.name]?.message}
-                        </Text>
-                      )}
+                          <Text
+                            styles={{
+                              base: { color: "red", fontSize: "12px" },
+                            }}
+                          >
+                            {form.formState.errors[item.name]?.message}
+                          </Text>
+                        )}
                       </Box>
                     )}
                   />
@@ -331,11 +351,14 @@ const DynamicForm = ({
                           {...field}
                         />
                         {form.formState.errors[item.name] && (
-                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                          {form.formState.errors[item.name]?.message}
-                        </Text>
-                      )}
-
+                          <Text
+                            styles={{
+                              base: { color: "red", fontSize: "12px" },
+                            }}
+                          >
+                            {form.formState.errors[item.name]?.message}
+                          </Text>
+                        )}
                       </Box>
                     )}
                   />
@@ -367,10 +390,14 @@ const DynamicForm = ({
                           type="number"
                         />
                         {form.formState.errors[item.name] && (
-                        <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
-                          {form.formState.errors[item.name]?.message}
-                        </Text>
-                      )}
+                          <Text
+                            styles={{
+                              base: { color: "red", fontSize: "12px" },
+                            }}
+                          >
+                            {form.formState.errors[item.name]?.message}
+                          </Text>
+                        )}
                         {/* <FormMessage /> */}
                       </Box>
                     )}
@@ -382,14 +409,15 @@ const DynamicForm = ({
                     control={form.control}
                     name={item.name}
                     render={({ field }) => (
-                      <Box  styles={{
-                        base: {
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 5,
-                        },
-                      }}>
-
+                      <Box
+                        styles={{
+                          base: {
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 5,
+                          },
+                        }}
+                      >
                         <Box
                           styles={{
                             base: {
@@ -414,7 +442,11 @@ const DynamicForm = ({
                           </div>
                         </Box>
                         {form.formState.errors[item.name] && (
-                          <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                          <Text
+                            styles={{
+                              base: { color: "red", fontSize: "12px" },
+                            }}
+                          >
                             {form.formState.errors[item.name]?.message}
                           </Text>
                         )}
@@ -500,7 +532,11 @@ const DynamicForm = ({
                           </Box>
                         </Box>
                         {form.formState.errors[item.name] && (
-                          <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                          <Text
+                            styles={{
+                              base: { color: "red", fontSize: "12px" },
+                            }}
+                          >
                             {form.formState.errors[item.name]?.message}
                           </Text>
                         )}
@@ -534,8 +570,12 @@ const DynamicForm = ({
                           placeholder={item.label}
                           className="border border-gray-300 rounded-md p-2 w-full h-24"
                         />
-                          {form.formState.errors[item.name] && (
-                          <Text styles={{ base: { color: "red", fontSize: "12px" } }}>
+                        {form.formState.errors[item.name] && (
+                          <Text
+                            styles={{
+                              base: { color: "red", fontSize: "12px" },
+                            }}
+                          >
                             {form.formState.errors[item.name]?.message}
                           </Text>
                         )}
@@ -547,19 +587,26 @@ const DynamicForm = ({
             );
           })}
         </div>
-        <Box styles={{
-          base:{
-            display:"flex",
-            flexDirection:"row",
-            justifyContent:"flex-start",
-            gap:10
-          }
-        }}>
+        <Box
+          styles={{
+            base: {
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-start",
+              gap: 10,
+            },
+          }}
+        >
           <CustomeButton
             type="submit"
             children={loading ? "loading..." : "Submit"}
           />
-                          <DynamicButton children={"Cancel"}  variant={"secondary"}  type={"action"} onClick={()=>navigate(-1)}/>
+          <DynamicButton
+            children={"Cancel"}
+            variant={"secondary"}
+            type={"action"}
+            onClick={() => navigate(-1)}
+          />
         </Box>{" "}
       </form>
     </Box>

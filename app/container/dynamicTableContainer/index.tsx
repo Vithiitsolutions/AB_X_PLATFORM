@@ -242,8 +242,7 @@ function DynamicTableContainer({
     }, 500),
     []
   );
-  useEffect(() => {
-
+  React.useEffect(() => {
     if (dynamicQueryString)
       debouncedListModelData(
         dynamicQueryString,
