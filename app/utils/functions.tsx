@@ -126,11 +126,19 @@ export const getSearchCompostion = (fields: any[], searchText: string) => {
             }
           : null;
       case "enum":
-        return {
-          [field.name]: {
-            is: searchText,
-          },
-        };
+        if (searchText && Array.isArray(field.enumValues)) {
+          const matchedEnum = field.enumValues.find((ev) =>
+            ev.toLowerCase().includes(searchText.toLowerCase())
+          );
+          if (matchedEnum) {
+            return {
+              [field.name]: {
+                is: matchedEnum,
+              },
+            };
+          }
+        }
+        return null; 
       case "relationship":
       case "virutal":
         const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(searchText);
