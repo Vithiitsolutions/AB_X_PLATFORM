@@ -132,9 +132,7 @@ export const getSearchCompostion = (fields: any[], searchText: string) => {
           );
           if (matchedEnum) {
             return {
-              [field.name]: {
-                is: matchedEnum,
-              },
+              [field.name]:  matchedEnum,
             };
           }
         }
@@ -156,7 +154,7 @@ export const getSearchCompostion = (fields: any[], searchText: string) => {
 
   const variables = {
     where: {
-      OR: orFields.filter((obj) => obj),
+      OR: searchText ? orFields.filter((obj) => obj) : [],
     },
   };
   return variables;

@@ -30,6 +30,17 @@ export async function loader() {
                 label
                 name
               }
+              childTabs {
+              id
+              icon
+              label
+              order
+              model {
+                id
+                label
+                name
+              }
+            }
             }
             profiles {
               id
