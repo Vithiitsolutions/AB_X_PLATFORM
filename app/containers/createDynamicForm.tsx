@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo } from "react";
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useLazyQuery } from "../utils/hook";
 import { serverFetch } from "../utils/action";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -73,6 +73,8 @@ export const generateSchema = (metadata: any[]) => {
 };
 
 const CreateDynamicRecord = () => {
+  let navigate = useNavigate();
+
 //   const router = useRouter();
   const {model} = useParams();
   const [getAllModelFields, { data, loading, error }] =
@@ -160,6 +162,8 @@ console.log(formSchema,"formSCHEMA")
     //   setTimeout(() => {
     //     router.back();
     //   }, 2000);
+    navigate(`/dashboard/o/${model}/list`)
+
     }
     if (createRecordResponse?.error) {
       console.log(createRecordResponse?.error);

@@ -106,12 +106,23 @@ export const LIST_LAYOUT_STRUCTURES = `query Docs($sort: sortLayoutStructureInpu
     id
     description
     name
+    buttons {
+      id
+      icon
+      href
+      disabled
+      type
+      variant
+      text
+      iconPosition
+    }
   }
 }`
 
 export const  LIST_VIEW=`
 query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput) {
   listViewFields(sort: $sort, where: $where) {
+  totalDocs
     docs {
       id
       order
@@ -143,4 +154,65 @@ query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput) {
       }
     }
   }
+}`
+
+
+export const GET_FORM=`
+query GetForm($where: whereFormInput!) {
+  getForm(where: $where) {
+    id
+    label
+    name
+    description
+    fields {
+      id
+      label
+      placeholder
+      refField {
+        id
+        enumType
+        enumValues
+        foreignField
+        immutable
+        label
+        localField
+       
+        many
+        model {
+          id
+          label
+        }
+        modelName
+        name
+        ref
+        required
+        type
+        unique
+        default
+      }
+      refModel {
+        id
+        label
+        name
+        recordKey {
+          id
+          label
+        }
+      }
+      regExpError
+      regexp
+    }
+  }
+}`
+
+
+export const CREATE_RECORD_FORM=`
+mutation CreateRecordsUsingForm($formId: String, $formData: JSON) {
+  createRecordsUsingForm(formId: $formId, formData: $formData)
+}`
+
+
+export const GET_META_DATA_RECORD_CREATE =`
+query Query($formId: String) {
+  getFormMetadataRecordCreate(formId: $formId)
 }`

@@ -9,61 +9,8 @@ import { serverFetch } from "../../utils/action";
 //   return { message: "Hello, world!" };
 // }
 
-export async function loader() {
-  const response = await serverFetch(
-    `query Docs($where: whereTabInput, $sort: sortTabInput) {
-          listTabs(where: $where, sort: $sort) {
-            docs {
-              id
-              label
-              order
-              icon
-              model {
-                  id
-                  label
-                  name
-                }
-              childTabs {
-                id
-                icon
-                label
-                order
-                model {
-                  id
-                  label
-                  name
-                }
-              }
-              profiles {
-                id
-                label
-                name
 
-              }
-            }
-          }
-        }`,
-    {
-      where: {
-        parent: {
-          is: null,
-        },
-      },
-      sort: {
-        order: "asc",
-      },
-    },
-    {
-      cache: "no-store",
-    }
-  );
-  const data = await response.json();
-  console.log(data, "response");
-
-  return data?.listTabs?.docs;
-}
-
-function DynamicIcon({ iconName, loaderData }) {
+export function DynamicIcon({ iconName }) {
   const [IconComponent, setIconComponent] =
     useState<React.ComponentType | null>(null);
   useEffect(() => {
@@ -86,77 +33,76 @@ function DynamicIcon({ iconName, loaderData }) {
   return <IconComponent style={{ width: "15px" }} />;
 }
 
-function SideBar({ loaderData }) {
-  console.log(loaderData, "loaderdata");
+function SideBar({tabs}: {tabs: any[]}) {
   const [openItems, setOpenItems] = useState<string[]>([]);
   const location = useLocation();
   console.log(location, "location?.state");
-  const [tabs, setTabs] = useState([]);
+  // const [tabs, setTabs] = useState([]);
 
-  useEffect(() => {
-    getTabs();
-  }, []);
+  // useEffect(() => {
+  //   getTabs();
+  // }, []);
 
-  const getTabs = async () => {
-    const data = await serverFetch(
-      `query Docs($where: whereTabInput, $sort: sortTabInput) {
-            listTabs(where: $where, sort: $sort) {
-              docs {
-                id
-                label
-                order
-                icon
-                model {
-                    id
-                    label
-                    name
-                  }
-                childTabs {
-                  id
-                  icon
-                  label
-                  order
-                  model {
-                    id
-                    label
-                    name
-                  }
-                }
-                profiles {
-                  id
-                  label
-                  name
+  // const getTabs = async () => {
+  //   const data = await serverFetch(
+  //     `query Docs($where: whereTabInput, $sort: sortTabInput) {
+  //           listTabs(where: $where, sort: $sort) {
+  //             docs {
+  //               id
+  //               label
+  //               order
+  //               icon
+  //               model {
+  //                   id
+  //                   label
+  //                   name
+  //                 }
+  //               childTabs {
+  //                 id
+  //                 icon
+  //                 label
+  //                 order
+  //                 model {
+  //                   id
+  //                   label
+  //                   name
+  //                 }
+  //               }
+  //               profiles {
+  //                 id
+  //                 label
+  //                 name
 
-                }
-              }
-            }
-          }`,
-      {
-        where: {
-          parent: {
-            is: null,
-          },
-        },
-        sort: {
-          order: "asc",
-        },
-      },
-      {
-        cache: "no-store",
-      }
-    );
-    console.log(data);
+  //               }
+  //             }
+  //           }
+  //         }`,
+  //     {
+  //       where: {
+  //         parent: {
+  //           is: null,
+  //         },
+  //       },
+  //       sort: {
+  //         order: "asc",
+  //       },
+  //     },
+  //     {
+  //       cache: "no-store",
+  //     }
+  //   );
+  //   console.log(data);
 
-    let sortedTabs = data.listTabs.docs.sort((a, b) => a.order - b.order);
+  //   let sortedTabs = data.listTabs.docs.sort((a, b) => a.order - b.order);
 
-    // Sort child tabs inside each main tab
-    sortedTabs = sortedTabs.map((tab) => ({
-      ...tab,
-      childTabs: tab.childTabs.sort((a, b) => a.order - b.order),
-    }));
+  //   // Sort child tabs inside each main tab
+  //   sortedTabs = sortedTabs.map((tab) => ({
+  //     ...tab,
+  //     childTabs: tab.childTabs.sort((a, b) => a.order - b.order),
+  //   }));
   
-    setTabs(sortedTabs);
-  };
+  //   setTabs(sortedTabs);
+  // };
 
   const toggleItem = (id: string) => {
     setOpenItems((prev) => {
@@ -179,7 +125,7 @@ function SideBar({ loaderData }) {
           base: { display: "flex", flexDirection: "column", gap: "15px" },
         }}
       >
-        {items.map((item) => (
+        {items?.length ? items?.map((item) => (
           <Box
             key={item.id}
             styles={{
@@ -305,7 +251,7 @@ function SideBar({ loaderData }) {
                 </Box>
               )}
           </Box>
-        ))}
+        )): null}
       </Box>
     );
   };

@@ -155,6 +155,15 @@ export const SystemAdminRules = [
     },
   },
   {
+    modelName: "Entity",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
     modelName: "Manager",
     access: {
       create: true,
@@ -174,6 +183,24 @@ export const SystemAdminRules = [
   },
   {
     modelName: "FormField",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
+    modelName: "LeaveManagement",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
+    modelName: "Button",
     access: {
       create: true,
       read: true,

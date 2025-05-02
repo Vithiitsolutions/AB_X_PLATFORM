@@ -1,16 +1,16 @@
 export async function serverFetch(query: string, variables: any, options: any) {
-  console.log("metaApiUrl");
   const metaApiUrl =
-    process.env.NODE_ENV == "dev"
+    process.env.NODE_ENV == "development"
       ? "http://localhost:4000/meta-api"
       : "https://qr-gate-dev.mercuryx.cloud/meta-api";
   try {
     const data = await fetch(metaApiUrl, {
       method: "POST",
       headers: {
-        "content-type": "application/json",
-        "x-apollo-operation-name": "Docs",
         profile: "SystemAdmin",
+        "Content-Type": "application/json",
+        "x-apollo-operation-name": "SomeOperation",
+        "apollo-require-preflight": "true",
       },
       body: JSON.stringify({
         query,

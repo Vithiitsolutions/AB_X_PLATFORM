@@ -9,32 +9,33 @@ export class Form {
     this.formId = formId;
   }
   async getFormMetadata() {
-    const form: any = await mercury.db.Form.get(
-      { _id: this.formId },
-      this.user,
-      {
-        populate: [
-          {
-            path: "fields",
-            populate: [
-              {
-                path: "refField",
-              },
-              {
-                path: "refModel",
-              },
-            ],
-          },
-        ],
-      }
-    );
+    let form: any = await mercury.db.Form.get({ _id: this.formId }, this.user, {
+      populate: [
+        {
+          path: "fields",
+          populate: [
+            {
+              path: "refField",
+            },
+            {
+              path: "refModel",
+            },
+          ],
+        },
+      ],
+    });
+    form = form.toObject();
     if (_.isEmpty(form)) {
       throw new GraphQLError("Form not found");
     }
-    const modelsData = form.fields?.map((field: any) => ({
-      name: field?.refModel.name,
-      label: field?.refModel.name,
-    }));
+
+    const modelsData = _.uniqBy(
+      form.fields?.map((field: any) => ({
+        name: field?.refModel.name,
+        label: field?.refModel.name,
+      })),
+      "name"
+    );
     const formConfig = {
       formId: form.id,
       name: form.name,
@@ -53,7 +54,7 @@ export class Form {
               (formField: any) => formField.refField.modelName === model.name
             )
             .map((formField: any) => {
-              const fieldTemp = formField;
+              let fieldTemp = JSON.parse(JSON.stringify(formField));
               delete fieldTemp.refField;
               delete fieldTemp.refModel;
               return {
@@ -68,14 +69,27 @@ export class Form {
         };
       }),
     };
+
     return formConfig;
   }
+
   async createRecordsUsingForm(formData: JSON) {
-    const formConfig = await this.getFormMetadata();
-    await formConfig.models.map((model: any) => {
-      return this.modelResolution(model, model.fields, formData, formConfig);
-    });
+    try {
+      const formConfig = await this.getFormMetadata();
+      await formConfig.models.map((model: any) => {
+        return this.modelResolution(
+          model.name,
+          model.fields,
+          formData,
+          formConfig
+        );
+      });
+      return "Created records!!";
+    } catch (error: any) {
+      throw new GraphQLError(error?.message);
+    }
   }
+
   async modelResolution(
     modelName: string,
     fields: any[],
@@ -88,21 +102,23 @@ export class Form {
     );
 
     if (modelFields.length > 0) {
-      await Promise.all(modelFields.map(async (field: any) => {
-        const fieldData = formData[field.ref];
-        if (fieldData) {
-          const record = await this.modelResolution(
-            field.ref,
-            formConfig.models.find((mod: any) => mod.name === field.ref)
-              ?.fields,
-            formData,
-            formConfig
-          );
-          if (record) {
-            modelData[field.name] = record.id;
+      await Promise.all(
+        modelFields.map(async (field: any) => {
+          const fieldData = formData[field.ref];
+          if (fieldData) {
+            const record = await this.modelResolution(
+              field.ref,
+              formConfig.models.find((mod: any) => mod.name === field.ref)
+                ?.fields,
+              formData,
+              formConfig
+            );
+            if (record) {
+              modelData[field.name] = record;
+            }
           }
-        }
-      }));
+        })
+      );
     }
     if (modelData) {
       if (!Array.isArray(modelData))
@@ -118,7 +134,11 @@ export class Form {
     }
   }
   async createRecordForModel(modelName: string, data: any) {
-    const model = await mercury.db[modelName].create(data, this.user);
-    return model.id;
+    try {
+      const model = await mercury.db[modelName].create(data, this.user);
+      return model.id;
+    } catch (error: any) {
+      throw new GraphQLError(error?.message);
+    }
   }
 }

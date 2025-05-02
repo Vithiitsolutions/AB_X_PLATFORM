@@ -1,98 +1,66 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useLazyQuery } from "../../utils/hook";
 import { serverFetch } from "../../utils/action";
-import { Link, useParams } from "react-router";
-import {
-  GET_DYNAMIC_MODEL_LIST,
-  getModelFieldRefModelKey,
-} from "../../utils/functions";
-import { A, Box, Text } from "@mercury-js/mess";
-import { ChevronsUpDown, ExternalLink } from "lucide-react";
-import { CustomeInput } from "../../components/inputs";
+
+import { A, Text, Box, Input } from "@mercury-js/mess";
 import DynamicTable from "../../components/table";
-import _ from "lodash";
+
 import { PaginationState, SortingState } from "@tanstack/react-table";
-import { GET_VIEW, LIST_VIEW } from "../../utils/query";
+import { ChevronsUpDown } from "lucide-react";
+import { LIST_VIEW } from "../../utils/query";
+import {
+  getModelFieldRefModelKey,
+  getSearchCompostion,
+} from "../../utils/functions";
+import _ from "lodash";
+import { CustomeInput } from "../../components/inputs";
+import { DynamicButton } from "../../components/Button";
 
-function DynamicTableContainer() {
-  let { model } = useParams();
-  const [columns, setColumns] = useState<any>([]);
-
+function DynamicTableContainer({
+  totalDocs,
+  modelData,
+  modelName,
+  dynamicQueryString,
+  viewId,
+  viewFields,
+  refKeyMap,
+  buttons,
+  searchVaraiables,
+}: {
+  modelData: any;
+  totalDocs: number;
+  modelName: string;
+  dynamicQueryString: string;
+  viewId: string;
+  viewFields: any;
+  refKeyMap: Record<string, string>;
+  buttons: any;
+  searchVaraiables: any;
+}) {
   const [listModelData, listModelDataResponse] = useLazyQuery(serverFetch);
-  const [listView, listViewResponse] = useLazyQuery(serverFetch);
-
-  const [dynamicQueryString, setDynamicQueryString] = useState("");
-  const [getAllModelFields, { data, loading, error }] =
-    useLazyQuery(serverFetch);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [objectDataList, setObjectDataList] = React.useState<any>(modelData);
+  const [totalDocsCount, setTotalDocsCount] = React.useState(totalDocs);
+  const [columnsData, setColumnsData] = React.useState([]);
+  const [searchText, setSearchText] = React.useState("");
 
   useEffect(() => {
-    getAllModelFields(
-      GET_VIEW,
-      {
-        "where": {
-          "modelName": {
-            "is": model
-          },
-          
-        }
-      },
-      {
-        cache: "no-store",
-      }
-    );
-  }, [model]);
-
-  useEffect(() => {
-    if (data) {
-      console.log(data, "ajScjbxsj");
-      listView(LIST_VIEW,{
-        "sort": {
-          "order": "asc"
-        },
-        "where": {
-          "view": {
-            "is": data?.getView?.id
-          },
-          "visible": true
-        }
-      },{
-        cache: "no-store",
-      })
-     
-    }
-  }, [data, loading, error]);
-
-  useEffect(() => {
-  if(listViewResponse?.data){
-    console.log(listViewResponse?.data?.listViewFields?.docs,"list view");
     (async () => {
-      const refKeyMap: Record<string, string> = {};
-
-      for (const field of listViewResponse?.data?.listViewFields?.docs || []) {
-        if (field.field.type === "relationship" || field.field.type === "virtual") {
-          console.log(field, "ref field");
-          
-          refKeyMap[field.field.name] = await getModelFieldRefModelKey(field.field.ref);
-        }
-      }
-
-      const columns = listViewResponse?.data?.listViewFields?.docs?.map((field: any) => {
+      const columns = viewFields?.docs?.map((field: any) => {
         switch (field?.field?.type) {
           case "string":
           case "number":
           case "float":
-            console.log(field, "field");
             return {
               accessorKey: field?.field?.name,
               header: ({ column }: any) => (
                 <Box
                   onClick={() =>
-                    column.toggleSorting(column.getIsSorted() === "desc")
+                    column.toggleSorting(column.getIsSorted() === "asc")
                   }
                   className="flex items-center cursor-pointer"
                 >
@@ -219,6 +187,7 @@ function DynamicTableContainer() {
                     onClick={() =>
                       column.toggleSorting(column.getIsSorted() === "asc")
                     }
+                    className="flex items-center cursor-pointer"
                   >
                     {_.startCase(field.field?.label)}
                     <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -230,11 +199,11 @@ function DynamicTableContainer() {
                   {field.field?.many
                     ? row
                         .getValue(field.field?.name)
-                        ?.map((item: string) =>
-                          new Date(item).toLocaleString()
-                        )
+                        ?.map((item: string) => new Date(item).toLocaleString())
                         ?.join(", ")
-                    : new Date(row.getValue(field.field?.name)).toLocaleString()}
+                    : new Date(
+                        row.getValue(field.field?.name)
+                      ).toLocaleString()}
                 </div>
               ),
             };
@@ -247,6 +216,7 @@ function DynamicTableContainer() {
                     onClick={() =>
                       column.toggleSorting(column.getIsSorted() === "asc")
                     }
+                    className="flex items-center cursor-pointer"
                   >
                     {_.startCase(field.field?.label)}
                     <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -263,49 +233,24 @@ function DynamicTableContainer() {
             };
         }
       });
-
-      // columns.push({
-      //   accessorKey: "action",
-      //   header: ({ column }) => {
-      //     return <Box variant="ghost">Action</Box>;
-      //   },
-      //   cell: ({ row }) => (
-      //     <div className="flex justify-start items-center gap-2">
-      //     test
-      //     </div>
-      //   ),
-      // });
-
-      setColumns(columns);
-      const str = await GET_DYNAMIC_MODEL_LIST(
-        model as string,
-        listViewResponse?.data?.listViewFields?.docs.map(doc => doc.field)
-      );
-      setDynamicQueryString(str);
-      listModelData(
-        str,
-        {
-          sort: {
-            createdOn: "desc",
-          },
-          limit: pagination.pageSize,
-          offset: pagination.pageIndex * pagination.pageSize,
-        },
-        {
-          cache: "no-store",
-        }
-      );
+      setColumnsData(columns);
     })();
-  }else if(listViewResponse?.error){
-    console.log(listViewResponse?.error,"error")
-  }
-  }, [listViewResponse?.data,listViewResponse?.loading,listViewResponse?.error,pagination])
-
-  useEffect(() => {
+  }, []);
+  const debouncedListModelData = React.useCallback(
+    _.debounce((query, variables, options) => {
+      listModelData(query, variables, options);
+    }, 500),
+    []
+  );
+  React.useEffect(() => {
     if (dynamicQueryString)
-      listModelData(
+      debouncedListModelData(
         dynamicQueryString,
         {
+          ...getSearchCompostion(
+            viewFields?.docs?.map((field: any) => field?.field),
+            searchText
+          ),
           sort: {
             [sorting[0]?.id || "createdOn"]: sorting[0]?.desc ? "desc" : "asc",
           },
@@ -316,11 +261,23 @@ function DynamicTableContainer() {
           cache: "no-store",
         }
       );
-  }, [pagination.pageSize, pagination.pageSize, dynamicQueryString, sorting]);
+  }, [
+    pagination.pageSize,
+    pagination.pageSize,
+    sorting,
+    dynamicQueryString,
+    pagination,
+    searchText,
+  ]);
+
   useEffect(() => {
     if (listModelDataResponse.data) {
-      console.log(listModelDataResponse.data?.[`list${model}s`]?.totalDocs, "Pagination---");
-      console.log(listModelDataResponse.data, "data11");
+      setObjectDataList(
+        listModelDataResponse.data?.[`list${modelName}s`]?.docs || []
+      );
+      setTotalDocsCount(
+        listModelDataResponse.data?.[`list${modelName}s`]?.totalDocs || 0
+      );
     }
 
     if (listModelDataResponse.error) {
@@ -331,26 +288,77 @@ function DynamicTableContainer() {
     listModelDataResponse.error,
     listModelDataResponse.loading,
   ]);
-
-  
   return (
-    <div>
-      {loading || listModelDataResponse.loading  ? (
+    <Box
+      styles={{
+        base: {
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+        },
+      }}
+    >
+      <Box
+        styles={{
+          base: {
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            gap: 10,
+          },
+        }}
+      >
+        <CustomeInput
+          addonstyles={{
+            base: {
+              width: "300px",
+            },
+          }}
+          placeholder="Search"
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+
+        {buttons?.map((button: any) => {
+          return (
+            <DynamicButton
+              children={button?.text}
+              iconPosition={button?.iconPosition}
+              variant={button?.variant}
+              icon={button?.icon}
+              type={button?.type}
+              href={button?.href}
+            />
+          );
+        })}
+
+        {buttons?.map((button: any) => {
+          return (
+            <DynamicButton
+              children={button?.text}
+              iconPosition={button?.iconPosition}
+              variant={button?.variant}
+              icon={button?.icon}
+              type={button?.type}
+              href={button?.href}
+            />
+          );
+        })}
+      </Box>
+
+      {listModelDataResponse.loading && !columnsData?.length ? (
         <Text>Loading...</Text>
       ) : (
         <DynamicTable
-          data={listModelDataResponse.data?.[`list${model}s`]?.docs || []}
-          columns={columns}
-          rowCount={
-            listModelDataResponse.data?.[`list${model}s`]?.totalDocs || 0
-          }
+          data={objectDataList}
+          columns={columnsData}
+          rowCount={totalDocsCount}
           pagination={pagination}
           setPagination={setPagination}
           setSorting={setSorting}
           sorting={sorting}
         />
-      ) }
-    </div>
+      )}
+    </Box>
   );
 }
 
