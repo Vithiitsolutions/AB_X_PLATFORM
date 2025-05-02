@@ -160,6 +160,11 @@ function DynamicTableContainer({
                             checked={item}
                             disabled={true}
                             aria-label="Select all"
+                            type="checkbox"
+                            addonstyles={{base:{
+                              height:"20px",
+                              width:"20px",
+                            }}}
                           />
                         </div>
                       ))}
@@ -172,6 +177,12 @@ function DynamicTableContainer({
                         checked={row.getValue(field.field?.name)}
                         disabled={true}
                         aria-label="Select all"
+                        type="checkbox"
+                            addonstyles={{base:{
+                              height:"20px",
+                              width:"20px",
+                            }}}
+                          
                       />
                     </div>
                   );
@@ -349,7 +360,7 @@ function DynamicTableContainer({
         <Text>Loading...</Text>
       ) : (
         <DynamicTable
-          data={objectDataList}
+          data={objectDataList || []}
           columns={columnsData}
           rowCount={totalDocsCount}
           pagination={pagination}

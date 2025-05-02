@@ -77,8 +77,9 @@ const dashboard = ({ loaderData }: { loaderData: any }) => {
             styles={{
               base: {
                 width: "calc(100vw - 280px)",
-
+                height:"calc(100vh - 56px)",
                 padding: 20,
+                overflow:"auto"
               },
             }}
           >
