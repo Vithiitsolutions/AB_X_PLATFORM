@@ -166,16 +166,16 @@ function SideBar({tabs}: {tabs: any[]}) {
                 {/* ✅ Dynamic Icon Here */}
                 <DynamicIcon iconName={item.icon} />
                 {item?.model ? (
-                  <NavLink
-                    to={`/dashboard/o/${item?.model?.name}/list`}
-                    state={item?.id}
+                  <A
+                    href={`/dashboard/o/${item?.model?.name}/list`}
+                    // state={item?.id}
                     className={`${
                       location.pathname.includes(item?.model?.name) &&
                       "text-black"
                     }`}
                   >
                     {item.label}
-                  </NavLink>
+                  </A>
                 ) : (
                   <Box
                     className={`${
