@@ -1,13 +1,13 @@
 import Mess, { Box, Button, Text } from "@mercury-js/mess";
 import React, { useState } from "react";
-import { useTheme } from "../utils/theme";
+// import { useTheme } from "../utils/theme";
 import DynamicTable from "../components/table";
 import PopUp from "../components/popup";
 import { CustomeInput, CustomSelect } from "../components/inputs";
 import DynamicForm from "../components/dynamicForm";
 
 const dashboard = () => {
-  const { theme } = useTheme();
+  // const { theme } = useTheme();
   const [popupOpen, setPopupOpen] = useState(false);
   const onclosePopUp = () => {
     setPopupOpen(false);

@@ -80,7 +80,7 @@ export async function loader() {
 const dashboard = ({ loaderData }: { loaderData: any }) => {
   return (
     <div>
-      <ThemeProvider>
+      {/* <ThemeProvider> */}
         <Navbar />
         <Box styles={{ base: { display: "flex", flexDirection: "row" } }}>
           <SideBar tabs={loaderData} />
@@ -97,7 +97,7 @@ const dashboard = ({ loaderData }: { loaderData: any }) => {
             <Outlet />
           </Box>
         </Box>
-      </ThemeProvider>
+      {/* </ThemeProvider> */}
     </div>
   );
 };

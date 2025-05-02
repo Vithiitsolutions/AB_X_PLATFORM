@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import Mess, { Box, Button, Image, Text } from "@mercury-js/mess";
 import { FaChevronDown } from "react-icons/fa";
-import { useTheme } from "../../utils/theme";
+// import { useTheme } from "../../utils/theme";
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
-  console.log(theme, "theme");
+  // const { theme, toggleTheme } = useTheme();
+  // console.log(theme, "theme");
   return (
     <Box
       styles={{
@@ -152,7 +152,7 @@ function Navbar() {
               >
                 Dashboard
               </Box>
-              <Box
+              {/* <Box
                 styles={{
                   base: {
                     cursor: "pointer",
@@ -180,7 +180,7 @@ function Navbar() {
                   }}
                 />{" "}
                 {theme == "light" ? "Light" : "Dark"} Mode
-              </Box>
+              </Box> */}
               <Box
                 styles={{
                   base: {
