@@ -28,6 +28,7 @@ export async function loader({ params }: { params: { model: string } }) {
       cache: "no-store",
     }
   );
+  console.log(response,"resp")
   if (response.error) {
     return response.error; //TODO: handle error
   }
@@ -38,6 +39,7 @@ export async function loader({ params }: { params: { model: string } }) {
       sort: {
         order: "asc",
       },
+      "limit": 10000,
       where: {
         view: {
           is: response?.getView?.id,

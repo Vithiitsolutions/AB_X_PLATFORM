@@ -286,7 +286,7 @@ const DynamicForm = ({
                               },
                             })}
                           >
-                            <Option disabled>
+                            <Option >
                               Select a {_.startCase(item.ref)}
                             </Option>
                             <GenerateRelationshipValues
@@ -424,12 +424,19 @@ const DynamicForm = ({
                               display: "flex",
                               flexDirection: "row",
                               gap: 5,
+                              marginTop:20
                             },
                           }}
                         >
                           <CustomeInput
                             checked={field.value}
                             onChange={field.onChange}
+                            type="checkbox"
+                            addonstyles={{base:{
+                              height:"20px",
+                              width:"20px",
+                            }}}
+                          
                           />
                           <div className="space-y-1 leading-none">
                             <Text
@@ -506,7 +513,7 @@ const DynamicForm = ({
                               },
                             })}
                           >
-                            <Option disabled>
+                            <Option >
                               Select {_.startCase(item.label)}
                             </Option>
                             {item?.enumValues.map((option) => (

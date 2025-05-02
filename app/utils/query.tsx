@@ -120,8 +120,8 @@ export const LIST_LAYOUT_STRUCTURES = `query Docs($sort: sortLayoutStructureInpu
 }`
 
 export const  LIST_VIEW=`
-query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput) {
-  listViewFields(sort: $sort, where: $where) {
+query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput, $limit: Int!) {
+  listViewFields(sort: $sort, where: $where, limit: $limit) {
   totalDocs
     docs {
       id
@@ -153,6 +153,7 @@ query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput) {
         foreignField
       }
     }
+    limit
   }
 }`
 
