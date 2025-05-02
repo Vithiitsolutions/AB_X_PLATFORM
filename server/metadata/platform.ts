@@ -1,10 +1,11 @@
-import mercury, { Rule, TField, TFields, TOptions } from "@mercury-js/core";
+import mercury, { Rule, TField, TFields, TModel, TOptions, Profile } from "@mercury-js/core";
 import _ from "lodash";
 import {
   mergeProfilePermissions,
   overrideWithExplicitPermissions,
   profilePipeline,
 } from "./utility";
+import { SystemAdminRules } from "./SystemAdmin.profile";
 
 export class Platform {
   profilesMapper = new Map();
@@ -85,9 +86,39 @@ export class Platform {
   // Future enhancement - Profile - inherited, but wanted to provide certain access control over fields?
   // 4. Profile Ids - for code based profiles ?
 
+  async setUpSystemAdmin() {
+    let systemAdminProfile = await mercury.db.Profile.mongoModel.findOne({ name: 'SystemAdmin' });
+    mercury.access.profiles = mercury.access.profiles.filter((profile: Profile) => profile.name != "SystemAdmin");
+    if (!_.isEmpty(systemAdminProfile)) return;
+
+    systemAdminProfile = await mercury.db.Profile.mongoModel.create({
+      name: 'SystemAdmin',
+      label: 'SystemAdmin',
+    });
+
+    const models = await mercury.db.Model.mongoModel.find().lean();
+
+    await Promise.all(
+      models.map((model: any) =>
+        mercury.db.Permission.mongoModel.create({
+          profile: systemAdminProfile._id,
+          profileName: 'SystemAdmin',
+          model: model._id,
+          modelName: model.name,
+          create: true,
+          update: true,
+          delete: true,
+          read: true
+        })
+      )
+    );
+  }
+
+
   public async initializeProfiles() {
     // Profiles from db and from mercury handle both during intialization step and also during api calls
     console.time("Profiles Initialization Time");
+    await this.setUpSystemAdmin();
     try {
       const profiles = await mercury.db.Profile.mongoModel.aggregate(
         profilePipeline
@@ -111,6 +142,9 @@ export class Platform {
         this.profileIdMapper[profileId].permissions = this.composePermissions(
           this.profileIdMapper[profileId]
         );
+        if (this.profileIdMapper[profileId].name == 'SystemAdmin') {
+          this.profileIdMapper[profileId].permissions = mergeProfilePermissions(SystemAdminRules, this.profileIdMapper[profileId].permissions);
+        }
         mercury.access.createProfile(
           this.profileIdMapper[profileId].name,
           this.profileIdMapper[profileId].permissions

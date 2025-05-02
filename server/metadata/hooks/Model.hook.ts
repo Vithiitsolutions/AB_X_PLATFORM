@@ -19,9 +19,39 @@ async function checkDependencies(modelName: string) {
   throw new Error(`${modelFields.map((modelField) => modelField.modelName).join(",")} has a reference to this model, can't be deleted directly!!!`)
 }
 
-mercury.hook.after("CREATE_MODEL_RECORD", function (this: any) {
-  // metaEvents.emit("CREATE_MODEL_RECORD", { msg: `${this.options?.args?.input?.name ?? this.record?.name} model is created!!` });
+mercury.hook.after("CREATE_MODEL_RECORD", async function (this: any) {
+  const modelName = this.options?.args?.input?.name;
+  const modelId = this.record._id;
+
+  const systemAdmin = await mercury.db.Profile.mongoModel.findOne({ name: "SystemAdmin" });
+  if (!systemAdmin) return;
+
+  // 1. Create Permission
+  await mercury.db.Permission.mongoModel.create({
+    profile: systemAdmin._id,
+    profileName: "SystemAdmin",
+    model: modelId,
+    modelName: modelName,
+    create: true,
+    read: true,
+    update: true,
+    delete: true
+  });
+
+  // 2. Extend access
+  mercury.access.extendProfile("SystemAdmin", [
+    {
+      modelName: modelName,
+      access: {
+        create: true,
+        read: true,
+        update: true,
+        delete: true
+      }
+    }
+  ]);
 });
+
 
 mercury.hook.before("DELETE_MODEL_RECORD", async function (this: any) {
   // send an erro message that it is refered in another model, and update it first before deleting it or something like that
