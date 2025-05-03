@@ -4,7 +4,6 @@ query GetModel($where: whereModelInput!) {
       id
       name
       label
-      
       managed
       recordKey {
             id
@@ -51,7 +50,7 @@ query ListModelFields($where: whereModelFieldInput, $limit: Int!) {
                 }
             }`;
 
-export const LIST_LAYOUTS=`
+export const LIST_LAYOUTS = `
 query Docs($where: whereLayoutInput, $limit: Int!) {
   listLayouts(where: $where, limit: $limit) {
     docs {
@@ -66,19 +65,33 @@ query Docs($where: whereLayoutInput, $limit: Int!) {
         label
         name
       }
+      buttons {
+        id
+        icon
+        href
+        disabled
+        type
+        variant
+        text
+        iconPosition
+        buttonFn{
+          code
+          id
+        }
+      }
       name
       label
       createdOn
       updatedOn
     }
   }
-}`
-
+}`;
 
 export const LIST_LAYOUT_STRUCTURES = `query Docs($sort: sortLayoutStructureInput, $where: whereLayoutStructureInput) {
     listLayoutStructures(sort: $sort, where: $where) {
       docs {
         id
+        visible
         component {
         managed
           id
@@ -97,10 +110,9 @@ export const LIST_LAYOUT_STRUCTURES = `query Docs($sort: sortLayoutStructureInpu
         updatedOn
       }
     }
-  }`
+  }`;
 
-
-  export const GET_VIEW=`
+export const GET_VIEW = `
   query GetView($where: whereViewInput!) {
   getView(where: $where) {
     id
@@ -115,11 +127,15 @@ export const LIST_LAYOUT_STRUCTURES = `query Docs($sort: sortLayoutStructureInpu
       variant
       text
       iconPosition
+      buttonFn{
+        code
+        id
+      }
     }
   }
-}`
+}`;
 
-export const  LIST_VIEW=`
+export const LIST_VIEW = `
 query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput, $limit: Int!) {
   listViewFields(sort: $sort, where: $where, limit: $limit) {
   totalDocs
@@ -155,10 +171,9 @@ query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput, $limit: Int!)
     }
     limit
   }
-}`
+}`;
 
-
-export const GET_FORM=`
+export const GET_FORM = `
 query GetForm($where: whereFormInput!) {
   getForm(where: $where) {
     id
@@ -204,16 +219,14 @@ query GetForm($where: whereFormInput!) {
       regexp
     }
   }
-}`
+}`;
 
-
-export const CREATE_RECORD_FORM=`
+export const CREATE_RECORD_FORM = `
 mutation CreateRecordsUsingForm($formId: String, $formData: JSON) {
   createRecordsUsingForm(formId: $formId, formData: $formData)
-}`
+}`;
 
-
-export const GET_META_DATA_RECORD_CREATE =`
+export const GET_META_DATA_RECORD_CREATE = `
 query Query($formId: String) {
   getFormMetadataRecordCreate(formId: $formId)
-}`
+}`;

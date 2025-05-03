@@ -338,19 +338,8 @@ function DynamicTableContainer({
               icon={button?.icon}
               type={button?.type}
               href={button?.href}
-            />
-          );
-        })}
-
-        {buttons?.map((button: any) => {
-          return (
-            <DynamicButton
-              children={button?.text}
-              iconPosition={button?.iconPosition}
-              variant={button?.variant}
-              icon={button?.icon}
-              type={button?.type}
-              href={button?.href}
+              code={button?.buttonFn?.code}
+              title={button?.tooltip}
             />
           );
         })}

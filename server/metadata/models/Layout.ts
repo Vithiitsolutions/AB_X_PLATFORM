@@ -28,7 +28,11 @@ export const layout = mercury.createModel(
         foreignField: "layout",
         many: true
       },
-
+      buttons: {
+        type: "relationship",
+        many: true,
+        ref: "Button"
+      }
     },
     {
       historyTracking: false,
