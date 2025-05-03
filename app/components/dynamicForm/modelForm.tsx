@@ -280,7 +280,7 @@ const DynamicForm = ({
                                 borderRadius: "10.51px",
                                 paddingLeft: 10,
                                 paddingRight: 35, // Leave space for the icon
-                                backgroundColor: "#fff",
+                                backgroundColor: "#F8F8F8",
                                 cursor: "pointer",
                                 appearance: "none",
                                 fontSize:"14px"
@@ -508,7 +508,7 @@ const DynamicForm = ({
                                 borderRadius: "10.51px",
                                 paddingLeft: 10,
                                 paddingRight: 35, // Leave space for the icon
-                                backgroundColor: "#fff",
+                                backgroundColor: "#F8F8F8",
                                 cursor: "pointer",
                                 appearance: "none",
                                 fontSize:"14px"
