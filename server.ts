@@ -47,9 +47,9 @@ const app = express();
 //   db: "mongodb://localhost:27017/mercury",
 // });
 // Metadata API server
-const metaServer = new MetaApi({
-  db: DB_URL || "mongodb+srv://techsupport:0505@cluster0.bdsfs.mongodb.net/qr-gate",
-});
+export const metaServer = new MetaApi({
+  db: DB_URL,
+})
 await metaServer.start();
 
 function rewriteImports(code: string) {

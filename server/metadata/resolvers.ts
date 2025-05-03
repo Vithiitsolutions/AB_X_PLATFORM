@@ -4,12 +4,12 @@ import { Form } from "./FormService";
 
 export default {
   Query: {
-    hello: (root: any, {}, ctx: any) => {
-      console.log(ctx);
-      const { req } = ctx;
-      console.log(req?.cookies, req?.headers);
-      return "Hello";
-    },
+    // hello: (root: any, {}, ctx: any) => {
+    //   console.log(ctx);
+    //   const { req } = ctx;
+    //   console.log(req?.cookies, req?.headers);
+    //   return "Hello";
+    // },
     getFormMetadataRecordCreate: async (
       root: any,
       { formId }: { formId: string },

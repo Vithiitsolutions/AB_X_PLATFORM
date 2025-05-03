@@ -110,6 +110,24 @@ export const SystemAdminRules = [
     },
   },
   {
+    modelName: "Function",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
+    modelName: "ResolverSchema",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
     modelName: "File",
     access: {
       create: true,

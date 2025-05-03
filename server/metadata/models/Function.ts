@@ -1,6 +1,6 @@
 import mercury from "@mercury-js/core";
 
-mercury.createModel("Function", {
+export const functionModel = mercury.createModel("Function", {
     name: {
         type: "string",
         required: true,
@@ -9,4 +9,8 @@ mercury.createModel("Function", {
         type: "string",
         required: true,
     },
+    description: {
+        type: "string",
+        required: true
+    }
 });

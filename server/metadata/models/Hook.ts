@@ -15,70 +15,80 @@ mercury.createModel(
         default: false,
       },
       beforeCreate: {
-        type: 'string',
+        type: 'relationship',
+        ref: "Function"
       },
       enableAfterCreate: {
         type: 'boolean',
         default: false,
       },
       afterCreate: {
-        type: 'string',
+       type: 'relationship',
+        ref: "Function"
       },
       enableBeforeUpdate: {
         type: 'boolean',
         default: false,
       },
       beforeUpdate: {
-        type: 'string',
+        type: 'relationship',
+        ref: "Function"
       },
       enableAfterUpdate: {
         type: 'boolean',
         default: false,
       },
       afterUpdate: {
-        type: 'string',
+        type: 'relationship',
+        ref: "Function"
       },
       enableBeforeDelete: {
         type: 'boolean',
         default: false,
       },
       beforeDelete: {
-        type: 'string',
+        type: 'relationship',
+        ref: "Function"
       },
       enableAfterDelete: {
         type: 'boolean',
         default: false,
       },
       afterDelete: {
-        type: 'string',
+        type: 'relationship',
+        ref: "Function"
       },
       enableBeforeGet: {
         type: 'boolean',
         default: false,
       },
       beforeGet: {
-        type: 'string',
+        type: 'relationship',
+        ref: "Function"
       },
       enableAfterGet: {
         type: 'boolean',
         default: false,
       },
       afterGet: {
-        type: 'string',
+        type: 'relationship',
+        ref: "Function"
       },
       enableBeforeList: {
         type: 'boolean',
         default: false,
       },
       beforeList: {
-        type: 'string',
+        type: 'relationship',
+        ref: "Function"
       },
       enableAfterList: {
         type: 'boolean',
         default: false,
       },
       afterList: {
-        type: 'string',
+        type: 'relationship',
+        ref: "Function"
       },
       createdBy: {
         type: 'relationship',

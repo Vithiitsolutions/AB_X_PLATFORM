@@ -1,3 +1,6 @@
+import mercury from "@mercury-js/core";
+import { metaServer } from "../../server";
+
 type Access = Record<string, boolean>;
 
 type FieldPermissions = Record<string, Access>;
@@ -164,3 +167,59 @@ export const profilePipeline = [
     },
   },
 ];
+
+export const getResolvers = async (resolvers) => {
+  const queryResolvers = {};
+  const mutationResolvers = {};
+  for (const item of resolvers) {
+    const { type, code, name } = {
+      type: item.type,
+      name: item?.name,
+      code: Buffer.from(item?.resolverFn?.code || "", "base64").toString(),
+    };
+
+
+    // Dynamically compile the code
+    let fn;
+    try {
+      // We assume the code exports a function, e.g., `module.exports = async (root, args, ctx) => { ... }`
+      fn = eval('(' + code + ')');
+    } catch (err) {
+      console.error(`Error compiling resolver code for ${type}:`, err);
+      continue; // skip this resolver if there's an error
+    }
+
+    if (typeof fn !== "function") {
+      console.warn(`Skipping ${type} resolver — decoded code is not a function.`);
+      continue;
+    }
+    
+    // Attach based on type
+    if (type === "Query") {
+      queryResolvers[name] = fn;
+    } else if (type === "Mutation") {
+      mutationResolvers[name] = fn;
+    } else {
+      console.warn(`Unknown resolver type: ${type}`);
+    }
+  }
+  
+  return {
+    Query: queryResolvers,
+    Mutation: mutationResolvers,
+  };
+};
+
+
+
+export async function addResolversFromDBToMercury() {
+  const resolvers = await mercury.db.ResolverSchema.mongoModel
+    .find({})
+    .populate("resolverFn");
+  const resolversFromDB = await getResolvers(resolvers);
+  mercury.addGraphqlSchema(
+    resolvers.map((obj) => obj.schema).join("\n"),
+    resolversFromDB
+  );
+  await metaServer.restart()
+}
