@@ -525,6 +525,9 @@ function DynamicCustomeForm ({
             <CustomeButton
               type="submit"
               children={loading ? "loading..." : "Submit"}
+              addOnStyles={{base:{
+                padding:"5px 10px"
+              }}}
             />
           </div>{" "}
         </form>

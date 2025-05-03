@@ -108,7 +108,7 @@ const dashboard = ({
   console.log(loaderData);
   
   return (
-    <div>
+    <Box >
       {loaderData?.viewFields?.totalDocs && (
         <DynamicTableContainer
           viewFields={loaderData?.viewFields}
@@ -122,7 +122,7 @@ const dashboard = ({
           searchVaraiables={loaderData?.searchVaraiables}
         />
       )}
-    </div>
+    </Box>
   );
 };
 

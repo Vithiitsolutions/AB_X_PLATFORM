@@ -101,7 +101,7 @@ function Navbar() {
             },
           }}
         >
-          Roshan Kumar
+           User
         </Text>
         <FaChevronDown size={14} color="#161616" />
 

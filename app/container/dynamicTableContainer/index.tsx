@@ -323,6 +323,8 @@ function DynamicTableContainer({
           addonstyles={{
             base: {
               width: "300px",
+              height:"35px",
+              borderRadius:"6px"
             },
           }}
           placeholder="Search"
@@ -340,6 +342,9 @@ function DynamicTableContainer({
               href={button?.href}
               code={button?.buttonFn?.code}
               title={button?.tooltip}
+              addOnStyles={{base:{
+                padding:"5px 10px"
+              }}}
             />
           );
         })}

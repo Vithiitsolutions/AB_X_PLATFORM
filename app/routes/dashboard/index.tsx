@@ -87,10 +87,11 @@ const dashboard = ({ loaderData }: { loaderData: any }) => {
           <Box
             styles={{
               base: {
-                width: "calc(100vw - 280px)",
+                width: "calc(100vw - 240px)",
                 height:"calc(100vh - 56px)",
                 padding: 20,
-                overflow:"auto"
+                overflow:"auto",
+                  background:"#F8F8F8"
               },
             }}
           >

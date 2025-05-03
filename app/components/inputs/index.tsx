@@ -19,11 +19,12 @@ const CustomeInput = React.forwardRef<HTMLInputElement, InputProps>(
         styles={Clx(
           {
             base: {
-              height: 46,
+              height: 40,
               width: "100%",
               border: "1.05px solid #E5E5E5",
               borderRadius: "10.51px",
               paddingLeft: 10,
+              fontSize:"14px",
               paddingRight: 10, // Leave space for the icon
 
             },
@@ -53,11 +54,12 @@ const CustomSelect = React.forwardRef<HTMLSelectElement, SelectProps>(
           styles={Clx(
             {
               base: {
-                height: 46,
+                height: 40,
                 width: "100%", // Inherit width from parent
                 border: "1.05px solid #E5E5E5",
                 borderRadius: "10.51px",
                 paddingLeft: 10,
+              fontSize:"14px",
                 paddingRight: 35, // Leave space for the icon
                 backgroundColor: "#fff",
                 cursor: "pointer",

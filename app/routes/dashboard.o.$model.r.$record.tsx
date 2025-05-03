@@ -10,6 +10,7 @@ import {
 } from "../utils/query";
 import { GET_DYNAMIC_RECORD_DATA } from "../utils/functions";
 import { Box } from "@mercury-js/mess";
+import { layout } from "@react-router/dev/routes";
 
 export async function loader({
   params,
@@ -122,6 +123,9 @@ export async function loader({
     modelName: model,
     recordData: recordData?.[`get${model}`],
     layoutStructuresData,
+    layout:layoutData?.listLayouts?.docs.find(
+      (item: any) => item.profiles && item.profiles.length === 0
+    )
   };
 }
 
@@ -132,6 +136,7 @@ function Record({
     recordData: any;
     layoutStructuresData: any;
     modelName: string;
+    layout:any
   };
 }) {
   
@@ -140,6 +145,7 @@ function Record({
       <RecordView
         layoutStructuresData={loaderData.layoutStructuresData}
         recordData={loaderData.recordData}
+        layout={layout}
       />
     </React.Suspense>
   );

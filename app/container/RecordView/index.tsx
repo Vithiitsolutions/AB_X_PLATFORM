@@ -13,9 +13,11 @@ import { serverFetch } from "../../utils/action";
 function RecordView({
   layoutStructuresData,
   recordData,
+  layout
 }: {
   layoutStructuresData: any;
   recordData: any;
+  layout:any
 
 }) {
   const params=useParams()
@@ -74,9 +76,32 @@ const navigate =useNavigate()
               justifyContent:"flex-end",
               gap:10
             }}}>
-            <DynamicButton children={"Delete"} iconPosition={"left"} variant={"danger"} icon={"Trash"} type={"action"} onClick={()=>DeleteRecord(params?.record!)}/>
+
+                      {layout?.buttons?.map?.map((button: any) => {
+                        return (
+                          <DynamicButton
+                            children={button?.text}
+                            iconPosition={button?.iconPosition}
+                            variant={button?.variant}
+                            icon={button?.icon}
+                            type={button?.type}
+                            href={button?.href}
+                            code={button?.buttonFn?.code}
+                            title={button?.tooltip}
+                            addOnStyles={{base:{
+                              padding:"5px 10px"
+                            }}}
+                          />
+                        );
+                      })}
+            <DynamicButton children={"Delete"} iconPosition={"left"} variant={"danger"} icon={"Trash"} type={"action"} onClick={()=>DeleteRecord(params?.record!)}  addOnStyles={{base:{
+                padding:"5px 10px"
+              }}}/>
+
       
-                          <DynamicButton children={"Update"} iconPosition={"left"} variant={"primary"} icon={"Pencil"} type={"link"} href={`/dashboard/o/${params?.model}/r/${params?.record}/update`} />
+                          <DynamicButton children={"Update"} iconPosition={"left"} variant={"primary"} icon={"Pencil"} type={"link"} href={`/dashboard/o/${params?.model}/r/${params?.record}/update`} addOnStyles={{base:{
+                padding:"5px 10px"
+              }}}/>
               
             </Box>
       {/* <Box ml={5} mb={4}></Box> */}
@@ -86,8 +111,7 @@ const navigate =useNavigate()
             display: "grid",
             gridTemplateColumns: "1fr",
             gap: "0.5rem", // Assuming gap of 2 is equivalent to 0.5rem
-            padding: "0.5rem", // Assuming p of 2 is equivalent to 0.5rem
-            backgroundColor: "white", // Default light background
+            paddingTop: "0.5rem", // Assuming p of 2 is equivalent to 0.5rem
           },
           md: {
             gridTemplateColumns: "repeat(2, 1fr)",

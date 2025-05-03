@@ -82,13 +82,13 @@ const DynamicForm = ({
                         >
                           <Text
                             styles={{
-                              base: { fontWeight: 500, fontSize: "15px" },
+                              base: { fontWeight: 500, fontSize: "13px" },
                             }}
                           >
                             {_.startCase(item.label)}
                           </Text>
                           <CustomeInput
-                            placeholder={item.name}
+                            placeholder={item.label}
                             {...field}
                             type="text"
                           />
@@ -123,7 +123,7 @@ const DynamicForm = ({
                       >
                         <Text
                           styles={{
-                            base: { fontWeight: 500, fontSize: "15px" },
+                            base: { fontWeight: 500, fontSize: "13px" },
                           }}
                         >
                           {_.startCase(item.label)}
@@ -136,7 +136,7 @@ const DynamicForm = ({
                               onJsDateChange={field.onChange}
                             /> */}
                         <CustomeInput
-                          placeholder={item.name}
+                          placeholder={item.label}
                           {...field}
                           type="datetime-local"
                         />
@@ -172,7 +172,7 @@ const DynamicForm = ({
                         >
                           <Text
                             styles={{
-                              base: { fontWeight: 500, fontSize: "15px" },
+                              base: { fontWeight: 500, fontSize: "13px" },
                             }}
                           >
                             {_.startCase(item.label)}
@@ -250,7 +250,7 @@ const DynamicForm = ({
                       >
                         <Text
                           styles={{
-                            base: { fontWeight: 500, fontSize: "15px" },
+                            base: { fontWeight: 500, fontSize: "13px" },
                           }}
                         >
                           {_.startCase(item.ref)}s
@@ -274,7 +274,7 @@ const DynamicForm = ({
                             // value={field.value}
                             styles={Clx({
                               base: {
-                                height: 46,
+                                height: 40,
                                 width: "100%", // Inherit width from parent
                                 border: "1.05px solid #E5E5E5",
                                 borderRadius: "10.51px",
@@ -283,6 +283,7 @@ const DynamicForm = ({
                                 backgroundColor: "#fff",
                                 cursor: "pointer",
                                 appearance: "none",
+                                fontSize:"14px"
                               },
                             })}
                           >
@@ -340,7 +341,7 @@ const DynamicForm = ({
                       >
                         <Text
                           styles={{
-                            base: { fontWeight: 500, fontSize: "15px" },
+                            base: { fontWeight: 500, fontSize: "13px" },
                           }}
                         >
                           {_.startCase(item.label)}
@@ -379,13 +380,13 @@ const DynamicForm = ({
                       >
                         <Text
                           styles={{
-                            base: { fontWeight: 500, fontSize: "15px" },
+                            base: { fontWeight: 500, fontSize: "13px" },
                           }}
                         >
                           {_.startCase(item.label)}
                         </Text>
                         <CustomeInput
-                          placeholder={item.name}
+                          placeholder={item.label}
                           {...field}
                           type="number"
                         />
@@ -441,7 +442,7 @@ const DynamicForm = ({
                           <div className="space-y-1 leading-none">
                             <Text
                               styles={{
-                                base: { fontWeight: 500, fontSize: "15px" },
+                                base: { fontWeight: 500, fontSize: "13px" },
                               }}
                             >
                               {_.startCase(item.label)}
@@ -477,7 +478,7 @@ const DynamicForm = ({
                       >
                         <Text
                           styles={{
-                            base: { fontWeight: 500, fontSize: "15px" },
+                            base: { fontWeight: 500, fontSize: "13px" },
                           }}
                         >
                           {_.startCase(item.label)}
@@ -501,7 +502,7 @@ const DynamicForm = ({
                             value={form.watch(item.name)}
                             styles={Clx({
                               base: {
-                                height: 46,
+                                height: 40,
                                 width: "100%", // Inherit width from parent
                                 border: "1.05px solid #E5E5E5",
                                 borderRadius: "10.51px",
@@ -510,6 +511,8 @@ const DynamicForm = ({
                                 backgroundColor: "#fff",
                                 cursor: "pointer",
                                 appearance: "none",
+                                fontSize:"14px"
+
                               },
                             })}
                           >
@@ -567,7 +570,7 @@ const DynamicForm = ({
                       >
                         <Text
                           styles={{
-                            base: { fontWeight: 500, fontSize: "15px" },
+                            base: { fontWeight: 500, fontSize: "13px" },
                           }}
                         >
                           {_.startCase(item.label)}

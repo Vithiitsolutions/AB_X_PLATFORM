@@ -65,15 +65,15 @@ export const DynamicButton: React.FC<DynamicButtonProps> = ({
       styles={Clx({
         base: {
           background: getBackgroundColor(),
-          fontSize: "14px",
+          fontSize: "12px",
           fontWeight: 600,
-          lineHeight: "16px",
+          lineHeight: "14px",
           borderRadius: "7px",
           color: getTextColor(),
           padding: "10px 20px",
           cursor: "pointer",
         },
-      })}
+      },addOnStyles)}
       onClick={onClick}
       title={props?.title}
       {...props}
@@ -111,8 +111,8 @@ export const DynamicButton: React.FC<DynamicButtonProps> = ({
               padding: "10px 20px",
               cursor: "pointer",
             },
-          })}
-          onClick={InvokeFunction(props?.code || "")}
+          },addOnStyles)}
+          onClick={onClick?onClick:InvokeFunction(props?.code || "")}
           {...props}
           disabled={props.disabled}
           title={props?.title}
