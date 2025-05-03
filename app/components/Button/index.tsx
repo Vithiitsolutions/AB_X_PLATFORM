@@ -32,6 +32,7 @@ const CustomeButton: React.FC<CustomButtonProps> = ({
           padding: "10px 20px",
           cursor: "pointer",
         },
+        addOnStyles,
       })}
       onClick={onClick}
       {...props}
@@ -62,18 +63,20 @@ export const DynamicButton: React.FC<DynamicButtonProps> = ({
   };
   const button = (
     <Button
-      styles={Clx({
-        base: {
-          background: getBackgroundColor(),
-          fontSize: "12px",
-          fontWeight: 600,
-          lineHeight: "14px",
-          borderRadius: "7px",
-          color: getTextColor(),
-          padding: "10px 20px",
-          cursor: "pointer",
+      styles={Clx(
+        {
+          base: {
+            background: getBackgroundColor(),
+            fontSize: "12px",
+            fontWeight: 600,
+            lineHeight: "12px",
+            borderRadius: "7px",
+            color: getTextColor(),
+            cursor: "pointer",
+          },
         },
-      },addOnStyles)}
+        addOnStyles
+      )}
       onClick={onClick}
       title={props?.title}
       {...props}
@@ -100,19 +103,22 @@ export const DynamicButton: React.FC<DynamicButtonProps> = ({
     case "action":
       return (
         <Button
-          styles={Clx({
-            base: {
-              background: getBackgroundColor(),
-              fontSize: "14px",
-              fontWeight: 600,
-              lineHeight: "16px",
-              borderRadius: "7px",
-              color: getTextColor(),
-              padding: "10px 20px",
-              cursor: "pointer",
+          styles={Clx(
+            {
+              base: {
+                background: getBackgroundColor(),
+                fontSize: "12px",
+                fontWeight: 600,
+                lineHeight: "12px",
+                borderRadius: "7px",
+                color: getTextColor(),
+                cursor: "pointer",
+                padding: "3px 8px"
+              },
             },
-          },addOnStyles)}
-          onClick={onClick?onClick:InvokeFunction(props?.code || "")}
+            addOnStyles
+          )}
+          onClick={onClick ? onClick : InvokeFunction(props?.code || "")}
           {...props}
           disabled={props.disabled}
           title={props?.title}
@@ -147,7 +153,7 @@ function InvokeFunction(code: string) {
       const executeFunction = new Function(decodedCode);
       executeFunction();
     } catch (error) {
-      console.error('Error executing code:', error);
+      console.error("Error executing code:", error);
     }
   };
 }

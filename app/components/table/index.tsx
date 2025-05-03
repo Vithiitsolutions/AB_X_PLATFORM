@@ -298,19 +298,19 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
               base: {
                 width: "fit-content",
                 fontSize: "12px",
-                height: "35px"
+                height: "28px"
               }
             }}
             >
           </CustomSelect>
-          <Box className="flex items-center gap-1 text-[14px]">
+          <Box className="flex items-center gap-1 text-[12px]">
             <Box>Page</Box>
             <strong>
               {table.getState().pagination.pageIndex + 1} of{" "}
               {table.getPageCount().toLocaleString()}
             </strong>
           </Box>
-          <Box className="flex items-center gap-1 text-[14px]">
+          <Box className="flex items-center gap-1 text-[12px]">
             | Go to page:
             <input
               type="number"

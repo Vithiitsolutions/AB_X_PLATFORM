@@ -13,16 +13,15 @@ import { serverFetch } from "../../utils/action";
 function RecordView({
   layoutStructuresData,
   recordData,
-  layout
+  layout,
 }: {
   layoutStructuresData: any;
   recordData: any;
-  layout:any
-
+  layout: any;
 }) {
-  const params=useParams()
+  const params = useParams();
   const [DeleteRecordd, DeleteRecorddResponse] = useLazyQuery(serverFetch);
-const navigate =useNavigate()
+  const navigate = useNavigate();
   const Delete_Query = useMemo(() => {
     return `mutation Delete${params?.model}($delete${params?.model}Id: ID!) {
   delete${params?.model}(id: $delete${params?.model}Id)
@@ -49,7 +48,7 @@ const navigate =useNavigate()
       // setTimeout(() => {
       //   window.location.reload();
       // }, 2000);
-      navigate(`/dashboard/o/${params?.model}/list`)
+      navigate(`/dashboard/o/${params?.model}/list`);
     } else if (DeleteRecorddResponse?.error) {
       // toast({
       //   variant: "destructive",
@@ -70,40 +69,65 @@ const navigate =useNavigate()
         },
       }}
     >
-      <Box styles={{base:{
-              display:"flex",
-              flexDirection:"row",
-              justifyContent:"flex-end",
-              gap:10
-            }}}>
+      <Box
+        styles={{
+          base: {
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            gap: 10,
+          },
+        }}
+      >
+        {layout?.buttons?.map?.map((button: any) => {
+          return (
+            <DynamicButton
+              children={button?.text}
+              iconPosition={button?.iconPosition}
+              variant={button?.variant}
+              icon={button?.icon}
+              type={button?.type}
+              href={button?.href}
+              code={button?.buttonFn?.code}
+              title={button?.tooltip}
+              addOnStyles={{
+                base: {
+                  padding: "5px 10px",
+                },
+              }}
+            />
+          );
+        })}
+        <DynamicButton
+          children={"Delete"}
+          iconPosition={"left"}
+          variant={"danger"}
+          icon={"Trash"}
+          type={"action"}
+          onClick={() => DeleteRecord(params?.record!)}
+          addOnStyles={{
+            base: {
+              padding: "3px 8px",
+              fontSize: "12px",
+            },
+          }}
+        />
 
-                      {layout?.buttons?.map?.map((button: any) => {
-                        return (
-                          <DynamicButton
-                            children={button?.text}
-                            iconPosition={button?.iconPosition}
-                            variant={button?.variant}
-                            icon={button?.icon}
-                            type={button?.type}
-                            href={button?.href}
-                            code={button?.buttonFn?.code}
-                            title={button?.tooltip}
-                            addOnStyles={{base:{
-                              padding:"5px 10px"
-                            }}}
-                          />
-                        );
-                      })}
-            <DynamicButton children={"Delete"} iconPosition={"left"} variant={"danger"} icon={"Trash"} type={"action"} onClick={()=>DeleteRecord(params?.record!)}  addOnStyles={{base:{
-                padding:"5px 10px"
-              }}}/>
-
-      
-                          <DynamicButton children={"Update"} iconPosition={"left"} variant={"primary"} icon={"Pencil"} type={"link"} href={`/dashboard/o/${params?.model}/r/${params?.record}/update`} addOnStyles={{base:{
-                padding:"5px 10px"
-              }}}/>
-              
-            </Box>
+        <DynamicButton
+          children={"Update"}
+          iconPosition={"left"}
+          variant={"primary"}
+          icon={"Pencil"}
+          type={"link"}
+          href={`/dashboard/o/${params?.model}/r/${params?.record}/update`}
+          addOnStyles={{
+            base: {
+              padding: "5px 10px",
+            },
+          }}
+        />
+      </Box>
       {/* <Box ml={5} mb={4}></Box> */}
       <Box
         styles={{
@@ -147,15 +171,15 @@ const navigate =useNavigate()
             ) : (
               <Suspense>
                 {/* <ErrorBoundary> */}
-                  <DynamicComponentLoader
-                    code={item.component?.code}
-                    props={{
-                      Std: {
-                        ...MESS_TAGS,
-                        data: recordData,
-                      },
-                    }}
-                  />
+                <DynamicComponentLoader
+                  code={item.component?.code}
+                  props={{
+                    Std: {
+                      ...MESS_TAGS,
+                      data: recordData,
+                    },
+                  }}
+                />
                 {/* </ErrorBoundary> */}
               </Suspense>
             )}

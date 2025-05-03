@@ -161,10 +161,12 @@ function DynamicTableContainer({
                             disabled={true}
                             aria-label="Select all"
                             type="checkbox"
-                            addonstyles={{base:{
-                              height:"20px",
-                              width:"20px",
-                            }}}
+                            addonstyles={{
+                              base: {
+                                height: "20px",
+                                width: "20px",
+                              },
+                            }}
                           />
                         </div>
                       ))}
@@ -178,11 +180,12 @@ function DynamicTableContainer({
                         disabled={true}
                         aria-label="Select all"
                         type="checkbox"
-                            addonstyles={{base:{
-                              height:"20px",
-                              width:"20px",
-                            }}}
-                          
+                        addonstyles={{
+                          base: {
+                            height: "20px",
+                            width: "20px",
+                          },
+                        }}
                       />
                     </div>
                   );
@@ -315,6 +318,7 @@ function DynamicTableContainer({
             display: "flex",
             flexDirection: "row",
             justifyContent: "flex-end",
+            alignItems: "center",
             gap: 10,
           },
         }}
@@ -342,9 +346,12 @@ function DynamicTableContainer({
               href={button?.href}
               code={button?.buttonFn?.code}
               title={button?.tooltip}
-              addOnStyles={{base:{
-                padding:"5px 10px"
-              }}}
+              addOnStyles={{
+                base: {
+                  padding: "3px 8px",
+                  fontSize: "12px",
+                },
+              }}
             />
           );
         })}

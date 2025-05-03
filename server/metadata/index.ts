@@ -19,11 +19,12 @@ import "./hooks/modelOption.ts";
 import "./hooks/fieldOption.ts";
 import "./hooks/function.ts";
 import "./hooks/resolverSchema.ts";
+import "./hooks/hook.ts";
 
 // Profiles
 import "./SystemAdmin.profile.ts";
 import { Platform } from "./platform.ts";
-import { addResolversFromDBToMercury, getResolvers } from "./utility.ts";
+import { addResolversFromDBToMercury, getResolvers, registerHooksFromDB } from "./utility.ts";
 
 interface IMetaApiConfig {
   db: string;
@@ -50,6 +51,7 @@ export default class MetaApi {
 
   async start() {
     await addResolversFromDBToMercury();
+    await registerHooksFromDB();
     this.platform = new Platform();
     await this.platform.initialize();
     await this.restart();
