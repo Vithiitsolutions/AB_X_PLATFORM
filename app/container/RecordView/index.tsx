@@ -123,7 +123,8 @@ function RecordView({
           href={`/dashboard/o/${params?.model}/r/${params?.record}/update`}
           addOnStyles={{
             base: {
-              padding: "5px 10px",
+              padding: "3px 8px",
+              fontSize: "12px",
             },
           }}
         />
