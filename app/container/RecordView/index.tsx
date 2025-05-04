@@ -27,6 +27,7 @@ function RecordView({
   delete${params?.model}(id: $delete${params?.model}Id)
 }`;
   }, []);
+
   function DeleteRecord(id: string) {
     console.log(id);
     DeleteRecordd(
@@ -178,6 +179,7 @@ function RecordView({
                     Std: {
                       ...MESS_TAGS,
                       data: recordData,
+                      serverFetch: serverFetch
                     },
                   }}
                 />
