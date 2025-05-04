@@ -317,44 +317,68 @@ function DynamicTableContainer({
           base: {
             display: "flex",
             flexDirection: "row",
-            justifyContent: "flex-end",
-            alignItems: "center",
+            justifyContent: "space-between",
+            alignContent: "center",
             gap: 10,
           },
         }}
       >
-        <CustomeInput
-          addonstyles={{
+        <Text
+          styles={{
             base: {
-              width: "300px",
-              height:"35px",
-              borderRadius:"6px"
+              fontSize: "16px",
+              marginLeft: "5px",
             },
           }}
-          placeholder="Search"
-          onChange={(e) => setSearchText(e.target.value)}
-        />
+        >
+          {/(s|x|z|ch|sh)$/i.test(_.startCase(modelName))
+            ? _.startCase(modelName) + "es"
+            : _.startCase(modelName) + "s"}
+        </Text>
+        <Box
+          styles={{
+            base: {
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              gap: 10,
+            },
+          }}
+        >
+          <CustomeInput
+            addonstyles={{
+              base: {
+                width: "300px",
+                height: "35px",
+                borderRadius: "6px",
+              },
+            }}
+            placeholder="Search"
+            onChange={(e) => setSearchText(e.target.value)}
+          />
 
-        {buttons?.map((button: any) => {
-          return (
-            <DynamicButton
-              children={button?.text}
-              iconPosition={button?.iconPosition}
-              variant={button?.variant}
-              icon={button?.icon}
-              type={button?.type}
-              href={button?.href}
-              code={button?.buttonFn?.code}
-              title={button?.tooltip}
-              addOnStyles={{
-                base: {
-                  padding: "3px 8px",
-                  fontSize: "12px",
-                },
-              }}
-            />
-          );
-        })}
+          {buttons?.map((button: any) => {
+            return (
+              <DynamicButton
+                children={button?.text}
+                iconPosition={button?.iconPosition}
+                variant={button?.variant}
+                icon={button?.icon}
+                type={button?.type}
+                href={button?.href}
+                code={button?.buttonFn?.code}
+                title={button?.tooltip}
+                addOnStyles={{
+                  base: {
+                    padding: "3px 8px",
+                    fontSize: "12px",
+                  },
+                }}
+              />
+            );
+          })}
+        </Box>
       </Box>
 
       {listModelDataResponse.loading && !columnsData?.length ? (
