@@ -43,7 +43,7 @@ function Navbar() {
           }}
         >
           <Image
-            src="/public/assets/logo.png"
+            src="/assets/logo.png"
             alt="Logo"
             styles={{
               base: {
