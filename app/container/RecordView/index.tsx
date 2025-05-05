@@ -100,7 +100,7 @@ function RecordView({
             />
           );
         })}
-        <DynamicButton
+        {/* <DynamicButton
           children={"Delete"}
           iconPosition={"left"}
           variant={"danger"}
@@ -113,7 +113,7 @@ function RecordView({
               fontSize: "12px",
             },
           }}
-        />
+        /> */}
 
         <DynamicButton
           children={"Update"}
