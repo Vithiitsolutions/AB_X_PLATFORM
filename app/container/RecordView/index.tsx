@@ -179,7 +179,8 @@ function RecordView({
                     Std: {
                       ...MESS_TAGS,
                       data: recordData,
-                      serverFetch: serverFetch
+                      serverFetch: serverFetch,
+                      useLazyQuery: useLazyQuery
                     },
                   }}
                 />
