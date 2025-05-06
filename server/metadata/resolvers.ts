@@ -1,15 +1,40 @@
 import mercury from "@mercury-js/core";
 import { GraphQLError } from "graphql";
 import { Form } from "./FormService";
+import { sign } from "node:crypto";
 
 export default {
   Query: {
-    // hello: (root: any, {}, ctx: any) => {
-    //   console.log(ctx);
-    //   const { req } = ctx;
-    //   console.log(req?.cookies, req?.headers);
-    //   return "Hello";
-    // },
+    signIn: async (
+      _root: unknown,
+      { username, password }: { username: string; password: string },
+      _ctx: unknown
+    ) => {
+      const user: any = await mercury.db.User.get(
+        {
+          email: username,
+        },
+        {
+          id: "1",
+          profile: "SystemAdmin",
+        }
+      );
+      if (!user) {
+        throw new GraphQLError("User not found", {
+          extensions: {
+            code: "UNAUTHENTICATED",
+          },
+        });
+      }
+      if (!user.verifyPassword(password)) {
+        throw new GraphQLError("Invalid password", {
+          extensions: {
+            code: "UNAUTHENTICATED",
+          },
+        });
+      }
+      return user.id;
+    },
     getFormMetadataRecordCreate: async (
       root: any,
       { formId }: { formId: string },
@@ -20,7 +45,7 @@ export default {
     },
   },
   Mutation: {
-    createRecordsUsingForm: async(
+    createRecordsUsingForm: async (
       root: any,
       { formId, formData }: { formId: string; formData: any },
       ctx: any
