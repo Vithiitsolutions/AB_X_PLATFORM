@@ -20,6 +20,7 @@ import "./hooks/fieldOption.ts";
 import "./hooks/function.ts";
 import "./hooks/resolverSchema.ts";
 import "./hooks/hook.ts";
+import "./hooks/file.ts";
 
 // Profiles
 import "./SystemAdmin.profile.ts";

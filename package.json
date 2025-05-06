@@ -40,6 +40,7 @@
     "graphql": "^16.10.0",
     "graphql-middleware": "^6.1.35",
     "isbot": "^5.1.22",
+    "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "lucide-react": "^0.476.0",
     "morgan": "^1.10.0",
