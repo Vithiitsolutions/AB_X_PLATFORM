@@ -33,7 +33,7 @@ export default {
           },
         });
       }
-      return user.id;
+      return user;
     },
     getFormMetadataRecordCreate: async (
       root: any,

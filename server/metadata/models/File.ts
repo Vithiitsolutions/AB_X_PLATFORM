@@ -24,6 +24,9 @@ export const file = mercury.createModel(
     mediaId: {
       type: "string",
     },
+    base64: {
+      type: "string"
+    }
   },
   {
     historyTracking: false,
