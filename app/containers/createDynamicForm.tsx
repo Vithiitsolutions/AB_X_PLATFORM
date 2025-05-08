@@ -72,11 +72,14 @@ export const generateSchema = (metadata: any[]) => {
   return z.object(schemaObj);
 };
 
-const CreateDynamicRecord = () => {
+const CreateDynamicRecord = ({
+  model,
+  handleClose,
+}: {
+  model: string;
+  handleClose?: (value: string) => void;
+}) => {
   let navigate = useNavigate();
-
-//   const router = useRouter();
-  const {model} = useParams();
   const [getAllModelFields, { data, loading, error }] =
     useLazyQuery(serverFetch);
   const Create_Query = useMemo(() => {
@@ -89,7 +92,7 @@ const CreateDynamicRecord = () => {
 
   const formSchema = generateSchema(data?.listModelFields?.docs);
   type FormSchema = z.infer<typeof formSchema>;
-console.log(formSchema,"formSCHEMA")
+  console.log(formSchema, "formSCHEMA");
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: data?.listModelFields?.docs.reduce(
@@ -155,33 +158,35 @@ console.log(formSchema,"formSCHEMA")
   useEffect(() => {
     if (createRecordResponse?.data) {
       console.log(createRecordResponse?.data);
-    //   toast({
-    //     title: "Success",
-    //     description: "Successful created",
-    //   });
-    //   setTimeout(() => {
-    //     router.back();
-    //   }, 2000);
-    navigate(`/dashboard/o/${model}/list`)
+      //   toast({
+      //     title: "Success",
+      //     description: "Successful created",
+      //   });
+      //   setTimeout(() => {
+      //     router.back();
+      //   }, 2000);
 
+      if (typeof handleClose == "function") {
+        handleClose(createRecordResponse?.data[`create${model}`]?.id)
+      } else navigate(`/dashboard/o/${model}/list`);
     }
     if (createRecordResponse?.error) {
       console.log(createRecordResponse?.error);
-    //   toast({
-    //     variant: "destructive",
-    //     title: "Uh oh! Something went wrong.",
-    //     description: createRecordResponse.error?.message,
-    //   });
+      //   toast({
+      //     variant: "destructive",
+      //     title: "Uh oh! Something went wrong.",
+      //     description: createRecordResponse.error?.message,
+      //   });
     }
-  }, [ 
+  }, [
     createRecordResponse?.data,
     createRecordResponse?.loading,
     createRecordResponse?.error,
   ]);
 
   const onSubmit: SubmitHandler<FormSchema> = (values) => {
-    console.log("enter")
-    console.log(values,"values")
+    console.log("enter");
+    console.log(values, "values");
     createRecord(
       Create_Query,
       { input: values },
@@ -190,7 +195,7 @@ console.log(formSchema,"formSCHEMA")
       }
     );
   };
-console.log(form,"form")
+  console.log(form, "form");
   return (
     <div>
       {/* {modelName == "File" ? (
@@ -205,13 +210,16 @@ console.log(form,"form")
           loading={createRecordResponse?.loading}
         />
       )} */}
-      {data?.listModelFields?.docs.length>0 && 
-      <DynamicForm
+      {data?.listModelFields?.docs.length > 0 && (
+        <DynamicForm
           handleSubmit={onSubmit}
           modelFields={data?.listModelFields?.docs || []}
           form={form}
           loading={createRecordResponse?.loading}
-        />}
+          modelName={model}
+          handleClose={handleClose}
+        />
+      )}
     </div>
   );
 };

@@ -177,11 +177,14 @@ const UpdateDynamicRecord = () => {
                 (item: any) => item?.id
               )
             );
-          } else          
+          } else{
+
             form.setValue(
               item.name,
-              DynamicGetQuaryResponse?.data?.[`get${model}`]?.[item.name]?.id
+              DynamicGetQuaryResponse?.data?.[`get${model}`]?.[item.name]?.id,
+              { shouldTouch: true, shouldDirty: true, shouldValidate: true }
             );
+          }
           return;
         }
         if (item.type === "date") {
@@ -199,7 +202,7 @@ const UpdateDynamicRecord = () => {
             String(date.getHours()).padStart(2, "0") +
             ":" +
             String(date.getMinutes()).padStart(2, "0");
-            
+
           form.setValue(item.name, formatted);
           return;
         }
@@ -227,6 +230,7 @@ const UpdateDynamicRecord = () => {
         modelFields={data?.listModelFields?.docs || []}
         form={form}
         loading={updateRecordResponse?.loading}
+        modelName={model!}
       />
     </div>
   );

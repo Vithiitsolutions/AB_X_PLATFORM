@@ -1,4 +1,3 @@
-import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { serverFetch } from "../../utils/action";
 import { useLazyQuery } from "../../utils/hook";
@@ -7,13 +6,14 @@ import {
   getModelFieldRefModelKey,
 } from "../../utils/functions";
 import { Box, Option } from "@mercury-js/mess";
+import { UseFormReturn } from "react-hook-form";
 
 const GenerateRelationshipValues = ({
   fieldData,
   form,
 }: {
   fieldData: any;
-  form: any;
+  form: UseFormReturn;
 }) => {
   const [listRecords, { data, loading, error }] = useLazyQuery(serverFetch);
   const [listModelFields, listModelFieldsResponse] = useLazyQuery(serverFetch);
@@ -91,6 +91,12 @@ ref
     listModelFieldsResponse.error,
     listModelFieldsResponse.loading,
   ]);
+
+  useEffect(()=>{
+    if(data){
+      form.trigger(fieldData.name)
+    }
+  }, [data])
 
   return (
     <>

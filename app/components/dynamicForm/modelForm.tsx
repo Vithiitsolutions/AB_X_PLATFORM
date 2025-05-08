@@ -1,11 +1,11 @@
-"use client";
-import { useForm, Controller } from "react-hook-form";
+
+import { useForm, Controller, UseFormReturn, SubmitHandler, FieldValues } from "react-hook-form";
 
 // import { ModelFieldType } from "@/types";
 // import GenerateRelationshipValues from "./GenerateRelationshipSelectItems";
 // import GenerateMultiRelationshipItems from "./GenerateMultiRelationshipItems";
 import _ from "lodash";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Button, Clx, H1, Option, Select, Text } from "@mercury-js/mess";
 import { CustomeInput } from "../inputs";
 import { ChevronDown } from "lucide-react";
@@ -13,26 +13,36 @@ import CustomeButton, { DynamicButton } from "../Button";
 import GenerateRelationshipValues from "./generateRelationshipSelector";
 import GenerateMultiRelationshipItems from "./generateMultiRelationshipItem";
 import { useNavigate, useParams } from "react-router";
+import CreateDynamicRecord from "../../containers/createDynamicForm";
 
 const DynamicForm = ({
   handleSubmit,
   modelFields,
   form,
   loading,
+  modelName,
+  handleClose,
 }: {
-  handleSubmit: Function;
+  handleSubmit: SubmitHandler<FieldValues>;
   modelFields: any[];
-  form: any;
+  form: UseFormReturn;
   loading?: boolean;
+  modelName: string;
+  handleClose?: (vaue: string) => void;
 }) => {
   const navigate = useNavigate();
   const params = useParams();
-  console.log(modelFields, "modelFields");
+  const [createRecord, setCreateRecord] = useState({
+    open: false,
+    modelName: "",
+    field: "",
+    value: "",
+  });
+  const [refreshKey, setRefreshKey] = useState(0);
   const capitalizeFirstLetter = (str?: string) => {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
-
   return (
     <Box
       styles={{
@@ -53,9 +63,59 @@ const DynamicForm = ({
         }}
       >
         {params?.recordId
-          ? `Update ${capitalizeFirstLetter(params?.model)}`
-          : `Create ${capitalizeFirstLetter(params?.model)}`}
+          ? `Update ${capitalizeFirstLetter(modelName)}`
+          : `Create ${capitalizeFirstLetter(modelName)}`}
       </Text>
+
+      {createRecord.open && (
+        <Box
+          styles={{
+            base: {
+              position: "fixed",
+              inset: 0, // full viewport
+              backgroundColor: "rgba(0, 0, 0, 0.5)", // dark semi-transparent backdrop
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 1000, // make sure it’s on top
+            },
+          }}
+        >
+          <Box
+            styles={{
+              base: {
+                backgroundColor: "white",
+                width: "90%",
+                maxWidth: "600px",
+                borderRadius: "10px",
+                boxShadow: "0 10px 40px rgba(0, 0, 0, 0.3)",
+                padding: "20px 30px",
+                maxHeight: "90vh",
+                overflowY: "auto",
+              },
+            }}
+          >
+            <CreateDynamicRecord
+              model={createRecord.modelName}
+              handleClose={(value: string) => {
+                form.setValue(createRecord.field, value, { 
+                  shouldTouch: true,
+                  shouldDirty: true,  
+                  shouldValidate: true 
+                });
+                setCreateRecord({
+                  ...createRecord,
+                  value,
+                  open: false,
+                });
+                
+                setRefreshKey(prev => prev + 1);
+              }}
+            />
+          </Box>
+        </Box>
+      )}
+
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-8"
@@ -248,13 +308,48 @@ const DynamicForm = ({
                           },
                         }}
                       >
-                        <Text
+                        <Box
                           styles={{
-                            base: { fontWeight: 500, fontSize: "13px" },
+                            base: {
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between", // push left + right apart
+                              width: "100%", // take full width of container
+                            },
                           }}
                         >
-                          {_.startCase(item.ref)}s
-                        </Text>
+                          <Text
+                            styles={{
+                              base: { fontWeight: 500, fontSize: "13px" },
+                            }}
+                          >
+                            {_.startCase(item.ref)}s
+                          </Text>
+
+                          <Box
+                            styles={{
+                              base: {
+                                cursor: "pointer",
+                                background: "white",
+                                padding: "5px 10px", // add horizontal padding
+                                boxShadow:
+                                  "rgba(149, 157, 165, 0.2) 0px 8px 24px",
+                                borderRadius: "5px", // optional: smooth corners
+                                fontSize: "12px", // match or slightly smaller than the left text
+                              },
+                            }}
+                            onClick={() =>
+                              setCreateRecord({
+                                modelName: item.ref,
+                                open: true,
+                                field: field.name,
+                                value: "",
+                              })
+                            }
+                          >
+                            + Create new {_.startCase(item.ref)}
+                          </Box>
+                        </Box>
 
                         <Box
                           styles={{
@@ -266,12 +361,13 @@ const DynamicForm = ({
                           }}
                         >
                           <Select
-                            {...field} // Use field props directly
-                            // onChange={(value) => {
-                            //   console.log(value, "enum value");
-                            //   field.onChange(value); // Correct way to update value
-                            // }}
-                            // value={field.value}
+                            onChange={field.onChange}
+                            name={field.name}
+                            onBlur={field.onBlur}
+                            ref={field.ref}
+                            disabled={field.disabled}
+                            value={form.watch(item.name)}
+                            key={`${item.name}-${refreshKey}`}
                             styles={Clx({
                               base: {
                                 height: 40,
@@ -283,16 +379,15 @@ const DynamicForm = ({
                                 backgroundColor: "#F8F8F8",
                                 cursor: "pointer",
                                 appearance: "none",
-                                fontSize:"14px"
+                                fontSize: "14px",
                               },
                             })}
                           >
-                            <Option >
-                              Select a {_.startCase(item.ref)}
-                            </Option>
+                            <Option>Select a {_.startCase(item.ref)}</Option>
                             <GenerateRelationshipValues
                               fieldData={item}
                               form={form}
+                              key={`values-${refreshKey}`}
                             />
                           </Select>
 
@@ -425,7 +520,7 @@ const DynamicForm = ({
                               display: "flex",
                               flexDirection: "row",
                               gap: 5,
-                              marginTop:20
+                              marginTop: 20,
                             },
                           }}
                         >
@@ -433,11 +528,12 @@ const DynamicForm = ({
                             checked={field.value}
                             onChange={field.onChange}
                             type="checkbox"
-                            addonstyles={{base:{
-                              height:"20px",
-                              width:"20px",
-                            }}}
-                          
+                            addonstyles={{
+                              base: {
+                                height: "20px",
+                                width: "20px",
+                              },
+                            }}
                           />
                           <div className="space-y-1 leading-none">
                             <Text
@@ -511,14 +607,11 @@ const DynamicForm = ({
                                 backgroundColor: "#F8F8F8",
                                 cursor: "pointer",
                                 appearance: "none",
-                                fontSize:"14px"
-
+                                fontSize: "14px",
                               },
                             })}
                           >
-                            <Option >
-                              Select {_.startCase(item.label)}
-                            </Option>
+                            <Option>Select {_.startCase(item.label)}</Option>
                             {item?.enumValues.map((option) => (
                               <Option key={option} value={option}>
                                 {option}
@@ -615,7 +708,11 @@ const DynamicForm = ({
             children={"Cancel"}
             variant={"secondary"}
             type={"action"}
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (typeof handleClose === "function") {
+                handleClose("");
+              } else navigate(-1);
+            }}
           />
         </Box>{" "}
       </form>

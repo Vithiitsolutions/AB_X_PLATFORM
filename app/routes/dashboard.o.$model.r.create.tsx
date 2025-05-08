@@ -17,7 +17,7 @@ function CreateModelForm({
 }) {
   return (
     <div>
-      {loaderData?.modelName === "File" ? <File /> : <CreateDynamicRecord />}
+      {loaderData?.modelName === "File" ? <File /> : <CreateDynamicRecord model={loaderData.modelName}/>}
     </div>
   );
 }
