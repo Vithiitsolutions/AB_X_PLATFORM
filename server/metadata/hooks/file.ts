@@ -2,7 +2,7 @@ import mercury from "@mercury-js/core";
 import { Asset } from "../AssetService";
 
 mercury.hook.before("CREATE_FILE_RECORD", async function (this) {
-  const args = this?.options.args?.input || this?.options.args;
+  const args = this?.options.args?.input || this?.options.args || this.data;
   const asset = new Asset();
   const response = await asset.uploadFile(
     args?.base64,
@@ -17,14 +17,14 @@ mercury.hook.before("CREATE_FILE_RECORD", async function (this) {
 });
 
 mercury.hook.before("DELETE_FILE_RECORD", async function (this) {
-  const args = this?.options.args?.id;
+  const args = this?.options.args?.id || this?.record?.id;
   const asset = new Asset();
   const file: any = await mercury.db.File.get({ _id: args }, this.user);
   await asset.deleteFile(file.mediaId);
 });
 
 mercury.hook.before("UPDATE_FILE_RECORD", async function (this) {
-  let args: any = this?.options.args?.input;
+  let args: any = this?.options.args?.input || this?.data;
   if (!Array.isArray(args)) {
     const asset = new Asset();
     const file: any = await mercury.db.File.get({ _id: args.id }, this.user);
