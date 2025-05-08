@@ -1,10 +1,25 @@
-import React from 'react'
-import CreateDynamicRecord from '../containers/createDynamicForm'
+import React from "react";
+import CreateDynamicRecord from "../containers/createDynamicForm";
+import File from "../container/File";
 
-function CreateModelForm() {
-  return (
-    <div><CreateDynamicRecord/></div>
-  )
+export async function loader({ params }: { params: { model: string } }) {
+  return {
+    modelName: params.model,
+  };
 }
 
-export default CreateModelForm
+function CreateModelForm({
+  loaderData,
+}: {
+  loaderData: {
+    modelName: string;
+  };
+}) {
+  return (
+    <div>
+      {loaderData?.modelName === "File" ? <File /> : <CreateDynamicRecord />}
+    </div>
+  );
+}
+
+export default CreateModelForm;

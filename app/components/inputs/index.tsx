@@ -8,7 +8,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
     options: { label: string; value: string }[]; // Dynamic options
-    addonstyles?: Object;
+    addonstyles?: any;
     placeholder?:string
   }
 const CustomeInput = React.forwardRef<HTMLInputElement, InputProps>(

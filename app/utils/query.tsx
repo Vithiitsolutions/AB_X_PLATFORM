@@ -230,3 +230,27 @@ export const GET_META_DATA_RECORD_CREATE = `
 query Query($formId: String) {
   getFormMetadataRecordCreate(formId: $formId)
 }`;
+
+
+export const GET_FILE = `query GetFile($where: whereFileInput!) {
+  getFile(where: $where) {
+    id
+    name
+    description
+    extension
+  }
+}`
+
+
+export const CREATE_FILE = `mutation CreateFile($input: FileInput!) {
+  createFile(input: $input) {
+    id
+  }
+}`
+
+
+export const UPDATE_FILE=`mutation UpdateFile($input: updateFileInput!) {
+  updateFile(input: $input) {
+    id
+  }
+}`

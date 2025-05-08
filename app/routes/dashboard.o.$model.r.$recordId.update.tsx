@@ -1,11 +1,27 @@
-import React from 'react'
-import UpdateDynamicRecord from '../container/dynamicTableContainer/updateModelForm'
+import React from "react";
+import UpdateDynamicRecord from "../container/dynamicTableContainer/updateModelForm";
+import File from "../container/File";
 
-function dashboad() {
-  return (
-    <div>           <UpdateDynamicRecord />
-</div>
-  )
+export async function loader({ params }: { params: { model: string } }) {
+  return {
+    modelName: params.model,
+  };
 }
 
-export default dashboad
+function dashboad({
+  loaderData,
+}: {
+  loaderData: {
+    modelName: string;
+  };
+}) {
+  return (
+    <div>
+      
+      {loaderData?.modelName === "File" ? <File edit={true} /> : <UpdateDynamicRecord />}
+      
+    </div>
+  );
+}
+
+export default dashboad;
