@@ -18,7 +18,7 @@ export const file = mercury.createModel(
     size: {
       type: "float",
     },
-    location: {
+    url: {
       type: "string",
     },
     mediaId: {

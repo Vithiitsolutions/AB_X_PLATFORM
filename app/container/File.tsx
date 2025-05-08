@@ -208,7 +208,7 @@ const File = ({ edit = false }: { edit?: boolean }) => {
       </Text>
       <FileForm
         form={form}
-        loading={false}
+        loading={loading || updateFileResponse.loading}
         onSubmit={onSubmit}
         handleFileInputChange={handleFileInputChange}
       />

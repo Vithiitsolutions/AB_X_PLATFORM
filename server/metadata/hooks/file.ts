@@ -11,7 +11,7 @@ mercury.hook.before("CREATE_FILE_RECORD", async function (this) {
   );
   args.base64 = undefined;
   args.mediaId = response?.key;
-  args.location = response?.path;
+  args.url = response?.path;
   args.mimeType = response?.mimeType;
   args.size = response?.size;
 });
@@ -38,7 +38,7 @@ mercury.hook.before("UPDATE_FILE_RECORD", async function (this) {
 
     args.base64 = undefined;
     args.mediaId = response?.key;
-    args.location = response?.path;
+    args.url = response?.path;
     args.mimeType = response?.mimeType;
   } else {
     const asset = new Asset();
@@ -60,7 +60,7 @@ mercury.hook.before("UPDATE_FILE_RECORD", async function (this) {
       ...arg,
       base64: undefined,
       mediaId: response?.key,
-      location: response?.path,
+      url: response?.path,
       mimeType: response?.mimeType,
     }));
     this.options.args.input = args;
