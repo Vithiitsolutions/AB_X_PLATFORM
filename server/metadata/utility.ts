@@ -309,3 +309,12 @@ export const registerHooksFromDB = async () => {
   });
 };
 
+export async function executeCronFunction(cronJob, functionCode) {
+  try {
+    const func = eval("(" + functionCode + ")");
+    await func(cronJob);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err };
+  }
+}

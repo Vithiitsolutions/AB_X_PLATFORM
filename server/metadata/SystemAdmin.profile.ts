@@ -11,6 +11,15 @@ export const SystemAdminRules = [
     },
   },
   {
+    modelName: "CronJob",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
     modelName: "User",
     access: {
       create: true,

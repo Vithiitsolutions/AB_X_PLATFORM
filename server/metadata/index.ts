@@ -21,18 +21,20 @@ import "./hooks/function.ts";
 import "./hooks/resolverSchema.ts";
 import "./hooks/hook.ts";
 import "./hooks/file.ts";
+import "./hooks/cronJob.ts";
 
 // Profiles
 import "./SystemAdmin.profile.ts";
 import { Platform } from "./platform.ts";
 import { addResolversFromDBToMercury, getResolvers, registerHooksFromDB } from "./utility.ts";
+import { CronService } from "./CronService.ts";
 
 interface IMetaApiConfig {
   db: string;
 }
-
 export default class MetaApi {
   public platform: Platform;
+  public cronService: CronService;
 
   schema = applyMiddleware(
     makeExecutableSchema({
@@ -48,11 +50,13 @@ export default class MetaApi {
   constructor({ db }: IMetaApiConfig) {
     mercury.connect(db);
     mercury.addGraphqlSchema(typeDefs, resolvers);
+    this.cronService = new CronService({id: "", profile: "SystemAdmin"});
   }
-
+  
   async start() {
     await addResolversFromDBToMercury();
     await registerHooksFromDB();
+    this.cronService.start();
     this.platform = new Platform();
     await this.platform.initialize();
     await this.restart();
