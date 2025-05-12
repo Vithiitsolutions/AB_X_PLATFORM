@@ -13,6 +13,7 @@ import { profile } from "node:console";
 import { Platform } from "./server/metadata/platform.ts";
 import { transformSync } from "@babel/core";
 import presetReact from "@babel/preset-react";
+import jwt from "jsonwebtoken";
 
 let interval: number;
 // Websocket setup
@@ -50,116 +51,14 @@ const app = express();
 // Metadata API server
 export const metaServer = new MetaApi({
   db: DB_URL,
-  redisUrl: REDIS_URL
-})
+  redisUrl: REDIS_URL,
+});
 await metaServer.start();
 
-function rewriteImports(code: string) {
-  return code.replace(
-    /import\s+(?:(\w+)\s*(?:,\s*)?)?(?:\{([^}]+)\})?\s+from\s+["']([^"']+)["']/g,
-    (_, defaultImport, namedImports, pkg) => {
-      const imports: string[] = [];
+app.use(cors<cors.CorsRequest>({ origin: "*" }));
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-      // Handle default import
-      if (defaultImport) {
-        imports.push(`import ${defaultImport} from "https://esm.sh/${pkg}";`);
-      }
-
-      // Handle named imports
-      if (namedImports) {
-        namedImports
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean)
-          .forEach((name) => {
-            const [orig, alias] = name.split(" as ").map((n) => n.trim());
-            const finalName = alias || orig;
-            imports.push(
-              `import ${finalName} from "https://esm.sh/${pkg}/${orig}";`
-            );
-          });
-      }
-
-      return imports.join("\n");
-    }
-  );
-}
-
-app.use(cors<cors.CorsRequest>({origin: "*"}));
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-
-app.get("/api", (req: Request, res: Response) => {
-  // compile.ts
-  console.log("------------into the block");
-
-  const jsxCode = `import React from "react";
-import dayjs from "dayjs";
-import classNames from "classnames";
-import {isString, isEmpty} from "lodash";
-
-const GreetingCard = () => {
-  const userName = "Praveen ✨";
-  const today = dayjs();
-  const isWeekend = today.day() === 0 || today.day() === 6;
-
-  const cardClass = classNames("card", {
-    weekend: isWeekend,
-    weekday: !isWeekend,
-  });
-
-  return (
-    <div
-      className={cardClass}
-      style={{
-        fontFamily: "Segoe UI, sans-serif",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "20px",
-        backgroundColor: isWeekend ? "#FFFBF0" : "#F0F9FF",
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: "#fff",
-          padding: "24px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-          textAlign: "center",
-          width: "350px",
-        }}
-      >
-        <h2 style={{ marginBottom: "12px", color: "#333" }}>
-          {isString(userName) ? userName : "Welcome, Guest"}
-        </h2>
-        <p style={{ fontSize: "14px", color: "#555" }}>
-          Today is <strong>{today.format("dddd, MMMM D, YYYY")}</strong>
-        </p>
-        <p style={{ marginTop: "8px", color: "#888", fontStyle: "italic" }}>
-          {isWeekend ? "Chill! It's weekend 😎" : "Back to grind 💻"}
-        </p>
-      </div>
-    </div>
-  );
-};
-
-export default GreetingCard;
-  `;
-
-  const output = transformSync(rewriteImports(jsxCode), {
-    presets: [presetReact],
-    sourceType: "module",
-  });
-
-  const base64 = Buffer.from(output?.code!).toString("base64");
-  console.log("Base64 Encoded:", base64);
-
-  res.json({
-    base64,
-  });
-});
 
 metaEvents.on("CREATE_MODEL_RECORD", async (data: any) => {
   await metaServer.restart();
@@ -172,12 +71,37 @@ app.use(
   bodyParser.json(),
   expressMiddleware(metaServer.server, {
     context: async ({ req }) => {
+      const JWT_SECRET = process.env.JWT_SECRET || "default-secret-key";
+      const authHeader = req.headers.authorization || "";
+      const profileHeader = req.headers.profile as string || "";
+      let user = {
+        id: null,
+        profile: "Anonymous",
+      };
+
+      if (authHeader.startsWith("Bearer ")) {
+        const token = authHeader.split(" ")[1];
+        
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET) as {
+            id: any;
+            profile: string;
+          };
+          user = {
+            id: decoded.id,
+            profile: decoded.profile || "Anonymous",
+          };
+        } catch (err) {
+          console.warn("JWT verification failed:", err.message);
+        }
+      }
+      if(profileHeader){
+        user.profile = profileHeader;
+      }
+      
       return {
         ...req,
-        user: {
-          id: 1,
-          profile: req.headers.profile ?? "Anonymous"
-        },
+        user,
         platform: metaServer.platform,
       };
     },

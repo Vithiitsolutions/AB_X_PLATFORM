@@ -2,38 +2,53 @@ import mercury from "@mercury-js/core";
 import { GraphQLError } from "graphql";
 import { Form } from "./FormService";
 import { sign } from "node:crypto";
+import _ from "lodash";
+import jwt from "jsonwebtoken";
 
 export default {
   Query: {
     signIn: async (
       _root: unknown,
-      { username, password }: { username: string; password: string },
+      { value, password, validateBy }: { value: string; password: string, validateBy: string },
       _ctx: unknown
     ) => {
       const user: any = await mercury.db.User.get(
         {
-          email: username,
+          [validateBy]: value,
         },
         {
           id: "1",
           profile: "SystemAdmin",
         }
       );
-      if (!user) {
+      
+      if (_.isEmpty(user)) {
         throw new GraphQLError("User not found", {
           extensions: {
             code: "UNAUTHENTICATED",
           },
         });
       }
-      if (!user.verifyPassword(password)) {
+      const isValidPassword = await user.verifyPassword(password);
+      if (!isValidPassword) {
         throw new GraphQLError("Invalid password", {
           extensions: {
             code: "UNAUTHENTICATED",
           },
         });
       }
-      return user;
+      const expiresIn: string | number = process.env.JWT_EXPIRATION || "1h";
+      const token = await jwt.sign(
+        {
+          id: user._id,
+          profile: user.role,
+        },
+        process.env.JWT_SECRET || 'default-secret-key',
+        {
+          algorithm: "HS256"
+        }
+      );
+      return {token, user};
     },
     getFormMetadataRecordCreate: async (
       root: any,

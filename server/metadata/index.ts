@@ -82,7 +82,6 @@ export default class MetaApi {
     await this.restart();
   }
   async restart() {
-    await mercury.cache.set("mercury2", "adhabca", {EX: 20});
     this.config.schema = applyMiddleware(
       makeExecutableSchema({
         typeDefs: mercury.typeDefs,
