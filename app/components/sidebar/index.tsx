@@ -9,7 +9,6 @@ import { serverFetch } from "../../utils/action";
 //   return { message: "Hello, world!" };
 // }
 
-
 export function DynamicIcon({ iconName }) {
   const [IconComponent, setIconComponent] =
     useState<React.ComponentType | null>(null);
@@ -33,76 +32,22 @@ export function DynamicIcon({ iconName }) {
   return <IconComponent style={{ width: "15px" }} />;
 }
 
-function SideBar({tabs}: {tabs: any[]}) {
+const STORAGE_KEY = "sidebar-open-items";
+function SideBar({ tabs }: { tabs: any[] }) {
   const [openItems, setOpenItems] = useState<string[]>([]);
   const location = useLocation();
-  console.log(location, "location?.state");
-  // const [tabs, setTabs] = useState([]);
 
-  // useEffect(() => {
-  //   getTabs();
-  // }, []);
 
-  // const getTabs = async () => {
-  //   const data = await serverFetch(
-  //     `query Docs($where: whereTabInput, $sort: sortTabInput) {
-  //           listTabs(where: $where, sort: $sort) {
-  //             docs {
-  //               id
-  //               label
-  //               order
-  //               icon
-  //               model {
-  //                   id
-  //                   label
-  //                   name
-  //                 }
-  //               childTabs {
-  //                 id
-  //                 icon
-  //                 label
-  //                 order
-  //                 model {
-  //                   id
-  //                   label
-  //                   name
-  //                 }
-  //               }
-  //               profiles {
-  //                 id
-  //                 label
-  //                 name
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      setOpenItems(JSON.parse(stored));
+    }
+  }, []);
 
-  //               }
-  //             }
-  //           }
-  //         }`,
-  //     {
-  //       where: {
-  //         parent: {
-  //           is: null,
-  //         },
-  //       },
-  //       sort: {
-  //         order: "asc",
-  //       },
-  //     },
-  //     {
-  //       cache: "no-store",
-  //     }
-  //   );
-  //   console.log(data);
-
-  //   let sortedTabs = data.listTabs.docs.sort((a, b) => a.order - b.order);
-
-  //   // Sort child tabs inside each main tab
-  //   sortedTabs = sortedTabs.map((tab) => ({
-  //     ...tab,
-  //     childTabs: tab.childTabs.sort((a, b) => a.order - b.order),
-  //   }));
-  
-  //   setTabs(sortedTabs);
-  // };
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(openItems));
+  }, [openItems]);
 
   const toggleItem = (id: string) => {
     setOpenItems((prev) => {
@@ -125,133 +70,135 @@ function SideBar({tabs}: {tabs: any[]}) {
           base: { display: "flex", flexDirection: "column", gap: "15px" },
         }}
       >
-        {items?.length ? items?.map((item) => (
-          <Box
-            key={item.id}
-            styles={{
-              base: {
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-              },
-            }}
-          >
-            <Box
-              onClick={() => toggleItem(item.id)}
-              styles={{
-                base: {
-                  fontSize: "12px",
-                  lineHeight: "12.12px",
-                  color: "#4A4A50",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "10px",
-                },
-              }}
-            >
+        {items?.length
+          ? items?.map((item) => (
               <Box
+                key={item.id}
                 styles={{
                   base: {
                     display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 5,
+                    flexDirection: "column",
+                    gap: 10,
                   },
                 }}
               >
-                {/* ✅ Dynamic Icon Here */}
-                <DynamicIcon iconName={item.icon} />
-                {item?.model ? (
-                  <A
-                    href={`/dashboard/o/${item?.model?.name}/list`}
-                    // state={item?.id}
-                    className={`${
-                      location.pathname.includes(item?.model?.name) &&
-                      "text-black"
-                    }`}
-                  >
-                    {item.label}
-                  </A>
-                ) : (
-                  <Box
-                    className={`${
-                      location.pathname.includes(item?.model?.name) &&
-                      "text-black"
-                    }`}
-                  >
-                    {item.label}
-                  </Box>
-                )}
-              </Box>
-
-              {/* Dropdown Toggle Icon */}
-              {item.childTabs?.length > 0 && (
                 <Box
+                  onClick={() => toggleItem(item.id)}
                   styles={{
                     base: {
+                      fontSize: "12px",
+                      lineHeight: "12.12px",
+                      color: "#4A4A50",
+                      fontWeight: 600,
+                      cursor: "pointer",
                       display: "flex",
                       flexDirection: "row",
                       alignItems: "center",
-                      justifyContent: "center",
-                      alignSelf: "center",
+                      justifyContent: "space-between",
+                      gap: "10px",
                     },
                   }}
                 >
-                  {openItems.includes(item.id) ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="lucide lucide-chevron-up"
+                  <Box
+                    styles={{
+                      base: {
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 5,
+                      },
+                    }}
+                  >
+                    {/* ✅ Dynamic Icon Here */}
+                    <DynamicIcon iconName={item.icon} />
+                    {item?.model ? (
+                      <A
+                        href={`/dashboard/o/${item?.model?.name}/list`}
+                        // state={item?.id}
+                        className={`${
+                          location.pathname.includes(item?.model?.name) &&
+                          "text-black"
+                        }`}
+                      >
+                        {item.label}
+                      </A>
+                    ) : (
+                      <Box
+                        className={`${
+                          location.pathname.includes(item?.model?.name) &&
+                          "text-black"
+                        }`}
+                      >
+                        {item.label}
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* Dropdown Toggle Icon */}
+                  {item.childTabs?.length > 0 && (
+                    <Box
+                      styles={{
+                        base: {
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          alignSelf: "center",
+                        },
+                      }}
                     >
-                      <path d="m18 15-6-6-6 6" />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="lucide lucide-chevron-down"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
+                      {openItems.includes(item.id) ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-chevron-up"
+                        >
+                          <path d="m18 15-6-6-6 6" />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-chevron-down"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      )}
+                    </Box>
                   )}
                 </Box>
-              )}
-            </Box>
 
-            {openItems.includes(item.id) &&
-              item.childTabs &&
-              item.childTabs.length > 0 && (
-                <Box
-                  styles={{
-                    base: {
-                      paddingLeft: "20px",
-                      borderLeft: "1px solid #BCBCBC",
-                    },
-                  }}
-                >
-                  {renderMenu(item.childTabs)}
-                </Box>
-              )}
-          </Box>
-        )): null}
+                {openItems.includes(item.id) &&
+                  item.childTabs &&
+                  item.childTabs.length > 0 && (
+                    <Box
+                      styles={{
+                        base: {
+                          paddingLeft: "20px",
+                          borderLeft: "1px solid #BCBCBC",
+                        },
+                      }}
+                    >
+                      {renderMenu(item.childTabs)}
+                    </Box>
+                  )}
+              </Box>
+            ))
+          : null}
       </Box>
     );
   };

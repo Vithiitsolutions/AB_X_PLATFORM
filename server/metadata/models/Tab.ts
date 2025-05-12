@@ -38,6 +38,15 @@ export const tab = mercury.createModel(
         localField: "_id",
         foreignField: "parent"
       },
+      type: {
+        type: "enum",
+        enumType: "string",
+        enum: ["RECORD", "LIST"],
+        default: "LIST"
+      },
+      recordId: {
+        type: "string",
+      },
       createdBy: {
         type: 'relationship',
         ref: 'User',

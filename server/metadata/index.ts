@@ -26,11 +26,19 @@ import "./hooks/cronJob.ts";
 // Profiles
 import "./SystemAdmin.profile.ts";
 import { Platform } from "./platform.ts";
-import { addResolversFromDBToMercury, getResolvers, registerHooksFromDB } from "./utility.ts";
+import {
+  addResolversFromDBToMercury,
+  getResolvers,
+  registerHooksFromDB,
+} from "./utility.ts";
 import { CronService } from "./CronService.ts";
+import { HistoryTracking } from "@mercury-js/plugins/historyTracking";
+import { RedisCache } from "@mercury-js/plugins/redis";
+import { RecordOwner } from "@mercury-js/plugins/recordOwner";
 
 interface IMetaApiConfig {
   db: string;
+  redisUrl?: string;
 }
 export default class MetaApi {
   public platform: Platform;
@@ -47,12 +55,22 @@ export default class MetaApi {
     introspection: true,
   };
   server = new ApolloServer(this.config);
-  constructor({ db }: IMetaApiConfig) {
+  constructor({ db, redisUrl = "redis://localhost:6379" }: IMetaApiConfig) {
     mercury.connect(db);
+    mercury.plugins([new HistoryTracking(), 
+      new RedisCache({
+      client: {
+        socket: {
+          tls: false
+        },
+        url: redisUrl,
+      }
+    }), 
+    new RecordOwner()]);
     mercury.addGraphqlSchema(typeDefs, resolvers);
-    this.cronService = new CronService({id: "", profile: "SystemAdmin"});
+    this.cronService = new CronService({ id: "", profile: "SystemAdmin" });
   }
-  
+
   async start() {
     await addResolversFromDBToMercury();
     await registerHooksFromDB();
@@ -62,6 +80,7 @@ export default class MetaApi {
     await this.restart();
   }
   async restart() {
+    await mercury.cache.set("mercury2", "adhabca", {EX: 20});
     this.config.schema = applyMiddleware(
       makeExecutableSchema({
         typeDefs: mercury.typeDefs,
@@ -72,4 +91,3 @@ export default class MetaApi {
     await this.server.restart(this.config);
   }
 }
-

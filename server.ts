@@ -40,6 +40,7 @@ const BUILD_PATH = "./build/server/index.js";
 const DEVELOPMENT = Deno.env.get("NODE_ENV") === "development";
 const PORT = Number.parseInt(Deno.env.get("PORT") || "3000");
 const DB_URL = Deno.env.get("DB_URL");
+const REDIS_URL = Deno.env.get("REDIS_URL");
 
 const app = express();
 // Platform API Server
@@ -49,6 +50,7 @@ const app = express();
 // Metadata API server
 export const metaServer = new MetaApi({
   db: DB_URL,
+  redisUrl: REDIS_URL
 })
 await metaServer.start();
 
