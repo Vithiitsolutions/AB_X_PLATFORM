@@ -57,7 +57,8 @@ export default class MetaApi {
   server = new ApolloServer(this.config);
   constructor({ db, redisUrl = "redis://localhost:6379" }: IMetaApiConfig) {
     mercury.connect(db);
-    mercury.plugins([new HistoryTracking(), 
+    mercury.plugins([
+      // new HistoryTracking(), 
       new RedisCache({
       client: {
         socket: {
@@ -66,7 +67,8 @@ export default class MetaApi {
         url: redisUrl,
       }
     }), 
-    new RecordOwner()]);
+    // new RecordOwner()
+  ]);
     mercury.addGraphqlSchema(typeDefs, resolvers);
     this.cronService = new CronService({ id: "", profile: "SystemAdmin" });
   }
