@@ -249,35 +249,84 @@ export async function addResolversFromDBToMercury() {
   await metaServer.restart();
 }
 
-
 export const registerHooksFromDB = async () => {
   const hooks = await mercury.db.HookM.mongoModel
     .find({})
     .populate([
-      'beforeCreate',
-      'afterCreate',
-      'beforeUpdate',
-      'afterUpdate',
-      'beforeDelete',
-      'afterDelete',
-      'beforeGet',
-      'afterGet',
-      'beforeList',
-      'afterList'
+      "beforeCreate",
+      "afterCreate",
+      "beforeUpdate",
+      "afterUpdate",
+      "beforeDelete",
+      "afterDelete",
+      "beforeGet",
+      "afterGet",
+      "beforeList",
+      "afterList",
     ]);
 
   hooks?.forEach((hook) => {
     const hookMap = [
-      { flag: 'enableBeforeCreate', fnField: 'beforeCreate', type: 'before', action: 'CREATE' },
-      { flag: 'enableAfterCreate', fnField: 'afterCreate', type: 'after', action: 'CREATE' },
-      { flag: 'enableBeforeUpdate', fnField: 'beforeUpdate', type: 'before', action: 'UPDATE' },
-      { flag: 'enableAfterUpdate', fnField: 'afterUpdate', type: 'after', action: 'UPDATE' },
-      { flag: 'enableBeforeDelete', fnField: 'beforeDelete', type: 'before', action: 'DELETE' },
-      { flag: 'enableAfterDelete', fnField: 'afterDelete', type: 'after', action: 'DELETE' },
-      { flag: 'enableBeforeGet', fnField: 'beforeGet', type: 'before', action: 'GET' },
-      { flag: 'enableAfterGet', fnField: 'afterGet', type: 'after', action: 'GET' },
-      { flag: 'enableBeforeList', fnField: 'beforeList', type: 'before', action: 'LIST' },
-      { flag: 'enableAfterList', fnField: 'afterList', type: 'after', action: 'LIST' },
+      {
+        flag: "enableBeforeCreate",
+        fnField: "beforeCreate",
+        type: "before",
+        action: "CREATE",
+      },
+      {
+        flag: "enableAfterCreate",
+        fnField: "afterCreate",
+        type: "after",
+        action: "CREATE",
+      },
+      {
+        flag: "enableBeforeUpdate",
+        fnField: "beforeUpdate",
+        type: "before",
+        action: "UPDATE",
+      },
+      {
+        flag: "enableAfterUpdate",
+        fnField: "afterUpdate",
+        type: "after",
+        action: "UPDATE",
+      },
+      {
+        flag: "enableBeforeDelete",
+        fnField: "beforeDelete",
+        type: "before",
+        action: "DELETE",
+      },
+      {
+        flag: "enableAfterDelete",
+        fnField: "afterDelete",
+        type: "after",
+        action: "DELETE",
+      },
+      {
+        flag: "enableBeforeGet",
+        fnField: "beforeGet",
+        type: "before",
+        action: "GET",
+      },
+      {
+        flag: "enableAfterGet",
+        fnField: "afterGet",
+        type: "after",
+        action: "GET",
+      },
+      {
+        flag: "enableBeforeList",
+        fnField: "beforeList",
+        type: "before",
+        action: "LIST",
+      },
+      {
+        flag: "enableAfterList",
+        fnField: "afterList",
+        type: "after",
+        action: "LIST",
+      },
     ];
 
     hookMap.forEach(({ flag, fnField, type, action }) => {
@@ -286,11 +335,16 @@ export const registerHooksFromDB = async () => {
 
         let compiledFn;
         try {
-          // Compile the string code into a real function
-            const decodedCode = Buffer.from(hook[fnField].code, 'base64').toString();
-            compiledFn = new Function('context', decodedCode);
+          // Decode base64 to get full function source
+          const fnSource = Buffer.from(hook[fnField].code, "base64").toString();
+
+          // Convert full function string into actual function
+          compiledFn = eval(`(${fnSource})`);
+          if (typeof compiledFn !== "function") {
+            throw new Error("Decoded code is not a function");
+          }
         } catch (err) {
-          console.error(`Error compiling ${hookName}:`, err);
+          console.error(`❌ Error compiling ${hookName}:`, err);
           return;
         }
 
