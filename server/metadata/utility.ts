@@ -327,6 +327,18 @@ export const registerHooksFromDB = async () => {
         type: "after",
         action: "LIST",
       },
+      {
+        flag: "enableAfterPaginate",
+        fnField: "afterPaginate",
+        type: "after",
+        action: "PAGINATE",
+      },
+     {
+        flag: "enableBeforePaginate",
+        fnField: "beforePaginate",
+        type: "before",
+        action: "PAGINATE",
+      },
     ];
 
     hookMap.forEach(({ flag, fnField, type, action }) => {

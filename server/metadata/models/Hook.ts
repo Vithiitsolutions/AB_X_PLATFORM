@@ -90,6 +90,22 @@ export const hook = mercury.createModel(
         type: 'relationship',
         ref: "Function"
       },
+      enableBeforePaginate: {
+        type: 'boolean',
+        default: false,
+      },
+      beforePaginate: {
+        type: 'relationship',
+        ref: "Function"
+      },
+      enableAfterPaginate: {
+        type: 'boolean',
+        default: false,
+      },
+      afterPaginate: {
+        type: 'relationship',
+        ref: "Function"
+      },
       createdBy: {
         type: 'relationship',
         ref: 'User',
