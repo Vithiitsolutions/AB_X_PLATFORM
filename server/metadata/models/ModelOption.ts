@@ -27,7 +27,7 @@ export const modelOption = mercury.createModel(
     },
     type: {
       type: 'enum',
-      enum: ['number', 'string', 'boolean'],
+      enum: ['number', 'string', 'boolean', "json"],
       enumType: 'string',
       required: true,
     },

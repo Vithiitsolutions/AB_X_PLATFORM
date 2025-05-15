@@ -17,6 +17,7 @@ export const resolverSchema = mercury.createModel("ResolverSchema", {
     },
     name: {
         type: "string",
-        required: true
+        required: true,
+        unique: true
     }
 });

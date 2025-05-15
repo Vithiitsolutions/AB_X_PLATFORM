@@ -35,7 +35,7 @@ export const model = mercury.createModel("Model", {
     type: "virtual",
     ref: "ModelOption",
     localField: "_id",
-    foreignField: "field",
+    foreignField: "model",
     many: true,
   },
 });

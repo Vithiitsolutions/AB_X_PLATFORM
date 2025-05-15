@@ -240,7 +240,7 @@ export const getResolvers = async (resolvers) => {
 export async function addResolversFromDBToMercury() {
   const resolvers = await mercury.db.ResolverSchema.mongoModel
     .find({})
-    .populate("resolverFn");
+    .populate("resolverFn");  
   const resolversFromDB = await getResolvers(resolvers);
   mercury.addGraphqlSchema(
     resolvers.map((obj) => obj.schema).join("\n"),

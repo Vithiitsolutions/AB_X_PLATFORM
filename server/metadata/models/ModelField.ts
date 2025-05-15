@@ -19,6 +19,10 @@ export const modelField = mercury.createModel("ModelField", {
     type: "string",
     required: true,
   },
+  bcrypt: {
+    type: "boolean",
+    default: false,
+  },
   type: {
     type: "enum",
     enumType: "string",

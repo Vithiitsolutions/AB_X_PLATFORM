@@ -14,6 +14,7 @@ export class Platform {
     number: (val) => Number(val),
     boolean: (val) => val === "true",
     string: (val) => String(val),
+    json: (val) => JSON.parse(val),
   };
   constructor() {
     console.log("Platform started!!!");
@@ -36,12 +37,38 @@ export class Platform {
             description: "User model",
             managed: true,
           },
-          { id: "1", profile: "SystemAdmin" }
+          { id: "1", profile: "SystemAdmin" },
+          { skipHook: true }
         );
         await mercury.db.ModelField.create(
           {
             name: "name",
             label: "Name",
+            model: model?.id,
+            type: "string",
+            modelName: "User",
+            managed: false,
+          },
+          { id: "1", profile: "SystemAdmin" },
+          { ctx: { platform: this }, args: { input: { modelName: "User" } } }
+        );
+        await mercury.db.ModelField.create(
+          {
+            name: "password",
+            label: "Password",
+            model: model?.id,
+            type: "string",
+            modelName: "User",
+            managed: false,
+            bcrypt: true,
+          },
+          { id: "1", profile: "SystemAdmin" },
+          { ctx: { platform: this }, args: { input: { modelName: "User" } } }
+        );
+        await mercury.db.ModelField.create(
+          {
+            name: "email",
+            label: "Email",
             model: model?.id,
             type: "string",
             modelName: "User",

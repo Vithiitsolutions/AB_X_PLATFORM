@@ -21,7 +21,8 @@ export const user = mercury.createModel(
       ref: 'Profile'
     },
     password: {
-      type: 'string'
+      type: 'string',
+      bcrypt: true
     },
   },
   {
