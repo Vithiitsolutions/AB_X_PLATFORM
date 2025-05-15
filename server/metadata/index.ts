@@ -74,12 +74,12 @@ export default class MetaApi {
   }
 
   async start() {
-    await addResolversFromDBToMercury();
-    await registerHooksFromDB();
     this.cronService.start();
     this.platform = new Platform();
     await this.platform.initialize();
     await this.restart();
+    await addResolversFromDBToMercury();
+    await registerHooksFromDB();
   }
   async restart() {
     this.config.schema = applyMiddleware(
