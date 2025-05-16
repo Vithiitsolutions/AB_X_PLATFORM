@@ -37,7 +37,6 @@ function SideBar({ tabs }: { tabs: any[] }) {
   const [openItems, setOpenItems] = useState<string[]>([]);
   const location = useLocation();
 
-
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -109,14 +108,20 @@ function SideBar({ tabs }: { tabs: any[] }) {
                       },
                     }}
                   >
-                    {/* ✅ Dynamic Icon Here */}
                     <DynamicIcon iconName={item.icon} />
                     {item?.model ? (
                       <A
-                        href={`/dashboard/o/${item?.model?.name}/list`}
+                        href={
+                          item.model.name === "Dashboard"
+                            ? "/dashboard"
+                            : item?.type === "LIST"
+                            ? `/dashboard/o/${item?.model?.name}/list`
+                            : `/dashboard/o/${item?.model?.name}/r/${item?.recordId}`
+                        }
                         // state={item?.id}
                         className={`${
-                          location.pathname.includes(item?.model?.name) &&
+                          (location.pathname.includes(item?.model?.name) ||
+                            item?.model?.name == "Dashboard") &&
                           "text-black"
                         }`}
                       >

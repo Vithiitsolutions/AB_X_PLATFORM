@@ -67,6 +67,20 @@ export class Platform {
         );
         await mercury.db.ModelField.create(
           {
+            name: "role",
+            label: "Role",
+            model: model?.id,
+            type: "enum",
+            modelName: "User",
+            enumValues: ["SystemAdmin"],
+            enumType: "string",
+            managed: false,
+          },
+          { id: "1", profile: "SystemAdmin" },
+          { ctx: { platform: this }, args: { input: { modelName: "User" } } }
+        );
+        await mercury.db.ModelField.create(
+          {
             name: "email",
             label: "Email",
             model: model?.id,

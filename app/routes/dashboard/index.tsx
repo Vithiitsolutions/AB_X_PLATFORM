@@ -5,8 +5,11 @@ import SideBar from "../../components/sidebar";
 import { ThemeProvider } from "../../utils/theme";
 import { serverFetch } from "../../utils/action";
 import Navbar from "../../components/navbar";
+// import {Route } from "./+types/root";
 
-export async function loader() {
+export async function loader({
+  request,
+}: any) {
   const response = await serverFetch(
     `query Docs($where: whereTabInput, $sort: sortTabInput) {
         listTabs(where: $where, sort: $sort) {
@@ -15,6 +18,7 @@ export async function loader() {
             label
             order
             icon
+            recordId
             model {
                 id
                 label
@@ -68,12 +72,20 @@ export async function loader() {
   if (response.error) {
     return response.error; //TODO: handle error
   }
-  let sortedTabs = response.listTabs?.docs.sort((a, b) => a.order - b.order);
+  const sortTabs = (tabs) => {
+    if (!tabs) return [];
+    return tabs.map((tab) => ({
+      ...tab,
+      childTabs: sortTabs(tab.childTabs)
+    })).sort((a, b) => {
+      if (a.order === b.order) {
+        return (a.label || '').localeCompare(b.label || '');
+      }
+      return a.order - b.order;
+    });
+  };
 
-  sortedTabs = sortedTabs?.map((tab) => ({
-    ...tab,
-    childTabs: tab.childTabs.sort((a, b) => a.order - b.order),
-  }));
+  const sortedTabs = sortTabs(response.listTabs?.docs);
 
   return sortedTabs;
 }

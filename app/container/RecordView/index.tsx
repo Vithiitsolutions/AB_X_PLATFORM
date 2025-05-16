@@ -13,8 +13,8 @@ import { serverFetch } from "../../utils/action";
 function RecordView({
   layoutStructuresData,
   recordData,
-  layout,
-}: {
+  layout = {},
+}: {  
   layoutStructuresData: any;
   recordData: any;
   layout: any;
@@ -81,7 +81,7 @@ function RecordView({
           },
         }}
       >
-        {layout?.buttons?.map?.map((button: any) => {
+        {layout?.buttons?.map((button: any) => {
           return (
             <DynamicButton
               children={button?.text}

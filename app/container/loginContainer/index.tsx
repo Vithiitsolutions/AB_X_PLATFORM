@@ -13,6 +13,8 @@ import {
 import { useEffect, useState } from "react";
 import { serverFetch } from "../../utils/action";
 import { useLazyQuery } from "../../utils/hook";
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router";
 
 function LogInContainer() {
   const [email, setEmail] = useState("");
@@ -21,6 +23,7 @@ function LogInContainer() {
   const [passwordError, setPasswordError] = useState("");
 
   const [login, { data, loading, error }] = useLazyQuery(serverFetch);
+  const navigate = useNavigate();
 
   // Validate email format
   const validateEmail = (email) => {
@@ -49,10 +52,7 @@ function LogInContainer() {
     if (!password) {
       setPasswordError("Password is required");
       isValid = false;
-    } else if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
-      isValid = false;
-    }
+    } 
 
     if (isValid) {
       login(
@@ -61,6 +61,7 @@ function LogInContainer() {
             token
             user {
               id
+              role
             }
           }
         }`,
@@ -79,11 +80,16 @@ function LogInContainer() {
   useEffect(()=>{
     if(data){
       if(data?.signIn?.token){
-        // Cookies("token", data?.signIn?.token);
-        // window.location.href = "/dashboard";
-      }else{
-        setEmailError("Invalid email or password");
+        Cookies.set("token", data?.signIn?.token);
+        Cookies.set("userId", data?.signIn?.user?.id);
+        Cookies.set("role", data?.signIn?.user?.role);
+        setEmail("");
+        setPassword("") ;
+        navigate("/dashboard");
       }
+    }
+    if(error){
+      setEmailError("Invalid email or password");
     }
   }, [data, error, loading]);
 
@@ -217,7 +223,7 @@ function LogInContainer() {
                 )}
               </Box>
 
-              <Box
+              {/* <Box
                 styles={{
                   base: { display: "flex", justifyContent: "flex-end" },
                 }}
@@ -234,7 +240,7 @@ function LogInContainer() {
                 >
                   Forgot password?
                 </A>
-              </Box>
+              </Box> */}
 
               <Button
                 styles={{
@@ -291,7 +297,7 @@ function LogInContainer() {
             .
           </Text>
 
-          <Box styles={{ base: { marginTop: "24px" } }}>
+          {/* <Box styles={{ base: { marginTop: "24px" } }}>
             <Text styles={{ base: { fontSize: "14px", color: "#666" } }}>
               Don't have an account?{" "}
               <A
@@ -307,7 +313,7 @@ function LogInContainer() {
                 Sign up
               </A>
             </Text>
-          </Box>
+          </Box> */}
         </Box>
       </Box>
 

@@ -241,6 +241,20 @@ export const GET_FILE = `query GetFile($where: whereFileInput!) {
   }
 }`
 
+export const GET_TAB=`query Docs($where: whereTabInput) {
+  listTabs(where: $where) {
+    docs {
+      id
+      model {
+        id
+        name
+      }
+      type
+      recordId
+    }
+  }
+}`
+
 
 export const CREATE_FILE = `mutation CreateFile($input: FileInput!) {
   createFile(input: $input) {
