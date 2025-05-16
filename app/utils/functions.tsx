@@ -132,11 +132,11 @@ export const getSearchCompostion = (fields: any[], searchText: string) => {
           );
           if (matchedEnum) {
             return {
-              [field.name]:  matchedEnum,
+              [field.name]: matchedEnum,
             };
           }
         }
-        return null; 
+        return null;
       case "relationship":
       case "virutal":
         const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(searchText);
@@ -158,4 +158,15 @@ export const getSearchCompostion = (fields: any[], searchText: string) => {
     },
   };
   return variables;
+};
+
+export const parseCookies = (cookies: string) => {
+  const cookieArray = cookies?.split(";").map((cookie) => cookie.trim());
+  const cookieObject: any = {};
+
+  cookieArray?.forEach((cookie) => {
+    const [key, value] = cookie.split("=");
+    cookieObject[key] = value;
+  });
+  return cookieObject;
 };

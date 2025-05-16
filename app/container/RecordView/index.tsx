@@ -14,10 +14,12 @@ function RecordView({
   layoutStructuresData,
   recordData,
   layout = {},
-}: {  
+  updateVisible = true,
+}: {
   layoutStructuresData: any;
   recordData: any;
   layout: any;
+  updateVisible?: boolean;
 }) {
   const params = useParams();
   const [DeleteRecordd, DeleteRecorddResponse] = useLazyQuery(serverFetch);
@@ -115,20 +117,22 @@ function RecordView({
           }}
         /> */}
 
-        <DynamicButton
-          children={"Update"}
-          iconPosition={"left"}
-          variant={"primary"}
-          icon={"Pencil"}
-          type={"link"}
-          href={`/dashboard/o/${params?.model}/r/${params?.record}/update`}
-          addOnStyles={{
-            base: {
-              padding: "3px 8px",
-              fontSize: "12px",
-            },
-          }}
-        />
+        {updateVisible && (
+          <DynamicButton
+            children={"Update"}
+            iconPosition={"left"}
+            variant={"primary"}
+            icon={"Pencil"}
+            type={"link"}
+            href={`/dashboard/o/${params?.model}/r/${params?.record}/update`}
+            addOnStyles={{
+              base: {
+                padding: "3px 8px",
+                fontSize: "12px",
+              },
+            }}
+          />
+        )}
       </Box>
       {/* <Box ml={5} mb={4}></Box> */}
       <Box
@@ -180,7 +184,7 @@ function RecordView({
                       ...MESS_TAGS,
                       data: recordData,
                       serverFetch: serverFetch,
-                      useLazyQuery: useLazyQuery
+                      useLazyQuery: useLazyQuery,
                     },
                   }}
                 />

@@ -14,8 +14,10 @@ import { layout } from "@react-router/dev/routes";
 
 export async function loader({
   params,
+  request
 }: {
   params: { model: string; record: string };
+  request: any;
 }) {
   const { model, record } = params;
   const modelData = await serverFetch(
@@ -29,6 +31,8 @@ export async function loader({
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
   if (modelData.error) {
@@ -47,6 +51,8 @@ export async function loader({
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
   if (modelFieldsData.error) {
@@ -65,6 +71,8 @@ export async function loader({
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
 
@@ -90,6 +98,8 @@ export async function loader({
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
 
@@ -112,6 +122,8 @@ export async function loader({
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
 
@@ -122,9 +134,9 @@ export async function loader({
     modelName: model,
     recordData: recordData?.[`get${model}`],
     layoutStructuresData,
-    layout:layoutData?.listLayouts?.docs.find(
+    layout: layoutData?.listLayouts?.docs.find(
       (item: any) => item.profiles && item.profiles.length === 0
-    )
+    ),
   };
 }
 
@@ -135,10 +147,9 @@ function Record({
     recordData: any;
     layoutStructuresData: any;
     modelName: string;
-    layout:any
+    layout: any;
   };
 }) {
-  
   return (
     <React.Suspense fallback={<ComponentSkeletonLoader />}>
       <RecordView

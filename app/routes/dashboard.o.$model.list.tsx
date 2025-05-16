@@ -14,7 +14,7 @@ import { CustomeInput } from "../components/inputs";
 import _ from "lodash";
 import DynamicTable from "../components/table";
 
-export async function loader({ params }: { params: { model: string } }) {
+export async function loader({ params, request }: { params: { model: string }, request: any }) {
   const response = await serverFetch(
     GET_VIEW,
     {
@@ -26,6 +26,8 @@ export async function loader({ params }: { params: { model: string } }) {
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
   console.log(response,"resp")
@@ -49,6 +51,8 @@ export async function loader({ params }: { params: { model: string } }) {
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
   const refKeyMap: Record<string, string> = {};
@@ -75,6 +79,8 @@ export async function loader({ params }: { params: { model: string } }) {
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
   const searchComposition = getSearchCompostion(response1?.listViewFields?.docs.map((doc: any) => doc.field), "")

@@ -1,13 +1,16 @@
 import { Box, Text } from "@mercury-js/mess";
-import React from "react";
-import { DynamicButton } from "../components/Button";
 import RecordView from "../container/RecordView";
 import { serverFetch } from "../utils/action";
-import { GET_LIST_MODEL_FIELDS, GET_MODEL, GET_TAB, LIST_LAYOUT_STRUCTURES, LIST_LAYOUTS } from "../utils/query";
-import { GET_DYNAMIC_RECORD_DATA } from "../utils/functions";
+import {
+  GET_LIST_MODEL_FIELDS,
+  GET_MODEL,
+  GET_TAB,
+  LIST_LAYOUT_STRUCTURES,
+  LIST_LAYOUTS,
+} from "../utils/query";
+import { GET_DYNAMIC_RECORD_DATA, parseCookies } from "../utils/functions";
 
-export async function loader() {
-
+export async function loader({ request }: any) {
   const tabData = await serverFetch(
     GET_TAB,
     {
@@ -19,13 +22,14 @@ export async function loader() {
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
   if (tabData.error) {
-    return tabData.error; 
+    return tabData.error;
   }
   console.log(tabData, "tabData");
-  
 
   const modelFieldsData = await serverFetch(
     GET_LIST_MODEL_FIELDS,
@@ -39,6 +43,8 @@ export async function loader() {
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
   if (modelFieldsData.error) {
@@ -57,6 +63,8 @@ export async function loader() {
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
 
@@ -82,6 +90,8 @@ export async function loader() {
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
 
@@ -104,6 +114,8 @@ export async function loader() {
     },
     {
       cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
     }
   );
 
@@ -114,12 +126,11 @@ export async function loader() {
     modelName: "Dashboard",
     recordData: recordData?.[`getDashboard`],
     layoutStructuresData,
-    layout:layoutData?.listLayouts?.docs.find(
+    layout: layoutData?.listLayouts?.docs.find(
       (item: any) => item.profiles && item.profiles.length === 0
-    )
+    ),
   };
 }
-
 
 const dashboard = ({
   loaderData,
@@ -128,20 +139,21 @@ const dashboard = ({
     recordData: any;
     layoutStructuresData: any;
     modelName: string;
-    layout:any
+    layout: any;
   };
 }) => {
-
   return (
-    <Box styles={{
-      base: {
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "start",
-        alignItems: "start",
-        height: "100vh",
-      },
-    }}>
+    <Box
+      styles={{
+        base: {
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "start",
+          alignItems: "start",
+          height: "100vh",
+        },
+      }}
+    >
       <Box
         styles={{
           base: {
@@ -163,20 +175,25 @@ const dashboard = ({
         >
           Dashboard
         </Text>
-        
       </Box>
 
-      <Box styles={ {
-        base: {
-          width: "100%",
-          height: "calc(100vh - 56px)",
-          overflowY: "auto",
-          overflowX: "hidden",
-          padding: "10px",
-        },
-      }}>
-
-        <RecordView layout={loaderData.layout || {}} layoutStructuresData={loaderData.layoutStructuresData} recordData={loaderData.recordData} />
+      <Box
+        styles={{
+          base: {
+            width: "100%",
+            height: "calc(100vh - 56px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+            padding: "10px",
+          },
+        }}
+      >
+        <RecordView
+          layout={loaderData.layout || {}}
+          layoutStructuresData={loaderData.layoutStructuresData}
+          recordData={loaderData.recordData}
+          updateVisible={false}
+        />
       </Box>
     </Box>
   );

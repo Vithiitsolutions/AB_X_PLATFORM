@@ -37,7 +37,7 @@ export default {
           },
         });
       }
-      const expiresIn: string | number = process.env.JWT_EXPIRATION || "1h";
+      const expiresIn: string | number = process.env.JWT_EXPIRATION || "1d";
       const token = await jwt.sign(
         {
           id: user._id,
@@ -45,10 +45,28 @@ export default {
         },
         process.env.JWT_SECRET || 'default-secret-key',
         {
-          algorithm: "HS256"
+          algorithm: "HS256",
+          expiresIn: "1d"
         }
       );
       return {token, user};
+    },
+    me: async (_root: unknown, _args: unknown, ctx: any) => {
+      const user = await mercury.db.User.get(
+        { _id: ctx.user.id },
+        {
+          id: ctx.user.id,
+          profile: ctx.user.profile,
+        }
+      );
+      if (!user) {
+        throw new GraphQLError("User not found", {
+          extensions: {
+            code: "UNAUTHENTICATED",
+          },
+        });
+      }
+      return user;
     },
     getFormMetadataRecordCreate: async (
       root: any,
