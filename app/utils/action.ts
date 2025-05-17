@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
 import { parseCookies } from "./functions";
-export async function serverFetch(query: string, variables: any, options: any) {
+export async function serverFetch(query: string, variables: any, options = {ssr: false, cookies: ""}) {
   const metaApiUrl =
     process.env.NODE_ENV == "development"
       ? "http://localhost:4000/meta-api"
@@ -10,12 +10,12 @@ export async function serverFetch(query: string, variables: any, options: any) {
     const data = await fetch(metaApiUrl, {
       method: "POST",
       headers: {
-        profile: "SystemAdmin",
+        // profile: "SystemAdmin",
         "Content-Type": "application/json",
         "x-apollo-operation-name": "SomeOperation",
         "apollo-require-preflight": "true",
         Authorization: `Bearer ${getTokenBasedOnRendering(
-          !!options.ssr,
+          !!options?.ssr,
           options.cookies
         )}`,
       },

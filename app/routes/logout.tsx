@@ -1,31 +1,29 @@
-import { Form, Link, redirect } from "react-router";
-import {
-  getSession,
-  destroySession,
-} from "../sessions.server";
-
-
-export async function action({
-  request,
-}: any) {
-  const session = await getSession(
-    request.headers.get("Cookie")
-  );
-  return redirect("/", {
-    headers: {
-      "Set-Cookie": await destroySession(session),
-    },
-  });
-}
+import { Box } from "@mercury-js/mess";
+import Cookies from "js-cookie";
+import { useEffect } from "react";
+import { redirect, useNavigate } from "react-router";
 
 export default function LogoutRoute() {
+    const navigate = useNavigate();
+  useEffect(() => {
+    Cookies.remove("userId");
+    Cookies.remove("role");
+    Cookies.remove("token");
+    navigate("/");
+  }, []);
   return (
-    <>
-      <p>Are you sure you want to log out?</p>
-      <Form method="post">
-        <button>Logout</button>
-      </Form>
-      <Link to="/dashboard">Never mind</Link>
-    </>
+    <Box
+      styles={{
+        base: {
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        },
+      }}
+    >
+      Loading.....
+    </Box>
   );
 }
