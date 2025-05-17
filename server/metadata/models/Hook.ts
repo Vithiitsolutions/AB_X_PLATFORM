@@ -6,6 +6,7 @@ export const hook = mercury.createModel(
       model: {
         type: 'relationship',
         ref: 'Model',
+        unique: true
       },
       modelName: {
         type: 'string',

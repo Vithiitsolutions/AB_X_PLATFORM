@@ -83,6 +83,7 @@ export async function loader({ request }: any) {
         layout: {
           is: layoutId,
         },
+        visible: true
       },
       sort: {
         order: "asc",

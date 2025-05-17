@@ -139,18 +139,18 @@ function RecordView({
         styles={{
           base: {
             display: "grid",
-            gridTemplateColumns: "1fr",
-            gap: "0.5rem", // Assuming gap of 2 is equivalent to 0.5rem
-            paddingTop: "0.5rem", // Assuming p of 2 is equivalent to 0.5rem
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: "0.5rem",
+            paddingTop: "0.5rem",
           },
           md: {
-            gridTemplateColumns: "repeat(2, 1fr)",
+            gridTemplateColumns: "repeat(4, 1fr)",
           },
           lg: {
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(6, 1fr)",
           },
           _dark: {
-            backgroundColor: "black", // Dark background
+            backgroundColor: "black",
           },
         }}
       >
@@ -158,14 +158,24 @@ function RecordView({
           <Box
             styles={{
               base: {
-                gridColumn: `span ${item.col}`,
+                gridColumn: `span ${Math.floor(Number(item.col * 2))}`,
                 gridRow: `span ${item.row}`,
-                // maxHeight: `${item.row * 250}px`,
-                height: "auto",
+                minHeight: `${item.row * 100}px`, // Base height per row
+                height: "100%",
                 overflowY: "auto",
-                borderRadius: "5  px",
-                // backgroundColor: "red",
+                borderRadius: "5px",
                 color: "white",
+                display: "flex",
+                flexDirection: "column",
+              },
+              sm: {
+                minHeight: `${item.row * 120}px`, // Adjusted for smaller screens
+              },
+              md: {
+                minHeight: `${item.row * 150}px`, // Adjusted for medium screens
+              },
+              lg: {
+                minHeight: `${item.row * 180}px`, // Adjusted for larger screens
               },
             }}
           >
@@ -176,7 +186,6 @@ function RecordView({
               />
             ) : (
               <Suspense>
-                {/* <ErrorBoundary> */}
                 <DynamicComponentLoader
                   code={item.component?.code}
                   props={{
@@ -188,7 +197,6 @@ function RecordView({
                     },
                   }}
                 />
-                {/* </ErrorBoundary> */}
               </Suspense>
             )}
           </Box>

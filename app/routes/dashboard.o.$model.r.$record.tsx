@@ -14,7 +14,7 @@ import { layout } from "@react-router/dev/routes";
 
 export async function loader({
   params,
-  request
+  request,
 }: {
   params: { model: string; record: string };
   request: any;
@@ -91,6 +91,7 @@ export async function loader({
         layout: {
           is: layoutId,
         },
+        visible: true,
       },
       sort: {
         order: "asc",

@@ -21,7 +21,7 @@ export const layoutStructure = mercury.createModel(
       type: "number",
     },
     col: {
-      type: "number",
+      type: "float",
     },
     visible: {
       type: "boolean",
