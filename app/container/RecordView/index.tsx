@@ -168,15 +168,15 @@ function RecordView({
                 display: "flex",
                 flexDirection: "column",
               },
-              sm: {
-                minHeight: `${item.row * 120}px`, // Adjusted for smaller screens
-              },
-              md: {
-                minHeight: `${item.row * 150}px`, // Adjusted for medium screens
-              },
-              lg: {
-                minHeight: `${item.row * 180}px`, // Adjusted for larger screens
-              },
+              // sm: {
+              //   minHeight: `${item.row * 120}px`, // Adjusted for smaller screens
+              // },
+              // md: {
+              //   minHeight: `${item.row * 150}px`, // Adjusted for medium screens
+              // },
+              // lg: {
+              //   minHeight: `${item.row * 180}px`, // Adjusted for larger screens
+              // },
             }}
           >
             {item.component?.managed ? (
