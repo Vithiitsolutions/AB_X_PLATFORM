@@ -30,7 +30,6 @@ export async function loader({ params, request }: { params: { model: string }, r
       cookies: request.headers.get("Cookie"),
     }
   );
-  console.log(response,"resp")
   if (response.error) {
     return response.error; //TODO: handle error
   }
@@ -60,13 +59,15 @@ export async function loader({ params, request }: { params: { model: string }, r
   for (const field of response1?.listViewFields?.docs || []) {
     if (field.field.type === "relationship" || field.field.type === "virtual") {
       refKeyMap[field.field.name] = await getModelFieldRefModelKey(
-        field.field.ref
+        field.field.ref,
+        request.headers.get("Cookie")
       );
     }
   }
   const str = await GET_DYNAMIC_MODEL_LIST(
     params?.model as string,
-    response1?.listViewFields?.docs.map((doc: any) => doc.field)
+    response1?.listViewFields?.docs.map((doc: any) => doc.field),
+    request.headers.get("Cookie")
   );
   const modelData = await serverFetch(
     str,

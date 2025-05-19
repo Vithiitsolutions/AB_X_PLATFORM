@@ -1,6 +1,9 @@
 import { serverFetch } from "./action";
 
-export const getModelFieldRefModelKey = async (modelName: string) => {
+export const getModelFieldRefModelKey = async (
+  modelName: string,
+  cookies?: string
+) => {
   const data = await serverFetch(
     `query GetModel($where: whereModelInput!) {
     getModel(where: $where) {
@@ -20,15 +23,20 @@ export const getModelFieldRefModelKey = async (modelName: string) => {
     }
   }`,
     { where: { name: { is: modelName } } },
-    { cache: "no-store" }
+    { cache: "no-store", ssr: cookies ? true : false, cookies }
   );
+  console.log(data, "model data ref", cookies);
+  
   return data?.getModel?.recordKey?.name || "";
 };
 
 export const GET_DYNAMIC_MODEL_LIST = async (
   modelName: string,
-  modelFields: any[]
+  modelFields: any[],
+  cookies?: string
 ) => {
+  console.log(cookies, "cookies");
+  
   let str = `query List${modelName}($where: where${modelName}Input, $sort: sort${modelName}Input, $limit: Int!, $offset: Int!) {
       list${modelName}s(where: $where, sort: $sort, limit: $limit, offset: $offset) {
           totalDocs
@@ -37,7 +45,9 @@ export const GET_DYNAMIC_MODEL_LIST = async (
 
   const fieldPromises = modelFields.map(async (item: any) => {
     if (item.type === "virtual" || item.type === "relationship") {
-      const refModelKey = await getModelFieldRefModelKey(item.ref);
+      const refModelKey = await getModelFieldRefModelKey(item.ref, cookies);
+      console.log(refModelKey, "model key ", item.ref);
+
       return `
               ${item.name} {
                   id
@@ -66,7 +76,8 @@ export const GET_DYNAMIC_MODEL_LIST = async (
 
 export const GET_DYNAMIC_RECORD_DATA = async (
   modelName: string,
-  modelFields: any[]
+  modelFields: any[],
+  cookies?: string
 ) => {
   console.log(modelFields, "model fields");
   let str = `query Get${modelName}($where: where${modelName}Input!) {
@@ -74,7 +85,7 @@ export const GET_DYNAMIC_RECORD_DATA = async (
             id`;
   const fieldPromises = modelFields.map(async (item: any) => {
     if (item.type === "virtual" || item.type === "relationship") {
-      const refModelKey = await getModelFieldRefModelKey(item.ref);
+      const refModelKey = await getModelFieldRefModelKey(item.ref, cookies);
       return `
                       ${item.name} {
                           id

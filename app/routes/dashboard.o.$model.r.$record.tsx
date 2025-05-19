@@ -110,7 +110,8 @@ export async function loader({
 
   const str = await GET_DYNAMIC_RECORD_DATA(
     model as string,
-    modelFieldsData?.listModelFields?.docs
+    modelFieldsData?.listModelFields?.docs,
+    request.headers.get("Cookie"),
   );
   const recordData = await serverFetch(
     str,
