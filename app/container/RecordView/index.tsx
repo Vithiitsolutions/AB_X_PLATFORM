@@ -159,8 +159,8 @@ function RecordView({
             styles={{
               base: {
                 gridColumn: `span ${Math.floor(Number(item.col * 2))}`,
-                gridRow: `span ${item.row}`,
-                minHeight: `${item.row * 100}px`, // Base height per row
+                gridRowStart: `${item.row}`, 
+                gridRowEnd: `span 1`, 
                 height: "100%",
                 overflowY: "auto",
                 borderRadius: "5px",

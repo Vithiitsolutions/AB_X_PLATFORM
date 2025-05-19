@@ -83,7 +83,7 @@ export async function loader({ request }: any) {
         layout: {
           is: layoutId,
         },
-        visible: true
+        visible: true,
       },
       sort: {
         order: "asc",
@@ -144,17 +144,7 @@ const dashboard = ({
   };
 }) => {
   return (
-    <Box
-      styles={{
-        base: {
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "start",
-          alignItems: "start",
-          height: "100vh",
-        },
-      }}
-    >
+    <>
       <Box
         styles={{
           base: {
@@ -182,7 +172,7 @@ const dashboard = ({
         styles={{
           base: {
             width: "100%",
-            height: "calc(100vh - 56px)",
+            // height: "fit-content",
             overflowY: "auto",
             overflowX: "hidden",
             padding: "10px",
@@ -196,7 +186,7 @@ const dashboard = ({
           updateVisible={false}
         />
       </Box>
-    </Box>
+    </>
   );
 };
 

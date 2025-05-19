@@ -1,6 +1,6 @@
 import Cookies from "js-cookie";
 import { parseCookies } from "./functions";
-export async function serverFetch(query: string, variables: any, options = {ssr: false, cookies: ""}) {
+export async function serverFetch(query: string, variables: any, options: any = {ssr: false, cookies: ""}) {
   const metaApiUrl =
     process.env.NODE_ENV == "development"
       ? "http://localhost:4000/meta-api"
