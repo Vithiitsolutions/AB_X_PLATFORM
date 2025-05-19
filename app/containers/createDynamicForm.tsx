@@ -92,7 +92,6 @@ const CreateDynamicRecord = ({
 
   const formSchema = generateSchema(data?.listModelFields?.docs);
   type FormSchema = z.infer<typeof formSchema>;
-  console.log(formSchema, "formSCHEMA");
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: data?.listModelFields?.docs.reduce(
@@ -195,7 +194,6 @@ const CreateDynamicRecord = ({
       }
     );
   };
-  console.log(form, "form");
   return (
     <div>
       {/* {modelName == "File" ? (

@@ -220,9 +220,6 @@ const UpdateDynamicRecord = () => {
     DynamicGetQuaryResponse?.loading,
     DynamicGetQuaryResponse?.error,
   ]);
-  useEffect(() => {
-    console.log(form, "form");
-  }, [form]);
   return (
     <div>
       <DynamicForm

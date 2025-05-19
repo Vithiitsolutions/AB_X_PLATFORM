@@ -42,10 +42,6 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
             label
           }
                         }
-                        updatedBy {
-                            id
-                            firstName
-                        }
                         
                     }
                     limit
@@ -67,6 +63,7 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
     useEffect(() => {
         if (listModelFieldsResponse.data) {
             GET_DYNAMIC_MODEL_LIST(fieldData.ref, listModelFieldsResponse?.data?.listModelFields?.docs).then((data) => {
+                
                 listRecords(
                     data,
                     {
@@ -79,7 +76,7 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
                     },
                     {}
                 );
-            });
+            })
         }
     }, [listModelFieldsResponse.data, listModelFieldsResponse.error, listModelFieldsResponse.loading]);
 
@@ -89,14 +86,17 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
                 id: item.id,
                 name: refKey ? item[refKey] : item.id,
             }));
+            
             setOptions(formattedOptions || []);
-            setSelectedValues(form.watch(fieldData.fieldName) || []);
+            const prevData = form.watch(fieldData.name) || []
+
+
+            setSelectedValues(formattedOptions?.filter((item)=> prevData.includes(item?.id)));
         }
-    }, [data]);
+    }, [data, error]);
 
     const onSelect = (selectedList: any) => {
         setSelectedValues(selectedList);
-        console.log(selectedList, "selectedList");
     
         // Extract only IDs from the selected list
         const selectedIds = selectedList.map((item: any) => item.id);
