@@ -1,5 +1,10 @@
-
-import { useForm, Controller, UseFormReturn, SubmitHandler, FieldValues } from "react-hook-form";
+import {
+  useForm,
+  Controller,
+  UseFormReturn,
+  SubmitHandler,
+  FieldValues,
+} from "react-hook-form";
 
 // import { ModelFieldType } from "@/types";
 // import GenerateRelationshipValues from "./GenerateRelationshipSelectItems";
@@ -28,15 +33,22 @@ const DynamicForm = ({
   form: UseFormReturn;
   loading?: boolean;
   modelName: string;
-  handleClose?: (vaue: string) => void;
+  handleClose?: (vaue: string | string[]) => void;
 }) => {
   const navigate = useNavigate();
   const params = useParams();
-  const [createRecord, setCreateRecord] = useState({
+  const [createRecord, setCreateRecord] = useState<{
+    open: boolean;
+    modelName: string;
+    field: string;
+    value: string | string[];
+    many?: boolean;
+  }>({
     open: false,
     modelName: "",
     field: "",
     value: "",
+    many: false,
   });
   const [refreshKey, setRefreshKey] = useState(0);
   const capitalizeFirstLetter = (str?: string) => {
@@ -98,18 +110,24 @@ const DynamicForm = ({
             <CreateDynamicRecord
               model={createRecord.modelName}
               handleClose={(value: string) => {
-                form.setValue(createRecord.field, value, { 
-                  shouldTouch: true,
-                  shouldDirty: true,  
-                  shouldValidate: true 
-                });
+                form.setValue(
+                  createRecord.field,
+                  [...createRecord?.value, value],
+                  {
+                    shouldTouch: true,
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  }
+                );
                 setCreateRecord({
                   ...createRecord,
-                  value,
+                  value: createRecord.many
+                    ? [...createRecord?.value, value]
+                    : value,
                   open: false,
                 });
-                
-                setRefreshKey(prev => prev + 1);
+
+                setRefreshKey((prev) => prev + 1);
               }}
             />
           </Box>
@@ -344,6 +362,7 @@ const DynamicForm = ({
                                 open: true,
                                 field: field.name,
                                 value: "",
+                                many: false,
                               })
                             }
                           >
@@ -434,17 +453,54 @@ const DynamicForm = ({
                           },
                         }}
                       >
-                        <Text
+                        <Box
                           styles={{
-                            base: { fontWeight: 500, fontSize: "13px" },
+                            base: {
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between", // push left + right apart
+                              width: "100%", // take full width of container
+                            },
                           }}
                         >
-                          {_.startCase(item.label)}
-                        </Text>
+                          <Text
+                            styles={{
+                              base: { fontWeight: 500, fontSize: "13px" },
+                            }}
+                          >
+                            {_.startCase(item.ref)}s
+                          </Text>
+
+                          <Box
+                            styles={{
+                              base: {
+                                cursor: "pointer",
+                                background: "white",
+                                padding: "5px 10px", // add horizontal padding
+                                boxShadow:
+                                  "rgba(149, 157, 165, 0.2) 0px 8px 24px",
+                                borderRadius: "5px", // optional: smooth corners
+                                fontSize: "12px", // match or slightly smaller than the left text
+                              },
+                            }}
+                            onClick={() =>
+                              setCreateRecord({
+                                modelName: item.ref,
+                                open: true,
+                                field: field.name,
+                                value: field.value,
+                                many: true,
+                              })
+                            }
+                          >
+                            + Create new {_.startCase(item.ref)}
+                          </Box>
+                        </Box>
                         <GenerateMultiRelationshipItems
                           fieldData={item}
                           form={form}
                           {...field}
+                          key={`${item.name}-${refreshKey}`}
                         />
                         {form.formState.errors[item.name] && (
                           <Text
@@ -710,7 +766,7 @@ const DynamicForm = ({
             type={"action"}
             onClick={() => {
               if (typeof handleClose === "function") {
-                handleClose("");
+                handleClose(createRecord.many ? [] : "");
               } else navigate(-1);
             }}
           />
