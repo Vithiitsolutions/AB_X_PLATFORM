@@ -10,6 +10,8 @@ import { DynamicButton } from "../../components/Button";
 import { useNavigate, useParams } from "react-router";
 import { useLazyQuery } from "../../utils/hook";
 import { serverFetch } from "../../utils/action";
+ import Cookies from 'js-cookie';
+
 function RecordView({
   layoutStructuresData,
   recordData,
@@ -194,6 +196,7 @@ function RecordView({
                       data: recordData,
                       serverFetch: serverFetch,
                       useLazyQuery: useLazyQuery,
+                      userId:Cookies.get('userId')
                     },
                   }}
                 />

@@ -144,30 +144,10 @@ const dashboard = ({
     layout: any;
   };
 }) => {
+
   return (
     <>
-      <Box
-        styles={{
-          base: {
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignContent: "center",
-            gap: 10,
-          },
-        }}
-      >
-        <Text
-          styles={{
-            base: {
-              fontSize: "16px",
-              marginLeft: "5px",
-            },
-          }}
-        >
-          Dashboard
-        </Text>
-      </Box>
+     
 
       <Box
         styles={{
