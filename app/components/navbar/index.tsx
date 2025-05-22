@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Mess, { Box, Button, Image, Text } from "@mercury-js/mess";
+import Mess, { A, Box, Button, Image, Text } from "@mercury-js/mess";
 import { FaChevronDown } from "react-icons/fa";
 // import { useTheme } from "../../utils/theme";
 function Navbar() {
@@ -199,15 +199,16 @@ function Navbar() {
               >
                 Account
               </Box>
-              <Box
+              <A
                 styles={{
                   base: {
                     cursor: "pointer",
                   },
                 }}
+                href="/logout"
               >
                 Logout
-              </Box>
+              </A>
             </Box>
           </Box>
         )}
