@@ -16,6 +16,10 @@ export const page = mercury.createModel(
       unique: true,
       pattern: "^[a-z0-9\\-]+$",
     },
+    protected: {
+        type: "boolean",
+        default: true
+    },
     component: {
       type: "relationship",
       ref: "Component",
