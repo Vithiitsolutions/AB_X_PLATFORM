@@ -73,6 +73,12 @@ export async function loader({ request }: any) {
               }
             childTabs {
               id
+              profiles {
+              id
+              label
+              name
+
+            }
               icon
               label
               order
@@ -86,6 +92,12 @@ export async function loader({ request }: any) {
               childTabs {
               id
               icon
+              profiles {
+              id
+              label
+              name
+
+            }
               label
               order
               type
@@ -112,7 +124,7 @@ export async function loader({ request }: any) {
           is: null,
         },
         profiles: {
-          in: profileResponse?.listProfiles?.docs[0]?.id,
+          is: profileResponse?.listProfiles?.docs[0]?.id,
         },
       },
       sort: {
@@ -131,7 +143,13 @@ export async function loader({ request }: any) {
   }
   const sortTabs = (tabs) => {
     if (!tabs) return [];
-    return tabs
+    return tabs.filter((tab) => {
+      if (tab.profiles && tab.profiles.length > 0) {
+        return tab.profiles.some(
+          (profile) => profile.name === cookieObject.role
+        )
+      }
+    })
       .map((tab) => ({
         ...tab,
         childTabs: sortTabs(tab.childTabs),
