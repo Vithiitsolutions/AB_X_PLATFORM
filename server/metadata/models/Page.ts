@@ -39,6 +39,16 @@ export const page = mercury.createModel(
       type: "string",
       many: true,
     },
+    isProtected: {
+      type: "boolean",
+      default: true,
+    },
+    profiles: {
+        type: "relationship",
+        ref: "Profile",
+        many: true,
+        default: [],
+    }
   },
   {
     historyTracking: true,

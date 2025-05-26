@@ -468,7 +468,7 @@ const DynamicForm = ({
                               base: { fontWeight: 500, fontSize: "13px" },
                             }}
                           >
-                            {_.startCase(item.label)}s
+                            {_.startCase(item.label)}
                           </Text>
 
                           <Box
