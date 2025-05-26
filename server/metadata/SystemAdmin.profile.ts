@@ -235,6 +235,15 @@ export const SystemAdminRules = [
       delete: true,
     },
   },
+  {
+    modelName: "Page",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
 ];
 
 

@@ -3,7 +3,7 @@ import React, { Suspense, useEffect, useMemo } from "react";
 
 import { Box } from "@mercury-js/mess";
 import DynamicComponentLoader from "../../components/DynamicComponentLoader";
-import { MESS_TAGS } from "../../utils/constant";
+import { INPUTS, MESS_TAGS } from "../../utils/constant";
 import ManagedComponent from "../../components/managedComponent";
 import { ErrorBoundary } from "../../root";
 import { DynamicButton } from "../../components/Button";
@@ -196,7 +196,8 @@ function RecordView({
                       data: recordData,
                       serverFetch: serverFetch,
                       useLazyQuery: useLazyQuery,
-                      userId:Cookies.get('userId')
+                      userId:Cookies.get('userId'),
+                      ...INPUTS
                     },
                   }}
                 />

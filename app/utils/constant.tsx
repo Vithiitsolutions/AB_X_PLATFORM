@@ -57,6 +57,7 @@ import {
     Sup,
     Clx 
   } from "@mercury-js/mess";
+import { CustomeInput } from "../components/inputs";
 export const MESS_TAGS = {
     Button,
     Text,
@@ -115,4 +116,7 @@ export const MESS_TAGS = {
     Sub,
     Sup,
     CLX: Clx 
+  };
+  export const INPUTS = {
+    CustomeInput
   };

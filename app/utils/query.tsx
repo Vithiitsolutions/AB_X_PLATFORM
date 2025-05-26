@@ -268,3 +268,25 @@ export const UPDATE_FILE=`mutation UpdateFile($input: updateFileInput!) {
     id
   }
 }`
+
+
+export const GET_PAGES =`
+query GetPage($where: wherePageInput!) {
+  getPage(where: $where) {
+    id
+    component {
+      id
+      code
+      name
+      label
+      managed
+    }
+    description
+    isPublished
+    metaDescription
+    metaKeywords
+    metaTitle
+    name
+    slug
+  }
+}`
