@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet, redirect } from "react-router";
+import { createCookie, Outlet, redirect } from "react-router";
 import { Box } from "@mercury-js/mess";
 import SideBar from "../../components/sidebar";
 import { ThemeProvider } from "../../utils/theme";
@@ -29,6 +29,33 @@ export async function loader({ request }: any) {
       return redirect("/");
     }
   } else return redirect("/");
+
+  const profileResponse = await serverFetch(
+    `query Docs($where: whereProfileInput) {
+  listProfiles(where: $where) {
+    docs {
+      id
+      name
+    }
+  }
+}`,
+    {
+      where: {
+        name: {
+          is: cookieObject.role,
+        },
+      },
+    },
+    {
+      cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
+    }
+  );
+  if (profileResponse.error) {
+    return profileResponse.error;
+  }
+
   const response = await serverFetch(
     `query Docs($where: whereTabInput, $sort: sortTabInput) {
         listTabs(where: $where, sort: $sort) {
@@ -84,6 +111,9 @@ export async function loader({ request }: any) {
         parent: {
           is: null,
         },
+        profiles: {
+          in: profileResponse?.listProfiles?.docs[0]?.id,
+        },
       },
       sort: {
         order: "asc",
@@ -95,6 +125,7 @@ export async function loader({ request }: any) {
       cookies: request.headers.get("Cookie"),
     }
   );
+
   if (response.error) {
     return response.error; //TODO: handle error
   }
