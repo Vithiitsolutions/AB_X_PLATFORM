@@ -19,6 +19,7 @@ import GenerateRelationshipValues from "./generateRelationshipSelector";
 import GenerateMultiRelationshipItems from "./generateMultiRelationshipItem";
 import { useNavigate, useParams } from "react-router";
 import CreateDynamicRecord from "../../containers/createDynamicForm";
+import File from "../../container/File";
 
 const DynamicForm = ({
   handleSubmit,
@@ -33,7 +34,7 @@ const DynamicForm = ({
   form: UseFormReturn;
   loading?: boolean;
   modelName: string;
-  handleClose?: (vaue: string | string[]) => void;
+  handleClose?: (vaue: string) => void;
 }) => {
   const navigate = useNavigate();
   const params = useParams();
@@ -107,29 +108,98 @@ const DynamicForm = ({
               },
             }}
           >
-            <CreateDynamicRecord
-              model={createRecord.modelName}
-              handleClose={(value: string) => {
-                form.setValue(
-                  createRecord.field,
-                  [...createRecord?.value, value],
-                  {
-                    shouldTouch: true,
-                    shouldDirty: true,
-                    shouldValidate: true,
+            {createRecord.modelName === "File" ? (
+              <File
+                handleClose={(value: string) => {
+                  if (!value) {
+                    setCreateRecord({
+                      ...createRecord,
+                      open: false,
+                    });
+                    return;
                   }
-                );
-                setCreateRecord({
-                  ...createRecord,
-                  value: createRecord.many
-                    ? [...createRecord?.value, value]
-                    : value,
-                  open: false,
-                });
+                  if (createRecord.many) {
+                    form.setValue(
+                      createRecord.field,
+                      [...createRecord?.value, value],
+                      {
+                        shouldTouch: true,
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      }
+                    );
+                    setCreateRecord({
+                      ...createRecord,
+                      value: createRecord.many
+                        ? [...createRecord?.value, value]
+                        : value,
+                      open: false,
+                    });
+                  } else {
+                    form.setValue(createRecord.field, value, {
+                      shouldTouch: true,
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                    setCreateRecord({
+                      ...createRecord,
+                      value: createRecord.many
+                        ? [...createRecord?.value, value]
+                        : value,
+                      open: false,
+                    });
+                  }
 
-                setRefreshKey((prev) => prev + 1);
-              }}
-            />
+                  setRefreshKey((prev) => prev + 1);
+                }}
+              />
+            ) : (
+              <CreateDynamicRecord
+                model={createRecord.modelName}
+                handleClose={(value: string) => {
+                  if (!value) {
+                    setCreateRecord({
+                      ...createRecord,
+                      open: false,
+                    });
+                    return;
+                  }
+                  if (createRecord.many) {
+                    form.setValue(
+                      createRecord.field,
+                      [...createRecord?.value, value],
+                      {
+                        shouldTouch: true,
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      }
+                    );
+                    setCreateRecord({
+                      ...createRecord,
+                      value: createRecord.many
+                        ? [...createRecord?.value, value]
+                        : value,
+                      open: false,
+                    });
+                  } else {
+                    form.setValue(createRecord.field, value, {
+                      shouldTouch: true,
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                    setCreateRecord({
+                      ...createRecord,
+                      value: createRecord.many
+                        ? [...createRecord?.value, value]
+                        : value,
+                      open: false,
+                    });
+                  }
+
+                  setRefreshKey((prev) => prev + 1);
+                }}
+              />
+            )}
           </Box>
         </Box>
       )}
@@ -766,7 +836,7 @@ const DynamicForm = ({
             type={"action"}
             onClick={() => {
               if (typeof handleClose === "function") {
-                handleClose(createRecord.many ? [] : "");
+                handleClose("");
               } else navigate(-1);
             }}
           />

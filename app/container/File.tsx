@@ -37,7 +37,13 @@ const formSchema = z.object({
   extension: z.string().optional(),
 });
 
-const File = ({ edit = false }: { edit?: boolean }) => {
+const File = ({
+  edit = false,
+  handleClose,
+}: {
+  edit?: boolean;
+  handleClose?: (value: string) => void;
+}) => {
   const navigate = useNavigate();
   const recordId = useParams()?.recordId;
   const [base64URL, setBase64URL] = useState<string>("");
@@ -167,8 +173,12 @@ const File = ({ edit = false }: { edit?: boolean }) => {
   }, [getFileResponse?.data, getFileResponse?.loading, getFileResponse?.error]);
   useEffect(() => {
     if (data) {
-      console.log(data, "file data");
-      navigate("/dashboard/o/File/list");
+      if (typeof handleClose == "function") {
+        handleClose(data?.createFile?.id);
+      } else {
+        console.log("File created successfully");
+        navigate("/dashboard/o/File/list");
+      }
     } else if (error) {
       console.log(error, "file error");
     }
@@ -211,6 +221,7 @@ const File = ({ edit = false }: { edit?: boolean }) => {
         loading={loading || updateFileResponse.loading}
         onSubmit={onSubmit}
         handleFileInputChange={handleFileInputChange}
+        handleClose={handleClose}
       />
     </Box>
   );

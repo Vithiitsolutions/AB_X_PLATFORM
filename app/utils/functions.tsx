@@ -26,8 +26,8 @@ export const getModelFieldRefModelKey = async (
     { cache: "no-store", ssr: cookies ? true : false, cookies }
   );
   console.log(data, "model data ref", cookies);
-  
-  return data?.getModel?.recordKey?.name || "";
+
+  return modelName === "File" ? "name" : data?.getModel?.recordKey?.name || "";
 };
 
 export const GET_DYNAMIC_MODEL_LIST = async (
@@ -35,38 +35,54 @@ export const GET_DYNAMIC_MODEL_LIST = async (
   modelFields: any[],
   cookies?: string
 ) => {
-  console.log(cookies, "cookies");
-  
-  let str = `query List${modelName}($where: where${modelName}Input, $sort: sort${modelName}Input, $limit: Int!, $offset: Int!) {
+  if (modelName === "File") {
+    return `query ListFiles($sort: sortFileInput, $offset: Int!, $limit: Int!, $where: whereFileInput) {
+  listFiles(sort: $sort, offset: $offset, limit: $limit, where: $where) {
+    docs {
+      id
+      mediaId
+      name
+      size
+      url
+      mimeType
+      description
+      extension
+    }
+    limit
+    offset
+    totalDocs
+  }
+}`;
+  } else {
+    let str = `query List${modelName}($where: where${modelName}Input, $sort: sort${modelName}Input, $limit: Int!, $offset: Int!) {
       list${modelName}s(where: $where, sort: $sort, limit: $limit, offset: $offset) {
           totalDocs
           docs {
               id`;
 
-  const fieldPromises = modelFields.map(async (item: any) => {
-    if (item.type === "virtual" || item.type === "relationship") {
-      const refModelKey = await getModelFieldRefModelKey(item.ref, cookies);
-      console.log(refModelKey, "model key ", item.ref);
-
-      return `
+    const fieldPromises = modelFields.map(async (item: any) => {
+      if (item.type === "virtual" || item.type === "relationship") {
+        const refModelKey = await getModelFieldRefModelKey(item.ref, cookies);
+        return `
               ${item.name} {
                   id
                   ${refModelKey}
               }`;
-    }
-    return `
+      }
+      return `
               ${item.name}`;
-  });
+    });
 
-  const fieldStrings = await Promise.all(fieldPromises);
-  str += fieldStrings.join("");
+    const fieldStrings = await Promise.all(fieldPromises);
+    str += fieldStrings.join("");
 
-  str += `
+    str += `
               }
           }
       }`;
 
-  return str;
+    return str;
+  }
 };
 
 //   export const getModelFieldRefModelKey = async (modelName: string) => {

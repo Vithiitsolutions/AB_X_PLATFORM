@@ -77,7 +77,7 @@ const CreateDynamicRecord = ({
   handleClose,
 }: {
   model: string;
-  handleClose?: (value: string | string[]) => void;
+  handleClose?: (value: string) => void;
 }) => {
   let navigate = useNavigate();
   const [getAllModelFields, { data, loading, error }] =

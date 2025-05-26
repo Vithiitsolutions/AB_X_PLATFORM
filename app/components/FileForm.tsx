@@ -16,11 +16,13 @@ const FileForm = ({
   onSubmit,
   handleFileInputChange,
   loading,
+  handleClose
 }: {
   form: UseFormReturn;
   onSubmit: SubmitHandler<FieldValues>;
   handleFileInputChange: ChangeEventHandler<HTMLInputElement>;
   loading: boolean;
+  handleClose?: (value: string) => void;
 }) => {
   const navigate = useNavigate();
   return (
@@ -120,9 +122,11 @@ const FileForm = ({
                 placeholder="File"
                 onChange={handleFileInputChange}
                 type="file"
-                addonstyles={{ base: {
-                  paddingTop: "7px"
-                } }}
+                addonstyles={{
+                  base: {
+                    paddingTop: "7px",
+                  },
+                }}
               />
               {form.formState.errors?.file && (
                 <Text
@@ -160,9 +164,13 @@ const FileForm = ({
           addOnStyles={{
             style: {
               padding: "0px 20px !important",
-            }
+            },
           }}
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (typeof handleClose === "function") {
+              handleClose("");
+            } else navigate(-1);
+          }}
         />
       </Box>
     </form>
