@@ -8,7 +8,7 @@ import {
   LIST_LAYOUT_STRUCTURES,
   LIST_LAYOUTS,
 } from "../utils/query";
-import { GET_DYNAMIC_RECORD_DATA } from "../utils/functions";
+import { GET_DYNAMIC_RECORD_DATA, parseCookies } from "../utils/functions";
 import { Box } from "@mercury-js/mess";
 import { layout } from "@react-router/dev/routes";
 
@@ -19,6 +19,33 @@ export async function loader({
   params: { model: string; record: string };
   request: any;
 }) {
+const cookies = request.headers.get("Cookie");
+  const cookieObject = parseCookies(cookies);
+  const profileResponse = await serverFetch(
+    `query Docs($where: whereProfileInput) {
+  listProfiles(where: $where) {
+    docs {
+      id
+      name
+    }
+  }
+}`,
+    {
+      where: {
+        name: {
+          is: cookieObject.role,
+        },
+      },
+    },
+    {
+      cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
+    }
+  );
+  if (profileResponse.error) {
+    return profileResponse.error;
+  }
   const { model, record } = params;
   const modelData = await serverFetch(
     GET_MODEL,
@@ -66,6 +93,9 @@ export async function loader({
         model: {
           is: modelData?.getModel?.id,
         },
+        profiles: {
+          is: profileResponse?.listProfiles?.docs[0]?.id,
+        },
       },
       limit: 100,
     },
@@ -80,9 +110,7 @@ export async function loader({
     return layoutData.error; //TODO: handle error
   }
 
-  const layoutId = layoutData?.listLayouts?.docs.find(
-    (item: any) => item.profiles && item.profiles.length === 0
-  )?.id;
+  const layoutId = layoutData?.listLayouts?.docs?.[0]?.id;
 
   const layoutStructuresData = await serverFetch(
     LIST_LAYOUT_STRUCTURES,
