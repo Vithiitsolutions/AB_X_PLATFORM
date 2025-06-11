@@ -6,10 +6,12 @@ export const hook = mercury.createModel(
       model: {
         type: 'relationship',
         ref: 'Model',
-        unique: true
+        unique: true,
+        required: true,
       },
       modelName: {
         type: 'string',
+        required: true
       },
       enableBeforeCreate: {
         type: 'boolean',
