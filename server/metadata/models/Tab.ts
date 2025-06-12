@@ -41,11 +41,16 @@ export const tab = mercury.createModel(
       type: {
         type: "enum",
         enumType: "string",
-        enum: ["RECORD", "LIST"],
+        enum: ["RECORD", "LIST", "PAGE"],
         default: "LIST"
       },
       recordId: {
         type: "string",
+      },
+      page: {
+        type: 'relationship',
+        ref: 'Page',
+        many: false,
       },
       createdBy: {
         type: 'relationship',
