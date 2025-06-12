@@ -111,13 +111,18 @@ function SideBar({ tabs }: { tabs: any[] }) {
                     <DynamicIcon iconName={item.icon} />
                     {item?.model ? (
                       <A
-                        href={
-                          item.model.name === "Dashboard"
-                            ? "/dashboard"
-                            : item?.type === "LIST"
-                            ? `/dashboard/o/${item?.model?.name}/list`
-                            : `/dashboard/o/${item?.model?.name}/r/${item?.recordId}`
-                        }
+                      href={
+                        item.model.name === "Dashboard"
+                          ? "/dashboard"
+                          : item?.type === "LIST"
+                          ? `/dashboard/o/${item?.model?.name}/list`
+                          : item?.type === "RECORD"
+                          ? `/dashboard/o/${item?.model?.name}/r/${item?.recordId}`
+                          : item?.type === "PAGE"
+                          ? `/dashboard/page/${item?.page?.slug}`
+                          : "#"
+                      }
+                      
                         // state={item?.id}
                         className={`${
                           (location.pathname.includes(item?.model?.name) ||

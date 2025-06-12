@@ -115,6 +115,11 @@ export async function loader({ request }: any) {
               name
 
             }
+            page {
+              id
+              name
+              slug
+            }
           }
         }
       }`,
