@@ -20,6 +20,8 @@ const DynamicComponentLoader = ({
       try {
         const decodedCode = atob(code); // base64 decode
         const [imports, body] = splitCodeContent(decodedCode);
+        console.log("Imports:", imports);
+        
 
         const modules = await extractImports(imports);
         setImportedModules(modules);
