@@ -263,6 +263,8 @@ export const registerHooksFromDB = async () => {
       "afterGet",
       "beforeList",
       "afterList",
+      "beforePaginate",
+      "afterPaginate",
     ]);
 
   hooks?.forEach((hook) => {
