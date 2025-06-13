@@ -29,7 +29,8 @@ export async function loader({
         slug: {
           is: pageSlug,
         },
-        isPublished:true
+        isPublished:true,
+        isProtected: false,
       },
     },
     {
@@ -38,11 +39,9 @@ export async function loader({
       cookies: request.headers.get("Cookie"),
     }
   );
-  console.log("PageData", PageData);
   if (PageData.error) {
     return PageData.error; //TODO: handle error
   }
-
 
 
   return {

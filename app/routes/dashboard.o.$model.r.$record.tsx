@@ -164,9 +164,7 @@ const cookies = request.headers.get("Cookie");
     modelName: model,
     recordData: recordData?.[`get${model}`],
     layoutStructuresData,
-    layout: layoutData?.listLayouts?.docs.find(
-      (item: any) => item.profiles && item.profiles.length === 0
-    ),
+    layout: layoutData?.listLayouts?.docs?.[0]
   };
 }
 

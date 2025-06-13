@@ -29,7 +29,8 @@ export async function loader({
         slug: {
           is: pageSlug,
         },
-        isPublished:true
+        isPublished:true,
+        isProtected: true,
       },
     },
     {
