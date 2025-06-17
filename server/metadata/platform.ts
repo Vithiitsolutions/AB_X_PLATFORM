@@ -190,6 +190,7 @@ export class Platform {
           this.profileIdMapper[profileId].name,
           this.profileIdMapper[profileId].permissions
         );
+        this.profilesMapper.set(this.profileIdMapper[profileId].name, this.profileIdMapper[profileId].permissions);
       }
 
       console.log("Profiles initialized successfully!");
