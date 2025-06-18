@@ -6,20 +6,6 @@ import { parseCookies } from "../utils/functions";
 import { serverFetch } from "../utils/action";
 
 export async function loader({ request }: any) {
-  // const session = await getSession(request.headers.get("Cookie"));
-
-  // if (session.has("userId")) {
-  //   return redirect("/");
-  // }
-  // return data(
-  //   { error: session.get("error") },
-  //   {
-  //     headers: {
-  //       "Set-Cookie": await commitSession(session),
-  //     },
-  //   }
-  // );
-
   const cookies = request.headers.get("Cookie");
   const cookieObject = parseCookies(cookies);
   if (cookieObject.userId && cookieObject.role && cookieObject.token) {
@@ -33,20 +19,43 @@ export async function loader({ request }: any) {
       {
         cache: "no-store",
         ssr: true,
-        cookies: request.headers.get("Cookie")
+        cookies: request.headers.get("Cookie"),
       }
     );
-    
+
     if (user.me?.id) {
       return redirect("/dashboard");
     }
   }
+
+  const setting = await serverFetch(
+    `query Docs {
+        listSettings {
+          docs {
+            id
+            loginSideImage
+          }
+        }
+      }`,
+    {},
+    {
+      cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
+    }
+  );
+  
+  return {
+    sideImage:
+      setting?.listSettings?.docs?.[0]?.loginSideImage ||
+      "https://res.cloudinary.com/doc9mueyf/image/upload/v1740652739/loginSideImage_jhlfyl.png",
+  };
 }
 
-const _index = () => {
+const _index = ({loaderData}: {loaderData: {sideImage: string}}) => {
   return (
     <Box>
-      <LogInContainer />
+      <LogInContainer sideImage={loaderData.sideImage} />
     </Box>
   );
 };

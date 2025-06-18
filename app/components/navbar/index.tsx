@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Mess, { A, Box, Button, Image, Text } from "@mercury-js/mess";
 import { FaChevronDown } from "react-icons/fa";
 // import { useTheme } from "../../utils/theme";
-function Navbar() {
+function Navbar({siteName, logo}: { siteName?: string; logo?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   // const { theme, toggleTheme } = useTheme();
   // console.log(theme, "theme");
@@ -43,7 +43,7 @@ function Navbar() {
           }}
         >
           <Image
-            src="/assets/logo.png"
+            src={logo}
             alt="Logo"
             styles={{
               base: {
@@ -65,7 +65,7 @@ function Navbar() {
             },
           }}
         >
-          Mercury Platform
+          {siteName}
         </Text>
       </Box>
       <Box

@@ -25,6 +25,7 @@ import "./hooks/cronJob.ts";
 
 // Profiles
 import "./SystemAdmin.profile.ts";
+import "./Anonymous.profile.ts";
 import { Platform } from "./platform.ts";
 import {
   addResolversFromDBToMercury,

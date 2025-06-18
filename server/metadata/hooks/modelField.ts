@@ -52,10 +52,14 @@ mercury.hook.after("CREATE_MODELFIELD_RECORD", async function (this: any) { // T
   metaEvents.emit("CREATE_MODEL_RECORD", { msg: `${input.name} field is created for the ${input.modelName} model` });
 });
 
+async function getRecord(recordId: any) {
+  return mercury.db.ModelField.get({ _id: recordId }, {id: "1", profile: "SystemAdmin"});
+}
 mercury.hook.after("UPDATE_MODELFIELD_RECORD", async function (this: any) {
   const platform: Platform = this.options.ctx.platform;
-  await platform.composeModel(this.record.modelName!);
-  metaEvents.emit("CREATE_MODEL_RECORD", { msg: `${this.record?.name} field got updated for ${this.record.modelName} model` });
+  const modelField: any = await getRecord(this.record?.id);
+  await platform.composeModel(modelField?.modelName!);
+  metaEvents.emit("CREATE_MODEL_RECORD", { msg: `${this.record?.name} field got updated for ${modelField?.modelName} model` });
 });
 
 mercury.hook.after("DELETE_MODELFIELD_RECORD", async function (this: any) {

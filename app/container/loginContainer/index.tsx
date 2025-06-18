@@ -16,7 +16,7 @@ import { useLazyQuery } from "../../utils/hook";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router";
 
-function LogInContainer() {
+function LogInContainer({sideImage}: {sideImage: string}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -333,7 +333,7 @@ function LogInContainer() {
       >
         {/* Background Image */}
         <Image
-          src="https://res.cloudinary.com/doc9mueyf/image/upload/v1740652739/loginSideImage_jhlfyl.png"
+          src={sideImage}
           alt="Background"
           styles={{
             base: {

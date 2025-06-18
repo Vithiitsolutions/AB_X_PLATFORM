@@ -168,16 +168,38 @@ export async function loader({ request }: any) {
   };
 
   const sortedTabs = sortTabs(response.listTabs?.docs);
+  const setting = await serverFetch(
+    `query Docs {
+        listSettings {
+          docs {
+            id
+            siteName
+            logo
+          }
+        }
+      }`,
+    {},
+    {
+      cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
+    }
+  );
 
-  return sortedTabs;
+  return {
+    tabs: sortedTabs,
+    siteName:
+      setting?.listSettings?.docs?.[0]?.siteName || "Mercury Platform",
+    logo: setting?.listSettings?.docs?.[0]?.logo || "/assets/logo.png"
+  };
 }
-const dashboard = ({ loaderData }: { loaderData: any }) => {
+const dashboard = ({ loaderData }: { loaderData: {tabs: any, logo: string, siteName: string} }) => {
   return (
     <div>
       {/* <ThemeProvider> */}
-      <Navbar />
+      <Navbar siteName={loaderData.siteName} logo={loaderData.logo}/>
       <Box styles={{ base: { display: "flex", flexDirection: "row" } }}>
-        <SideBar tabs={loaderData} />
+        <SideBar tabs={loaderData.tabs} />
         <Box
           styles={{
             base: {

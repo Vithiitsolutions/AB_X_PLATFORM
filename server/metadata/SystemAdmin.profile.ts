@@ -20,6 +20,15 @@ export const SystemAdminRules = [
     },
   },
   {
+    modelName: "Setting",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
     modelName: "User",
     access: {
       create: true,
