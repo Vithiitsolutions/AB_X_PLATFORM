@@ -49,7 +49,6 @@ function Navbar({ siteName, logo }: { siteName?: string; logo?: string }) {
               base: {
                 width: "42px",
                 height: "25px",
-
                 objectFit: "contain",
               },
             }}

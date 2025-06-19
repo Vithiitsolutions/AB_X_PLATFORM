@@ -9,7 +9,6 @@ export const setting = mercury.createModel("Setting", {
     },
     siteName: {
         type: "string",
-        required: true,
         default: "Mercury Platform"
     },
     siteDescription: {

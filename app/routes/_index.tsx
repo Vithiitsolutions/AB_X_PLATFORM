@@ -44,18 +44,19 @@ export async function loader({ request }: any) {
       cookies: request.headers.get("Cookie"),
     }
   );
-  
+
   return {
     sideImage:
       setting?.listSettings?.docs?.[0]?.loginSideImage ||
       "https://res.cloudinary.com/doc9mueyf/image/upload/v1740652739/loginSideImage_jhlfyl.png",
+    isDefault: !setting?.listSettings?.docs?.[0]?.loginSideImage,
   };
 }
 
-const _index = ({loaderData}: {loaderData: {sideImage: string}}) => {
+const _index = ({ loaderData }: { loaderData: { sideImage: string, isDefault: true } }) => {
   return (
     <Box>
-      <LogInContainer sideImage={loaderData.sideImage} />
+      <LogInContainer sideImage={loaderData.sideImage} isDefault={loaderData.isDefault} />
     </Box>
   );
 };

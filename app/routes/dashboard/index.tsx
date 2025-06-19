@@ -189,7 +189,7 @@ export async function loader({ request }: any) {
   return {
     tabs: sortedTabs,
     siteName:
-      setting?.listSettings?.docs?.[0]?.siteName || "Mercury Platform",
+      setting?.listSettings?.docs?.[0]?.siteName || "",
     logo: setting?.listSettings?.docs?.[0]?.logo || "/assets/logo.png"
   };
 }

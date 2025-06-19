@@ -16,7 +16,7 @@ import { useLazyQuery } from "../../utils/hook";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router";
 
-function LogInContainer({sideImage}: {sideImage: string}) {
+function LogInContainer({sideImage, isDefault=false}: {sideImage: string, isDefault?: boolean}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -345,7 +345,7 @@ function LogInContainer({sideImage}: {sideImage: string}) {
         />
 
         {/* Overlay Text */}
-        <Text
+        {isDefault &&<Text
           styles={{
             base: {
               position: "absolute",
@@ -365,7 +365,7 @@ function LogInContainer({sideImage}: {sideImage: string}) {
         >
           "Unlock the power of simplicity with Mercury Where websites come to
           life effortlessly"
-        </Text>
+        </Text>}
       </Box>
     </Box>
   );

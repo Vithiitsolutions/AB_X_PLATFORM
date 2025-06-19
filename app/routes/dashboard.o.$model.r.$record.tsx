@@ -181,12 +181,13 @@ function Record({
     layout: any;
   };
 }) {
+  
   return (
     <React.Suspense fallback={<ComponentSkeletonLoader />}>
       <RecordView
         layoutStructuresData={loaderData.layoutStructuresData}
         recordData={loaderData.recordData}
-        layout={layout}
+        layout={loaderData.layout}
       />
     </React.Suspense>
   );
