@@ -1,7 +1,7 @@
 {
   "tasks": {
     "dev:rr": "deno run --env-file=.env --unstable-detect-cjs -A --node-modules-dir npm:@react-router/dev dev",
-    "dev": "deno run --unstable-sloppy-imports --unstable-detect-cjs --unstable-node-globals --watch=app,server,server.ts --env-file=.env -A --unsafely-ignore-certificate-errors server.ts",
+    "dev": "deno run --unstable-sloppy-imports --unstable-detect-cjs --unstable-node-globals --watch=server,server.ts --env-file=.env -A --unsafely-ignore-certificate-errors server.ts",
     "start": "deno run --unstable-sloppy-imports --unstable-detect-cjs --unstable-node-globals --env-file=.env -A server.ts",
     "build": "deno run --env-file=.env -A --node-modules-dir npm:@react-router/dev build",
     "patch-server": "cp -r patches/ApolloServer.js node_modules/@apollo/server/dist/esm/ApolloServer.js"
