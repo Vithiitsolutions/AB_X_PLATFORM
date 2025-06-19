@@ -123,7 +123,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
           <Table
             styles={{
               base: {
-                minWidth: "calc(100vw - 240px)",
+                minWidth: "calc(100vw - 283px)",
                 borderCollapse: "collapse",
               },
             }}
