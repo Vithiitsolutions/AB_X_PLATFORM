@@ -38,6 +38,9 @@ export async function loader({ request }: any) {
         modelName: {
           is: tabData?.listTabs?.docs[0]?.model?.name,
         },
+        name: {
+          notContains: "password",
+        }
       },
       limit: 200,
     },

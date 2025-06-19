@@ -73,6 +73,9 @@ const cookies = request.headers.get("Cookie");
         modelName: {
           is: model,
         },
+        name: {
+          notContains: "password"
+        }
       },
       limit: 200,
     },

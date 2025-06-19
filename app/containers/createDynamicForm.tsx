@@ -138,6 +138,9 @@ const CreateDynamicRecord = ({
           modelName: {
             is: model,
           },
+          name: {
+            notContains: "password",
+          },
         },
         limit: 200,
       },
@@ -166,7 +169,7 @@ const CreateDynamicRecord = ({
       //   }, 2000);
 
       if (typeof handleClose == "function") {
-        handleClose(createRecordResponse?.data[`create${model}`]?.id)
+        handleClose(createRecordResponse?.data[`create${model}`]?.id);
       } else navigate(`/dashboard/o/${model}/list`);
     }
     if (createRecordResponse?.error) {

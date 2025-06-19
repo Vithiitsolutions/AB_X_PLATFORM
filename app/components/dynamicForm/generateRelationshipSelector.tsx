@@ -61,6 +61,9 @@ ref
           modelName: {
             is: fieldData.ref,
           },
+          name: {
+            notContains: "password",
+          },
         },
         limit: 200,
       },

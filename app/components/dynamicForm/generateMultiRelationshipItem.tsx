@@ -52,6 +52,9 @@ const GenerateMultiRelationshipItems = ({ fieldData, form }: { fieldData: any; f
                     modelName: {
                         is: fieldData.ref,
                     },
+                    name: {
+                        notContains: 'password',
+                    },
                 },
                 limit: 200,
 

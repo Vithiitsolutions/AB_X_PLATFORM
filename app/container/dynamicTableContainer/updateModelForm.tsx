@@ -79,6 +79,9 @@ const UpdateDynamicRecord = () => {
           modelName: {
             is: model,
           },
+          name: {
+            notContains: "password",
+          },
         },
         limit: 200,
       },

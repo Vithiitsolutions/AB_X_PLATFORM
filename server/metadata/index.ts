@@ -63,7 +63,7 @@ export default class MetaApi {
   constructor({ db, redisUrl = "redis://localhost:6379" }: IMetaApiConfig) {
     mercury.connect(db);
     mercury.plugins([
-      new HistoryTracking(),
+      // new HistoryTracking(),
       new RedisCache({
         client: {
           socket: {

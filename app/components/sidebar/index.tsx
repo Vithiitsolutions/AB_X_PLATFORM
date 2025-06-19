@@ -1,4 +1,4 @@
-import { A, Box } from "@mercury-js/mess";
+import { A, Box, Text } from "@mercury-js/mess";
 import React, { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router";
 import { serverFetch } from "../../utils/action";
@@ -89,7 +89,6 @@ function SideBar({ tabs }: { tabs: any[] }) {
                       lineHeight: "12.12px",
                       color: "#4A4A50",
                       fontWeight: 600,
-                      cursor: "pointer",
                       display: "flex",
                       flexDirection: "row",
                       alignItems: "center",
@@ -98,9 +97,23 @@ function SideBar({ tabs }: { tabs: any[] }) {
                     },
                   }}
                 >
-                  <Box
+                  <A
+                    href={
+                      item.model.name === "Dashboard"
+                        ? "/dashboard"
+                        : item?.model?.name || item.page?.slug || item.recordId
+                        ? item?.type === "LIST"
+                          ? `/dashboard/o/${item?.model?.name}/list`
+                          : item?.type === "RECORD"
+                          ? `/dashboard/o/${item?.model?.name}/r/${item?.recordId}`
+                          : item?.type === "PAGE"
+                          ? `/dashboard/page/${item?.page?.slug}`
+                          : "#"
+                        : "#"
+                    }
                     styles={{
                       base: {
+                        cursor: "pointer",
                         display: "flex",
                         flexDirection: "row",
                         alignItems: "center",
@@ -109,40 +122,18 @@ function SideBar({ tabs }: { tabs: any[] }) {
                     }}
                   >
                     <DynamicIcon iconName={item.icon} />
-                    {item?.model ? (
-                      <A
-                      href={
-                        item.model.name === "Dashboard"
-                          ? "/dashboard"
-                          : item?.type === "LIST"
-                          ? `/dashboard/o/${item?.model?.name}/list`
-                          : item?.type === "RECORD"
-                          ? `/dashboard/o/${item?.model?.name}/r/${item?.recordId}`
-                          : item?.type === "PAGE"
-                          ? `/dashboard/page/${item?.page?.slug}`
-                          : "#"
-                      }
-                      
-                        // state={item?.id}
-                        className={`${
-                          (location.pathname.includes(item?.model?.name) ||
-                            item?.model?.name == "Dashboard") &&
-                          "text-black"
-                        }`}
-                      >
-                        {item.label}
-                      </A>
-                    ) : (
-                      <Box
-                        className={`${
-                          location.pathname.includes(item?.model?.name) &&
-                          "text-black"
-                        }`}
-                      >
-                        {item.label}
-                      </Box>
-                    )}
-                  </Box>
+                    <Text
+                      className={`${
+                        (location.pathname.includes(item?.model?.name) ||
+                          (item?.model?.name == "Dashboard" && location.pathname.endsWith("dashboard"))||
+                          location.pathname.includes(item?.page?.slug) ||
+                          location.pathname.includes(item?.recordId)) &&
+                        "text-black"
+                      }`}
+                    >
+                      {item.label}
+                    </Text>
+                  </A>
 
                   {/* Dropdown Toggle Icon */}
                   {item.childTabs?.length > 0 && (

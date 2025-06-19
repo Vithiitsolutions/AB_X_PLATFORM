@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Mess, { A, Box, Button, Image, Text } from "@mercury-js/mess";
 import { FaChevronDown } from "react-icons/fa";
 // import { useTheme } from "../../utils/theme";
-function Navbar({siteName, logo}: { siteName?: string; logo?: string }) {
+function Navbar({ siteName, logo }: { siteName?: string; logo?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   // const { theme, toggleTheme } = useTheme();
   // console.log(theme, "theme");
@@ -18,7 +18,7 @@ function Navbar({siteName, logo}: { siteName?: string; logo?: string }) {
           paddingTop: "15px",
           paddingBottom: "15px",
           paddingLeft: "30px",
-          paddingRight: "30px",
+          paddingRight: "60px",
           borderBottom: "1px solid #DCDCDC",
         },
         lg: {},
@@ -76,7 +76,7 @@ function Navbar({siteName, logo}: { siteName?: string; logo?: string }) {
             gap: "5px",
             alignItems: "center",
             cursor: "pointer",
-            position: "relative",
+            position: "relative"
           },
         }}
         onClick={() => setIsOpen(!isOpen)}
@@ -101,12 +101,12 @@ function Navbar({siteName, logo}: { siteName?: string; logo?: string }) {
             },
           }}
         >
-           User
+          User
         </Text>
         <FaChevronDown size={14} color="#161616" />
 
         {isOpen && (
-          <Box styles={{ base: {} }}>
+          <Box styles={{ base: {position: "absolute", top: "2px", right: 0} }}>
             <Box
               styles={{
                 base: {
@@ -120,7 +120,7 @@ function Navbar({siteName, logo}: { siteName?: string; logo?: string }) {
                 },
               }}
             >
-              {" aas"}
+              {""}
             </Box>
             <Box
               styles={{

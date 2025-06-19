@@ -16,12 +16,12 @@ function RecordView({
   layoutStructuresData,
   recordData,
   layout = {},
-  updateVisible = true,
+  // updateVisible = false,
 }: {
   layoutStructuresData: any;
   recordData: any;
   layout: any;
-  updateVisible?: boolean;
+  // updateVisible?: boolean;
 }) {
   const params = useParams();
   const [DeleteRecordd, DeleteRecorddResponse] = useLazyQuery(serverFetch);
@@ -119,7 +119,7 @@ function RecordView({
           }}
         /> */}
 
-        {updateVisible && (
+        {/* {updateVisible && (
           <DynamicButton
             children={"Update"}
             iconPosition={"left"}
@@ -134,7 +134,7 @@ function RecordView({
               },
             }}
           />
-        )}
+        )} */}
       </Box>
       {/* <Box ml={5} mb={4}></Box> */}
       <Box
