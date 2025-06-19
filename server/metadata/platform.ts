@@ -6,9 +6,11 @@ import {
   profilePipeline,
 } from "./utility";
 import { SystemAdminRules } from "./SystemAdmin.profile";
+import { HistoryTrackingService } from "./historyTrackingService";
 
 export class Platform {
   profilesMapper = new Map();
+  historyTrackingService = HistoryTrackingService.getInstance();
   profileIdMapper: Record<string, any> = {};
   typeMapping: Record<string, (val: any) => any> = {
     number: (val) => Number(val),
@@ -112,6 +114,7 @@ export class Platform {
       console.log("Models initialized successfully!");
       console.timeEnd("Models Initialization Time");
       await this.initializeProfiles();
+      await this.createHistoryTrackingModels();
     } catch (error) {
       console.error("Error during platform initialization:", error);
     } finally {
@@ -343,5 +346,9 @@ export class Platform {
       },
       {}
     );
+  }
+
+  public async createHistoryTrackingModels() {
+    await this.historyTrackingService.init();
   }
 }

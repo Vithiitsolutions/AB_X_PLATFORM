@@ -253,6 +253,15 @@ export const SystemAdminRules = [
       delete: true,
     },
   },
+  {
+    modelName: "Queue",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
 ];
 
 

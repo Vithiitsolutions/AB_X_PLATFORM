@@ -76,17 +76,20 @@ mercury.hook.before("DELETE_MODEL_RECORD", async function (this: any) {
 
 mercury.hook.after("DELETE_MODEL_RECORD", async function (this: any) {
   // check if model is passed as reference in certain models in before hook
+  // Permissions also should be deleted right?
   try {
     await Promise.all([
       deleteModelFields(this.deletedRecord._id, this.options.ctx.platform),
       deleteModelOptions(this.deletedRecord._id, this.options.ctx.platform),
+      deletePermissions(this.deletedRecord.name, this.options.ctx.platform)
     ]);
+
     mercury.deleteModel(this.deletedRecord.name);
     metaEvents.emit("CREATE_MODEL_RECORD", {
       msg: `${this.deletedRecord.name} model is deleted`,
     });
   } catch (error) {
-    console.log("Error deleting in model fields and options", error.message);
+    console.log("Error deleting in model fields, options and permissions", error.message);
   }
 });
 
@@ -155,13 +158,31 @@ async function deleteModelOptions(
   }
 }
 
-type HookModelField = {
-  record: {
-    model: {
-      name: string;
-    };
-    name: string;
-    label: string;
-    type: "string" | "number";
-  };
-};
+async function deletePermissions(modelName: string, platform: Platform) {
+  try {
+    const permissions: [] =
+      (await mercury.db.Permission.list(
+        { modelName: modelName },
+        { id: "1", profile: "SystemAdmin" },
+        { select: "id" }
+      )) || [];
+    const permissionIds: string[] = permissions.map(
+      (permission: { id: string; _id: any }) => permission.id
+    );
+    await Promise.all(
+      permissionIds.map(async (permissionId) => {
+        await mercury.db.Permission.delete(
+          permissionId,
+          { id: "1", profile: "SystemAdmin" },
+          { ctx: { platform: platform } }
+        );
+      })
+    );
+  } catch (error) {
+    console.log(
+      "Error in deleting Permission set for this model!!",
+      error.message
+    );
+    throw new Error(`Failed to delete permissions: ${error.message}`);
+  }
+}

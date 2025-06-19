@@ -53,13 +53,13 @@ mercury.hook.after("CREATE_MODELFIELD_RECORD", async function (this: any) { // T
 });
 
 async function getRecord(recordId: any) {
-  return mercury.db.ModelField.get({ _id: recordId }, {id: "1", profile: "SystemAdmin"});
+  return mercury.db.ModelField.get({ _id: recordId }, { id: "1", profile: "SystemAdmin" });
 }
 mercury.hook.after("UPDATE_MODELFIELD_RECORD", async function (this: any) {
   const platform: Platform = this.options.ctx.platform;
-  const modelField: any = await getRecord(this.record?.id);
-  await platform.composeModel(modelField?.modelName!);
-  metaEvents.emit("CREATE_MODEL_RECORD", { msg: `${this.record?.name} field got updated for ${modelField?.modelName} model` });
+  const fieldRecord = await mercury.db.ModelField.mongoModel.findOne(this.record._id);
+  await platform.composeModel(fieldRecord.modelName!);
+  metaEvents.emit("CREATE_MODEL_RECORD", { msg: `${fieldRecord?.name} field got updated for ${fieldRecord.modelName} model` });
 });
 
 mercury.hook.after("DELETE_MODELFIELD_RECORD", async function (this: any) {

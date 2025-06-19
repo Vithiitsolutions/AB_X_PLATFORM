@@ -8,6 +8,10 @@ import { transformSync } from "@babel/core";
 import presetReact from "@babel/preset-react";
 import { typeDefs } from "./schema";
 import resolvers from "./resolvers";
+import { QueueService } from "./models";
+const queueService = QueueService.getInstance();
+//@ts-ignore
+mercury.queueService = queueService;
 
 // hooks
 import "./hooks/Model.hook.ts";
@@ -59,17 +63,17 @@ export default class MetaApi {
   constructor({ db, redisUrl = "redis://localhost:6379" }: IMetaApiConfig) {
     mercury.connect(db);
     mercury.plugins([
-      // new HistoryTracking(), 
+      new HistoryTracking(),
       new RedisCache({
-      client: {
-        socket: {
-          tls: false
-        },
-        url: redisUrl,
-      }
-    }), 
-    // new RecordOwner()
-  ]);
+        client: {
+          socket: {
+            tls: false
+          },
+          url: redisUrl,
+        }
+      }),
+      // new RecordOwner()
+    ]);
     mercury.addGraphqlSchema(typeDefs, resolvers);
     this.cronService = new CronService({ id: "", profile: "SystemAdmin" });
   }
@@ -78,6 +82,8 @@ export default class MetaApi {
     this.cronService.start();
     this.platform = new Platform();
     await this.platform.initialize();
+    //@ts-ignore
+    await mercury?.queueService.setUpQueues();
     await this.restart();
     await addResolversFromDBToMercury();
     await registerHooksFromDB();
