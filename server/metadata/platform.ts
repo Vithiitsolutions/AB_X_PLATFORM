@@ -7,6 +7,7 @@ import {
 } from "./utility";
 import { SystemAdminRules } from "./SystemAdmin.profile";
 import { HistoryTrackingService } from "./historyTrackingService";
+import { defaultPermissionSet } from "./defaultPermissions";
 
 export class Platform {
   profilesMapper = new Map();
@@ -188,6 +189,8 @@ export class Platform {
         );
         if (this.profileIdMapper[profileId].name == 'SystemAdmin') {
           this.profileIdMapper[profileId].permissions = mergeProfilePermissions(SystemAdminRules, this.profileIdMapper[profileId].permissions);
+        } else {
+          this.profileIdMapper[profileId].permissions = mergeProfilePermissions(defaultPermissionSet, this.profileIdMapper[profileId].permissions)
         }
         mercury.access.createProfile(
           this.profileIdMapper[profileId].name,
@@ -223,6 +226,7 @@ export class Platform {
       permissions,
       customPermissions
     );
+    permissions = mergeProfilePermissions(defaultPermissionSet, permissions)
     this.profilesMapper.set(profile.name, permissions);
     return permissions;
   }
