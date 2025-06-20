@@ -11,7 +11,7 @@ import {
 // import GenerateMultiRelationshipItems from "./GenerateMultiRelationshipItems";
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
-import { Box, Button, Clx, H1, Option, Select, Text } from "@mercury-js/mess";
+import { Box, Button, Clx, H1, Label, Option, Select, Text } from "@mercury-js/mess";
 import { CustomeInput } from "../inputs";
 import { ChevronDown } from "lucide-react";
 import CustomeButton, { DynamicButton } from "../Button";
@@ -210,7 +210,7 @@ const DynamicForm = ({
         {...form}
       >
         <div className="grid md:grid-cols-2 grid-cols-1 gap-5">
-          {modelFields.map((item) => {
+          {modelFields.filter((item: any) => item?.type !== "virtual").map((item) => {
             return (
               <div>
                 {item.type === "string" &&
@@ -645,6 +645,7 @@ const DynamicForm = ({
                             base: {
                               display: "flex",
                               flexDirection: "row",
+                              alignItems: "center",
                               gap: 5,
                               marginTop: 20,
                             },
@@ -660,15 +661,18 @@ const DynamicForm = ({
                                 width: "20px",
                               },
                             }}
+                            id={item.name}
+                            name={item.name}
                           />
                           <div className="space-y-1 leading-none">
-                            <Text
+                            <Label
+                            htmlFor={item.name}
                               styles={{
                                 base: { fontWeight: 500, fontSize: "13px" },
                               }}
                             >
                               {_.startCase(item.label)}
-                            </Text>
+                            </Label>
                           </div>
                         </Box>
                         {form.formState.errors[item.name] && (
@@ -740,7 +744,7 @@ const DynamicForm = ({
                             <Option>Select {_.startCase(item.label)}</Option>
                             {item?.enumValues.map((option) => (
                               <Option key={option} value={option}>
-                                {option}
+                                {_.startCase(option)}
                               </Option>
                             ))}
                           </Select>

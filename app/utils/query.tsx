@@ -74,6 +74,10 @@ query Docs($where: whereLayoutInput, $limit: Int!) {
         variant
         text
         iconPosition
+        profiles {
+          id
+
+          }
         buttonFn{
           code
           id
@@ -127,6 +131,9 @@ export const GET_VIEW = `
       variant
       text
       iconPosition
+      profiles {
+        id
+      }
       buttonFn{
         code
         id

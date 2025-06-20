@@ -19,7 +19,7 @@ export async function loader({
   params: { model: string; record: string };
   request: any;
 }) {
-const cookies = request.headers.get("Cookie");
+  const cookies = request.headers.get("Cookie");
   const cookieObject = parseCookies(cookies);
   const profileResponse = await serverFetch(
     `query Docs($where: whereProfileInput) {
@@ -74,8 +74,8 @@ const cookies = request.headers.get("Cookie");
           is: model,
         },
         name: {
-          notContains: "password"
-        }
+          notContains: "password",
+        },
       },
       limit: 200,
     },
@@ -142,7 +142,7 @@ const cookies = request.headers.get("Cookie");
   const str = await GET_DYNAMIC_RECORD_DATA(
     model as string,
     modelFieldsData?.listModelFields?.docs,
-    request.headers.get("Cookie"),
+    request.headers.get("Cookie")
   );
   const recordData = await serverFetch(
     str,
@@ -167,7 +167,12 @@ const cookies = request.headers.get("Cookie");
     modelName: model,
     recordData: recordData?.[`get${model}`],
     layoutStructuresData,
-    layout: layoutData?.listLayouts?.docs?.[0]
+    layout: layoutData?.listLayouts?.docs?.[0],
+    buttons: layoutData?.listLayouts?.docs?.[0]?.buttons?.filter((btn: any) =>
+      btn.profiles
+        .map((item: any) => item?.id)
+        .includes(profileResponse?.listProfiles?.docs[0]?.id)
+    ),
   };
 }
 
@@ -179,15 +184,16 @@ function Record({
     layoutStructuresData: any;
     modelName: string;
     layout: any;
+    buttons: any[];
   };
 }) {
-  
   return (
     <React.Suspense fallback={<ComponentSkeletonLoader />}>
       <RecordView
         layoutStructuresData={loaderData.layoutStructuresData}
         recordData={loaderData.recordData}
         layout={loaderData.layout}
+        buttons={loaderData?.buttons}
       />
     </React.Suspense>
   );

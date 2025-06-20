@@ -7,6 +7,7 @@ import {
   GET_DYNAMIC_MODEL_LIST,
   getModelFieldRefModelKey,
   getSearchCompostion,
+  parseCookies,
 } from "../utils/functions";
 import { A, Box } from "@mercury-js/mess";
 import { ChevronsUpDown } from "lucide-react";
@@ -14,7 +15,40 @@ import { CustomeInput } from "../components/inputs";
 import _ from "lodash";
 import DynamicTable from "../components/table";
 
-export async function loader({ params, request }: { params: { model: string }, request: any }) {
+export async function loader({
+  params,
+  request,
+}: {
+  params: { model: string };
+  request: any;
+}) {
+  const cookies = request.headers.get("Cookie");
+  const cookieObject = parseCookies(cookies);
+  const profileResponse = await serverFetch(
+    `query Docs($where: whereProfileInput) {
+  listProfiles(where: $where) {
+    docs {
+      id
+      name
+    }
+  }
+}`,
+    {
+      where: {
+        name: {
+          is: cookieObject.role,
+        },
+      },
+    },
+    {
+      cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
+    }
+  );
+  if (profileResponse.error) {
+    return profileResponse.error;
+  }
   const response = await serverFetch(
     GET_VIEW,
     {
@@ -40,7 +74,7 @@ export async function loader({ params, request }: { params: { model: string }, r
       sort: {
         order: "asc",
       },
-      "limit": 10000,
+      limit: 10000,
       where: {
         view: {
           is: response?.getView?.id,
@@ -55,7 +89,7 @@ export async function loader({ params, request }: { params: { model: string }, r
     }
   );
   const refKeyMap: Record<string, string> = {};
-  
+
   for (const field of response1?.listViewFields?.docs || []) {
     if (field.field.type === "relationship" || field.field.type === "virtual") {
       refKeyMap[field.field.name] = await getModelFieldRefModelKey(
@@ -84,8 +118,11 @@ export async function loader({ params, request }: { params: { model: string }, r
       cookies: request.headers.get("Cookie"),
     }
   );
-  const searchComposition = getSearchCompostion(response1?.listViewFields?.docs.map((doc: any) => doc.field), "")
-  
+  const searchComposition = getSearchCompostion(
+    response1?.listViewFields?.docs.map((doc: any) => doc.field),
+    ""
+  );
+
   return {
     view: response?.getView,
     dynamicQueryString: str,
@@ -94,7 +131,12 @@ export async function loader({ params, request }: { params: { model: string }, r
     modelName: params?.model,
     viewFields: response1?.listViewFields,
     refKeyMap,
-    searchVariables: searchComposition
+    searchVariables: searchComposition,
+    buttons: response?.getView?.buttons?.filter((btn: any) =>
+      btn.profiles
+        .map((item: any) => item?.id)
+        .includes(profileResponse?.listProfiles?.docs[0]?.id)
+    ),
   };
 }
 
@@ -110,12 +152,12 @@ const dashboard = ({
     viewFields: any;
     refKeyMap: any;
     searchVaraiables: any;
+    buttons: any[];
   };
 }) => {
-  console.log(loaderData);
-  
+
   return (
-    <Box >
+    <Box>
       {loaderData?.viewFields?.totalDocs && (
         <DynamicTableContainer
           viewFields={loaderData?.viewFields}
@@ -125,7 +167,7 @@ const dashboard = ({
           totalDocs={loaderData?.totalDocs}
           viewId={loaderData.view?.id}
           refKeyMap={loaderData?.refKeyMap}
-          buttons={loaderData.view?.buttons}
+          buttons={loaderData?.buttons}
           searchVaraiables={loaderData?.searchVaraiables}
         />
       )}

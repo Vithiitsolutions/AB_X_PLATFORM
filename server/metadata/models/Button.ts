@@ -9,7 +9,9 @@ export const button = mercury.createModel(
       enumType: "string",
       required: true,
     },
-
+    label: {
+      type: "string",
+    },
     href: {
       type: "string",
     },

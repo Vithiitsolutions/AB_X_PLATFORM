@@ -16,11 +16,13 @@ function RecordView({
   layoutStructuresData,
   recordData,
   layout = {},
+  buttons
   // updateVisible = false,
 }: {
   layoutStructuresData: any;
   recordData: any;
   layout: any;
+  buttons: any[]
   // updateVisible?: boolean;
 }) {
   const params = useParams();
@@ -85,7 +87,7 @@ function RecordView({
           },
         }}
       >
-        {layout?.buttons?.map((button: any) => {
+        {buttons?.map((button: any) => {
           return (
             <DynamicButton
               children={button?.text}
