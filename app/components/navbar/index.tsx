@@ -47,23 +47,23 @@ function Navbar({
         }}
       >
         {/* Mobile menu icon */}
-        {onMenuClick && (
-          <Box
-            // className="md:hidden"
-            onClick={onMenuClick}
-            styles={{
-              base: {
-                cursor: "pointer",
-                display: "block",
-              },
-              md: {
-                display: "none",
-              },
-            }}
-          >
-            <FiMenu size={20} />
-          </Box>
-        )}
+        {/* {onMenuClick && ( */}
+        <Box
+          // className="md:hidden"
+          onClick={onMenuClick}
+          // styles={{
+          //   base: {
+          //     cursor: "pointer",
+          //     display: "block",
+          //   },
+          //   md: {
+          //     display: "none",
+          //   },
+          // }}
+        >
+          <FiMenu size={20} />
+        </Box>
+        {/* )} */}
 
         {/* Logo */}
         <Image
