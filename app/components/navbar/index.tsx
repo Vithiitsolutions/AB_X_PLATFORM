@@ -154,9 +154,9 @@ function Navbar({
                 },
               }}
             >
-              <Box styles={{ base: { cursor: "pointer" } }}>Dashboard</Box>
-              <Box styles={{ base: { cursor: "pointer" } }}>Settings</Box>
-              <Box styles={{ base: { cursor: "pointer" } }}>Account</Box>
+              {/* <Box styles={{ base: { cursor: "pointer" } }}>Dashboard</Box> */}
+              {/* <Box styles={{ base: { cursor: "pointer" } }}>Settings</Box> */}
+              {/* <Box styles={{ base: { cursor: "pointer" } }}>Account</Box> */}
               <A styles={{ base: { cursor: "pointer" } }} href="/logout">
                 Logout
               </A>
