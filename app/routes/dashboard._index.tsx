@@ -75,9 +75,7 @@ export async function loader({ request }: any) {
     return layoutData.error; //TODO: handle error
   }
 
-  const layoutId = layoutData?.listLayouts?.docs.find(
-    (item: any) => item.profiles && item.profiles.length === 0
-  )?.id;
+  const layoutId = layoutData?.listLayouts?.docs[0]?.id;
 
   const layoutStructuresData = await serverFetch(
     LIST_LAYOUT_STRUCTURES,
@@ -131,9 +129,7 @@ export async function loader({ request }: any) {
     modelName: "Dashboard",
     recordData: recordData?.[`getDashboard`],
     layoutStructuresData,
-    layout: layoutData?.listLayouts?.docs.find(
-      (item: any) => item.profiles && item.profiles.length === 0
-    ),
+    layout: layoutData?.listLayouts?.docs[0],
   };
 }
 
@@ -147,6 +143,8 @@ const dashboard = ({
     layout: any;
   };
 }) => {
+  console.log(loaderData);
+
   return (
     <>
       <Box
