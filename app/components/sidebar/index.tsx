@@ -99,7 +99,7 @@ function SideBar({ tabs }: { tabs: any[] }) {
                 >
                   <A
                     href={
-                      item.model.name === "Dashboard"
+                      item.model?.name === "Dashboard"
                         ? "/dashboard"
                         : item?.model?.name || item.page?.slug || item.recordId
                         ? item?.type === "LIST"
@@ -125,7 +125,8 @@ function SideBar({ tabs }: { tabs: any[] }) {
                     <Text
                       className={`${
                         (location.pathname.includes(item?.model?.name) ||
-                          (item?.model?.name == "Dashboard" && location.pathname.endsWith("dashboard"))||
+                          (item?.model?.name == "Dashboard" &&
+                            location.pathname.endsWith("dashboard")) ||
                           location.pathname.includes(item?.page?.slug) ||
                           location.pathname.includes(item?.recordId)) &&
                         "text-black"

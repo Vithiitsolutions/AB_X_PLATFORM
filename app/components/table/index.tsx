@@ -1,5 +1,20 @@
-import { A, Box, Table, Tbody, Tr, Th, Button, Select, Option } from "@mercury-js/mess";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  A,
+  Box,
+  Table,
+  Tbody,
+  Tr,
+  Th,
+  Button,
+  Select,
+  Option,
+} from "@mercury-js/mess";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import React, { forwardRef, useEffect } from "react";
 import {
   useReactTable,
@@ -24,7 +39,10 @@ interface TableProps<T extends object> {
 }
 
 const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
-  ({ data, columns, rowCount, pagination, setPagination, sorting, setSorting }, ref) => {
+  (
+    { data, columns, rowCount, pagination, setPagination, sorting, setSorting },
+    ref
+  ) => {
     const table = useReactTable({
       data,
       columns,
@@ -42,7 +60,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
       rowCount,
       debugTable: true,
     });
-    
+
     let navigate = useNavigate();
     let params = useParams();
     const renderPagination = () => {
@@ -103,11 +121,10 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
       ));
     };
 
-    useEffect(()=>{
+    useEffect(() => {
       console.log(columns, "columns ----- ");
-      
-    }, [columns])
-    
+    }, [columns]);
+
     return (
       <Box styles={{ base: { width: "100%" } }} ref={ref}>
         <Box
@@ -165,8 +182,10 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
               {table.getRowModel().rows.map((row) => (
                 <Tr
                   key={row.id}
-                  onClick={()=>{
-                    navigate(`/dashboard/o/${params?.model}/r/${row.original.id}`)
+                  onClick={() => {
+                    navigate(
+                      `/dashboard/o/${params?.model}/r/${row.original.id}`
+                    );
                   }}
                   styles={{
                     base: {
@@ -206,6 +225,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
               alignItems: "center",
               gap: "8px",
               marginTop: "16px",
+              flexWrap: "wrap",
             },
           }}
         >
@@ -221,7 +241,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
                 fontWeight: 600,
                 textAlign: "center",
                 lineHeight: 0,
-                cursor: table.getCanPreviousPage() ? "pointer": "not-allowed",
+                cursor: table.getCanPreviousPage() ? "pointer" : "not-allowed",
               },
             }}
           >
@@ -239,7 +259,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
                 fontWeight: 600,
                 textAlign: "center",
                 lineHeight: 0,
-                cursor: table.getCanPreviousPage() ? "pointer": "not-allowed",
+                cursor: table.getCanPreviousPage() ? "pointer" : "not-allowed",
               },
             }}
           >
@@ -258,7 +278,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
                 fontWeight: 600,
                 textAlign: "center",
                 lineHeight: 0,
-                cursor: table.getCanNextPage() ? "pointer": "not-allowed",
+                cursor: table.getCanNextPage() ? "pointer" : "not-allowed",
               },
             }}
           >
@@ -276,7 +296,7 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
                 fontWeight: 600,
                 textAlign: "center",
                 lineHeight: 0,
-                cursor: table.getCanNextPage() ? "pointer": "not-allowed",
+                cursor: table.getCanNextPage() ? "pointer" : "not-allowed",
               },
             }}
           >
@@ -292,17 +312,16 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
               { label: "Page 20", value: "20" },
               { label: "Page 30", value: "30" },
               { label: "Page 40", value: "40" },
-              { label: "Page 50", value: "50" }
+              { label: "Page 50", value: "50" },
             ]}
             addonstyles={{
               base: {
                 width: "fit-content",
                 fontSize: "12px",
-                height: "28px"
-              }
+                height: "28px",
+              },
             }}
-            >
-          </CustomSelect>
+          ></CustomSelect>
           <Box className="flex items-center gap-1 text-[12px]">
             <Box>Page</Box>
             <strong>

@@ -319,6 +319,7 @@ function DynamicTableContainer({
             flexDirection: "row",
             justifyContent: "space-between",
             alignContent: "center",
+            flexWrap: "wrap",
             gap: 10,
           },
         }}
@@ -342,6 +343,7 @@ function DynamicTableContainer({
               flexDirection: "row",
               justifyContent: "flex-end",
               alignItems: "center",
+              flexWrap: "wrap",
               gap: 10,
             },
           }}

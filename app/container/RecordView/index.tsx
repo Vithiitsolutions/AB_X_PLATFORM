@@ -10,19 +10,19 @@ import { DynamicButton } from "../../components/Button";
 import { useNavigate, useParams } from "react-router";
 import { useLazyQuery } from "../../utils/hook";
 import { serverFetch } from "../../utils/action";
- import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
 function RecordView({
   layoutStructuresData,
   recordData,
   layout = {},
-  buttons
-  // updateVisible = false,
-}: {
+  buttons,
+}: // updateVisible = false,
+{
   layoutStructuresData: any;
   recordData: any;
   layout: any;
-  buttons: any[]
+  buttons: any[];
   // updateVisible?: boolean;
 }) {
   const params = useParams();
@@ -73,6 +73,9 @@ function RecordView({
       styles={{
         base: {
           width: "full",
+        },
+        lg: {
+          padding: "0",
         },
       }}
     >
@@ -163,8 +166,8 @@ function RecordView({
             styles={{
               base: {
                 gridColumn: `span ${Math.floor(Number(item.col * 2))}`,
-                gridRowStart: `${item.row}`, 
-                gridRowEnd: `span 1`, 
+                gridRowStart: `${item.row}`,
+                gridRowEnd: `span 1`,
                 height: "100%",
                 overflowY: "auto",
                 borderRadius: "5px",
@@ -198,8 +201,8 @@ function RecordView({
                       data: recordData,
                       serverFetch: serverFetch,
                       useLazyQuery: useLazyQuery,
-                      userId:Cookies.get('userId'),
-                      ...INPUTS
+                      userId: Cookies.get("userId"),
+                      ...INPUTS,
                     },
                   }}
                 />

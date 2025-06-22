@@ -1,11 +1,19 @@
 import React, { useState } from "react";
 import Mess, { A, Box, Button, Image, Text } from "@mercury-js/mess";
 import { FaChevronDown } from "react-icons/fa";
-// import { useTheme } from "../../utils/theme";
-function Navbar({ siteName, logo }: { siteName?: string; logo?: string }) {
+import { FiMenu } from "react-icons/fi"; // Hamburger menu icon
+
+function Navbar({
+  siteName,
+  logo,
+  onMenuClick,
+}: {
+  siteName?: string;
+  logo?: string;
+  onMenuClick?: () => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
-  // const { theme, toggleTheme } = useTheme();
-  // console.log(theme, "theme");
+
   return (
     <Box
       styles={{
@@ -15,45 +23,52 @@ function Navbar({ siteName, logo }: { siteName?: string; logo?: string }) {
           display: "flex",
           flexDirection: "row",
           justifyContent: "space-between",
-          paddingTop: "15px",
-          paddingBottom: "15px",
-          paddingLeft: "30px",
-          paddingRight: "60px",
+          alignItems: "center",
+          paddingLeft: "20px",
+          paddingRight: "20px",
           borderBottom: "1px solid #DCDCDC",
+          background: "#fff",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          zIndex: 100,
         },
-        lg: {},
       }}
     >
+      {/* Left side: Logo + Name */}
       <Box
         styles={{
           base: {
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
-            gap: "20px",
+            gap: "12px",
           },
         }}
       >
-        <Box
+        {/* Mobile menu icon */}
+        {onMenuClick && (
+          <Box
+            className="md:hidden"
+            onClick={onMenuClick}
+            styles={{ base: { cursor: "pointer" } }}
+          >
+            <FiMenu size={20} />
+          </Box>
+        )}
+
+        {/* Logo */}
+        <Image
+          src={logo}
+          alt="Logo"
           styles={{
             base: {
               width: "42px",
               height: "25px",
+              objectFit: "contain",
             },
           }}
-        >
-          <Image
-            src={logo}
-            alt="Logo"
-            styles={{
-              base: {
-                width: "42px",
-                height: "25px",
-                objectFit: "contain",
-              },
-            }}
-          />
-        </Box>
+        />
         <Text
           styles={{
             base: {
@@ -61,12 +76,15 @@ function Navbar({ siteName, logo }: { siteName?: string; logo?: string }) {
               fontSize: "20px",
               lineHeight: "27.32px",
               color: "#333333",
+              whiteSpace: "nowrap",
             },
           }}
         >
           {siteName}
         </Text>
       </Box>
+
+      {/* Right side: User dropdown */}
       <Box
         styles={{
           base: {
@@ -75,7 +93,7 @@ function Navbar({ siteName, logo }: { siteName?: string; logo?: string }) {
             gap: "5px",
             alignItems: "center",
             cursor: "pointer",
-            position: "relative"
+            position: "relative",
           },
         }}
         onClick={() => setIsOpen(!isOpen)}
@@ -89,13 +107,12 @@ function Navbar({ siteName, logo }: { siteName?: string; logo?: string }) {
               background: "gray",
             },
           }}
-        ></Box>
+        />
         <Text
           styles={{
             base: {
               fontWeight: 500,
               fontSize: 14,
-              // lineHeight: 19.12,
               color: "#161616",
             },
           }}
@@ -104,23 +121,11 @@ function Navbar({ siteName, logo }: { siteName?: string; logo?: string }) {
         </Text>
         <FaChevronDown size={14} color="#161616" />
 
+        {/* Dropdown */}
         {isOpen && (
-          <Box styles={{ base: {position: "absolute", top: "2px", right: 0} }}>
-            <Box
-              styles={{
-                base: {
-                  clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-                  position: "absolute",
-                  background: "white",
-                  top: "30px",
-                  right: 20,
-                  boxShadow: " 6px 7px 16px -7px rgba(0,0,0,0.86)",
-                  color: "white",
-                },
-              }}
-            >
-              {""}
-            </Box>
+          <Box
+            styles={{ base: { position: "absolute", top: "2px", right: 0 } }}
+          >
             <Box
               styles={{
                 base: {
@@ -137,75 +142,14 @@ function Navbar({ siteName, logo }: { siteName?: string; logo?: string }) {
                   gap: "10px",
                   fontSize: "14px",
                   fontWeight: 500,
-                  lineHeight: "19.12px",
-                  color: "#161616",
+                  zIndex: 99,
                 },
               }}
             >
-              <Box
-                styles={{
-                  base: {
-                    cursor: "pointer",
-                  },
-                }}
-              >
-                Dashboard
-              </Box>
-              {/* <Box
-                styles={{
-                  base: {
-                    cursor: "pointer",
-                    width: "100%",
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: "5px",
-                  },
-                }}
-                onClick={toggleTheme}
-              >
-                <Image
-                  src="/public/assets/darkModeIcon.png"
-                  alt="Logo"
-                  styles={{
-                    base: {
-                      width: "16px",
-                      height: "16px",
-                      background: theme == "light" ? "yellow" : "black",
-                      borderRadius: "100%",
-                      padding: 2,
-                      objectFit: "contain",
-                    },
-                  }}
-                />{" "}
-                {theme == "light" ? "Light" : "Dark"} Mode
-              </Box> */}
-              <Box
-                styles={{
-                  base: {
-                    cursor: "pointer",
-                  },
-                }}
-              >
-                Settings
-              </Box>
-              <Box
-                styles={{
-                  base: {
-                    cursor: "pointer",
-                  },
-                }}
-              >
-                Account
-              </Box>
-              <A
-                styles={{
-                  base: {
-                    cursor: "pointer",
-                  },
-                }}
-                href="/logout"
-              >
+              <Box styles={{ base: { cursor: "pointer" } }}>Dashboard</Box>
+              <Box styles={{ base: { cursor: "pointer" } }}>Settings</Box>
+              <Box styles={{ base: { cursor: "pointer" } }}>Account</Box>
+              <A styles={{ base: { cursor: "pointer" } }} href="/logout">
                 Logout
               </A>
             </Box>

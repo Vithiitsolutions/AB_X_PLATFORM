@@ -1,6 +1,7 @@
 import React from "react";
 import UpdateDynamicRecord from "../container/dynamicTableContainer/updateModelForm";
 import File from "../container/File";
+import { Box } from "@mercury-js/mess";
 
 export async function loader({ params }: { params: { model: string } }) {
   return {
@@ -16,11 +17,22 @@ function dashboad({
   };
 }) {
   return (
-    <div>
-      
-      {loaderData?.modelName === "File" ? <File edit={true} /> : <UpdateDynamicRecord />}
-      
-    </div>
+    <Box
+      styles={{
+        base: {
+          padding: "10px",
+        },
+        lg: {
+          padding: "0",
+        },
+      }}
+    >
+      {loaderData?.modelName === "File" ? (
+        <File edit={true} />
+      ) : (
+        <UpdateDynamicRecord />
+      )}
+    </Box>
   );
 }
 

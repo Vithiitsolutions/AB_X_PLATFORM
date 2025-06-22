@@ -155,9 +155,17 @@ const dashboard = ({
     buttons: any[];
   };
 }) => {
-
   return (
-    <Box>
+    <Box
+      styles={{
+        base: {
+          padding: 10,
+        },
+        lg: {
+          padding: 0,
+        },
+      }}
+    >
       {loaderData?.viewFields?.totalDocs && (
         <DynamicTableContainer
           viewFields={loaderData?.viewFields}

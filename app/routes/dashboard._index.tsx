@@ -40,7 +40,7 @@ export async function loader({ request }: any) {
         },
         name: {
           notContains: "password",
-        }
+        },
       },
       limit: 200,
     },
@@ -147,11 +147,8 @@ const dashboard = ({
     layout: any;
   };
 }) => {
-
   return (
     <>
-     
-
       <Box
         styles={{
           base: {
@@ -159,6 +156,8 @@ const dashboard = ({
             // height: "fit-content",
             overflowY: "auto",
             overflowX: "hidden",
+          },
+          lg: {
             padding: "10px",
           },
         }}
@@ -167,7 +166,7 @@ const dashboard = ({
           layout={loaderData.layout || {}}
           layoutStructuresData={loaderData.layoutStructuresData}
           recordData={loaderData.recordData}
-          updateVisible={false}
+          buttons={loaderData.layout?.buttons}
         />
       </Box>
     </>

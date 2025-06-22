@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { createCookie, Outlet, redirect } from "react-router";
 import { Box } from "@mercury-js/mess";
 import SideBar from "../../components/sidebar";
@@ -148,13 +148,14 @@ export async function loader({ request }: any) {
   }
   const sortTabs = (tabs) => {
     if (!tabs) return [];
-    return tabs.filter((tab) => {
-      if (tab.profiles && tab.profiles.length > 0) {
-        return tab.profiles.some(
-          (profile) => profile.name === cookieObject.role
-        )
-      }
-    })
+    return tabs
+      .filter((tab) => {
+        if (tab.profiles && tab.profiles.length > 0) {
+          return tab.profiles.some(
+            (profile) => profile.name === cookieObject.role
+          );
+        }
+      })
       .map((tab) => ({
         ...tab,
         childTabs: sortTabs(tab.childTabs),
@@ -188,26 +189,68 @@ export async function loader({ request }: any) {
 
   return {
     tabs: sortedTabs,
-    siteName:
-      setting?.listSettings?.docs?.[0]?.siteName || "",
-    logo: setting?.listSettings?.docs?.[0]?.logo || "/assets/logo.png"
+    siteName: setting?.listSettings?.docs?.[0]?.siteName || "",
+    logo: setting?.listSettings?.docs?.[0]?.logo || "/assets/logo.png",
   };
 }
-const dashboard = ({ loaderData }: { loaderData: {tabs: any, logo: string, siteName: string} }) => {
+const dashboard = ({
+  loaderData,
+}: {
+  loaderData: { tabs: any; logo: string; siteName: string };
+}) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
   return (
     <div>
       {/* <ThemeProvider> */}
-      <Navbar siteName={loaderData.siteName} logo={loaderData.logo}/>
-      <Box styles={{ base: { display: "flex", flexDirection: "row" } }}>
-        <SideBar tabs={loaderData.tabs} />
+      <Navbar
+        siteName={loaderData.siteName}
+        logo={loaderData.logo}
+        onMenuClick={toggleSidebar} // Add this prop to your Navbar to show menu icon on mobile
+      />
+      <Box
+        styles={{
+          base: { display: "flex", flexDirection: "row", paddingTop: "57px" },
+        }}
+      >
+        {/* Sidebar */}
         <Box
           styles={{
             base: {
-              width: "calc(100vw - 240px)",
+              position: "fixed",
+              top: 56,
+              left: sidebarOpen ? 0 : -240,
+              width: 240,
               height: "calc(100vh - 56px)",
-              padding: 20,
+              background: "#fff",
+              boxShadow: "2px 0 6px rgba(0,0,0,0.1)",
+              transition: "left 0.3s ease-in-out",
+              zIndex: 50,
+            },
+            lg: {
+              position: "relative",
+              left: 0,
+              top: 0,
+              height: "auto",
+              boxShadow: "none",
+              zIndex: 0,
+            },
+          }}
+        >
+          <SideBar tabs={loaderData.tabs} />
+        </Box>
+        <Box
+          styles={{
+            base: {
+              height: "calc(100vh - 56px)",
               overflow: "auto",
+              padding: 0,
               background: "#F8F8F8",
+            },
+            lg: {
+              width: "calc(100vw - 240px)",
+              padding: 20,
             },
           }}
         >
