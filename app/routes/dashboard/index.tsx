@@ -245,6 +245,7 @@ const dashboard = ({
             base: {
               height: "calc(100vh - 56px)",
               overflow: "auto",
+              width: "100%",
               padding: 0,
               background: "#F8F8F8",
             },
