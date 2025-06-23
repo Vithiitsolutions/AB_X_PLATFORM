@@ -34,6 +34,7 @@ export async function loader({ request }: any) {
           docs {
             id
             loginSideImage
+            forgotPasswordLink
           }
         }
       }`,
@@ -50,13 +51,14 @@ export async function loader({ request }: any) {
       setting?.listSettings?.docs?.[0]?.loginSideImage ||
       "https://res.cloudinary.com/doc9mueyf/image/upload/v1740652739/loginSideImage_jhlfyl.png",
     isDefault: !setting?.listSettings?.docs?.[0]?.loginSideImage,
+    forgotPasswordLink: setting?.listSettings?.docs?.[0]?.forgotPasswordLink
   };
 }
 
-const _index = ({ loaderData }: { loaderData: { sideImage: string, isDefault: true } }) => {
+const _index = ({ loaderData }: { loaderData: { sideImage: string, isDefault: true, forgotPasswordLink: string } }) => {
   return (
     <Box>
-      <LogInContainer sideImage={loaderData.sideImage} isDefault={loaderData.isDefault} />
+      <LogInContainer sideImage={loaderData.sideImage} isDefault={loaderData.isDefault} forgotPasswordLink={loaderData?.forgotPasswordLink}/>
     </Box>
   );
 };

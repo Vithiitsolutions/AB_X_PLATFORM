@@ -17,5 +17,8 @@ export const setting = mercury.createModel("Setting", {
     },
     loginSideImage: {
         type: "string"
+    },
+    forgotPasswordLink: {
+        type: "string"
     }
 });

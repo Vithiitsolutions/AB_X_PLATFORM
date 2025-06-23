@@ -16,7 +16,15 @@ import { useLazyQuery } from "../../utils/hook";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router";
 
-function LogInContainer({sideImage, isDefault=false}: {sideImage: string, isDefault?: boolean}) {
+function LogInContainer({
+  sideImage,
+  isDefault = false,
+  forgotPasswordLink,
+}: {
+  sideImage: string;
+  isDefault?: boolean;
+  forgotPasswordLink: string | null;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -52,7 +60,7 @@ function LogInContainer({sideImage, isDefault=false}: {sideImage: string, isDefa
     if (!password) {
       setPasswordError("Password is required");
       isValid = false;
-    } 
+    }
 
     if (isValid) {
       login(
@@ -78,20 +86,20 @@ function LogInContainer({sideImage, isDefault=false}: {sideImage: string, isDefa
     }
   };
 
-  useEffect(()=>{
-    if(data){
-      if(data?.signIn?.token){
+  useEffect(() => {
+    if (data) {
+      if (data?.signIn?.token) {
         Cookies.set("token", data?.signIn?.token);
         Cookies.set("userId", data?.signIn?.user?.id);
         Cookies.set("role", data?.signIn?.user?.role);
         Cookies.set("userName", data?.signIn?.user?.name || "User");
 
         setEmail("");
-        setPassword("") ;
+        setPassword("");
         navigate("/dashboard");
       }
     }
-    if(error){
+    if (error) {
       setEmailError("Invalid email or password");
     }
   }, [data, error, loading]);
@@ -195,6 +203,21 @@ function LogInContainer({sideImage, isDefault=false}: {sideImage: string, isDefa
                   },
                 }}
               >
+                {forgotPasswordLink && (
+                  <Box
+                    styles={{
+                      base: {
+                        color: "black",
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        alignItems: "center",
+                        fontSize: "13px"
+                      },
+                    }}
+                  >
+                    <A href={forgotPasswordLink}>Forgot Password ?</A>
+                  </Box>
+                )}
                 <Input
                   styles={{
                     base: {
@@ -348,27 +371,29 @@ function LogInContainer({sideImage, isDefault=false}: {sideImage: string, isDefa
         />
 
         {/* Overlay Text */}
-        {isDefault &&<Text
-          styles={{
-            base: {
-              position: "absolute",
-              color: "black",
-              fontSize: "24px",
-              fontWeight: 600,
-              bottom: "96px",
-              left: "50%",
-              transform: "translateX(-50%)", // Centers text horizontally
-              textAlign: "center",
-              lineHeight: "40px",
-              background: "rgba(255, 255, 255, 0.7)", // Slight background for readability
-              borderRadius: "8px",
-              padding: "10px 20px",
-            },
-          }}
-        >
-          "Unlock the power of simplicity with Mercury Where websites come to
-          life effortlessly"
-        </Text>}
+        {isDefault && (
+          <Text
+            styles={{
+              base: {
+                position: "absolute",
+                color: "black",
+                fontSize: "24px",
+                fontWeight: 600,
+                bottom: "96px",
+                left: "50%",
+                transform: "translateX(-50%)", // Centers text horizontally
+                textAlign: "center",
+                lineHeight: "40px",
+                background: "rgba(255, 255, 255, 0.7)", // Slight background for readability
+                borderRadius: "8px",
+                padding: "10px 20px",
+              },
+            }}
+          >
+            "Unlock the power of simplicity with Mercury Where websites come to
+            life effortlessly"
+          </Text>
+        )}
       </Box>
     </Box>
   );

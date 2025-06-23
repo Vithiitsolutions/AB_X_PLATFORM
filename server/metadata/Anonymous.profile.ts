@@ -4,10 +4,19 @@ export const AnonymousRules = [
   {
     modelName: "Setting",
     access: {
-      create: true,
+      create: false,
       read: true,
-      update: true,
-      delete: true,
+      update: false,
+      delete: false,
+    },
+  },
+  {
+    modelName: "Page",
+    access: {
+      create: false,
+      read: true,
+      update: false,
+      delete: false,
     },
   },
 ];
