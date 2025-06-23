@@ -42,7 +42,10 @@ function DynamicTableContainer({
     pageIndex: 0,
     pageSize: 10,
   });
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([{
+    desc: true,
+    id: "updatedOn"
+  }]);
   const [objectDataList, setObjectDataList] = React.useState<any>(modelData);
   const [totalDocsCount, setTotalDocsCount] = React.useState(totalDocs);
   const [columnsData, setColumnsData] = React.useState([]);
@@ -84,14 +87,14 @@ function DynamicTableContainer({
               header: ({ column }) => {
                 return (
                   <Box
-                    onClick={() =>
-                      column.toggleSorting(column.getIsSorted() === "asc")
-                    }
+                    // onClick={() =>
+                    //   column.toggleSorting(column.getIsSorted() === "asc")
+                    // }
                     className="font-bold w-full flex justify-start items-center gap-1"
                   >
                     {_.startCase(field?.field?.label)}
                     {/* ({field.ref}) */}
-                    <ChevronsUpDown className="ml-2 h-4 w-4" />
+                    {/* <ChevronsUpDown className="ml-2 h-4 w-4" /> */}
                   </Box>
                 );
               },

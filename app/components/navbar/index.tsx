@@ -58,7 +58,7 @@ function Navbar({
                 cursor: "pointer",
                 display: "block",
               },
-              md: {
+              lg: {
                 display: "none",
               },
             }}
