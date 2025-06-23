@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useLazyQuery } from "../../utils/hook";
 import { serverFetch } from "../../utils/action";
 
-import { A, Text, Box, Input } from "@mercury-js/mess";
+import { A, Box, Input, Text } from "@mercury-js/mess";
 import DynamicTable from "../../components/table";
 
 import { PaginationState, SortingState } from "@tanstack/react-table";
@@ -47,6 +47,7 @@ function DynamicTableContainer({
   const [totalDocsCount, setTotalDocsCount] = React.useState(totalDocs);
   const [columnsData, setColumnsData] = React.useState([]);
   const [searchText, setSearchText] = React.useState("");
+  const [initialLoad, setInitialLoad] = React.useState(true);
 
   useEffect(() => {
     (async () => {
@@ -59,9 +60,10 @@ function DynamicTableContainer({
               accessorKey: field?.field?.name,
               header: ({ column }: any) => (
                 <Box
-                  onClick={() =>
-                    column.toggleSorting(column.getIsSorted() === "asc")
-                  }
+                  onClick={() => {
+                    if (initialLoad) setInitialLoad(false);
+                    column.toggleSorting(column.getIsSorted() === "asc");
+                  }}
                   className="flex items-center cursor-pointer"
                 >
                   {_.startCase(field?.field?.label)}
@@ -84,9 +86,10 @@ function DynamicTableContainer({
               header: ({ column }) => {
                 return (
                   <Box
-                    onClick={() =>
-                      column.toggleSorting(column.getIsSorted() === "asc")
-                    }
+                    onClick={() => {
+                      if (initialLoad) setInitialLoad(false);
+                      column.toggleSorting(column.getIsSorted() === "asc");
+                    }}
                     className="font-bold w-full flex justify-start items-center gap-1"
                   >
                     {_.startCase(field?.field?.label)}
@@ -125,8 +128,8 @@ function DynamicTableContainer({
                       href={`${
                         row.original[field.field?.name]?.id
                           ? `/dashboard/o/${field.field?.ref}/r/${
-                              row.original[field.field?.name]?.id
-                            }`
+                            row.original[field.field?.name]?.id
+                          }`
                           : "#"
                       }`}
                       className="hover:underline"
@@ -198,9 +201,10 @@ function DynamicTableContainer({
               header: ({ column }) => {
                 return (
                   <Box
-                    onClick={() =>
-                      column.toggleSorting(column.getIsSorted() === "asc")
-                    }
+                    onClick={() => {
+                      if (initialLoad) setInitialLoad(false);
+                      column.toggleSorting(column.getIsSorted() === "asc");
+                    }}
                     className="flex items-center cursor-pointer"
                   >
                     {_.startCase(field.field?.label)}
@@ -212,12 +216,12 @@ function DynamicTableContainer({
                 <div className="">
                   {field.field?.many
                     ? row
-                        .getValue(field.field?.name)
-                        ?.map((item: string) => new Date(item).toLocaleString())
-                        ?.join(", ")
+                      .getValue(field.field?.name)
+                      ?.map((item: string) => new Date(item).toLocaleString())
+                      ?.join(", ")
                     : new Date(
-                        row.getValue(field.field?.name)
-                      ).toLocaleString()}
+                      row.getValue(field.field?.name),
+                    ).toLocaleString()}
                 </div>
               ),
             };
@@ -227,9 +231,10 @@ function DynamicTableContainer({
               header: ({ column }) => {
                 return (
                   <Box
-                    onClick={() =>
-                      column.toggleSorting(column.getIsSorted() === "asc")
-                    }
+                    onClick={() => {
+                      if (initialLoad) setInitialLoad(false);
+                      column.toggleSorting(column.getIsSorted() === "asc");
+                    }}
                     className="flex items-center cursor-pointer"
                   >
                     {_.startCase(field.field?.label)}
@@ -254,27 +259,30 @@ function DynamicTableContainer({
     _.debounce((query, variables, options) => {
       listModelData(query, variables, options);
     }, 500),
-    []
+    [],
   );
   React.useEffect(() => {
-    if (dynamicQueryString)
+    if (dynamicQueryString) {
       debouncedListModelData(
         dynamicQueryString,
         {
           ...getSearchCompostion(
             viewFields?.docs?.map((field: any) => field?.field),
-            searchText
+            searchText,
           ),
           sort: {
-            [sorting[0]?.id || "createdOn"]: sorting[0]?.desc ? "desc" : "asc",
+            [initialLoad ? "updatedOn" : sorting[0]?.id]: sorting[0]?.desc
+              ? "desc"
+              : "asc",
           },
           limit: pagination.pageSize,
           offset: pagination.pageIndex * pagination.pageSize,
         },
         {
           cache: "no-store",
-        }
+        },
       );
+    }
   }, [
     pagination.pageSize,
     pagination.pageSize,
@@ -287,10 +295,10 @@ function DynamicTableContainer({
   useEffect(() => {
     if (listModelDataResponse.data) {
       setObjectDataList(
-        listModelDataResponse.data?.[`list${modelName}s`]?.docs || []
+        listModelDataResponse.data?.[`list${modelName}s`]?.docs || [],
       );
       setTotalDocsCount(
-        listModelDataResponse.data?.[`list${modelName}s`]?.totalDocs || 0
+        listModelDataResponse.data?.[`list${modelName}s`]?.totalDocs || 0,
       );
     }
 
@@ -381,19 +389,19 @@ function DynamicTableContainer({
         </Box>
       </Box>
 
-      {listModelDataResponse.loading && !columnsData?.length ? (
-        <Text>Loading...</Text>
-      ) : (
-        <DynamicTable
-          data={objectDataList || []}
-          columns={columnsData}
-          rowCount={totalDocsCount}
-          pagination={pagination}
-          setPagination={setPagination}
-          setSorting={setSorting}
-          sorting={sorting}
-        />
-      )}
+      {listModelDataResponse.loading && !columnsData?.length
+        ? <Text>Loading...</Text>
+        : (
+          <DynamicTable
+            data={objectDataList || []}
+            columns={columnsData}
+            rowCount={totalDocsCount}
+            pagination={pagination}
+            setPagination={setPagination}
+            setSorting={setSorting}
+            sorting={sorting}
+          />
+        )}
     </Box>
   );
 }

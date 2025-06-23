@@ -8,22 +8,22 @@ export default defineConfig(({ isSsrBuild }) => ({
   build: {
     rollupOptions: isSsrBuild
       ? {
-          usePolling: true,
-          input: ["./server/app.ts"],
-          output: {
-            entryFileNames: `assets/[name].js`,
-            chunkFileNames: `assets/[name].js`,
-            assetFileNames: `assets/[name].[ext]`,
-          },
-        }
-      : {
-          // input: ["./components/Card.tsx", "./components/Text.tsx"],
-          output: {
-            entryFileNames: `assets/[name].js`,
-            chunkFileNames: `assets/[name].js`,
-            assetFileNames: `assets/[name].[ext]`,
-          },
+        usePolling: true,
+        input: ["./server/app.ts"],
+        output: {
+          entryFileNames: `assets/[name].js`,
+          chunkFileNames: `assets/[name].js`,
+          assetFileNames: `assets/[name].[ext]`,
         },
+      }
+      : {
+        // input: ["./components/Card.tsx", "./components/Text.tsx"],
+        output: {
+          entryFileNames: `assets/[name].js`,
+          chunkFileNames: `assets/[name].js`,
+          assetFileNames: `assets/[name].[ext]`,
+        },
+      },
   },
   css: {
     postcss: {
@@ -36,13 +36,13 @@ export default defineConfig(({ isSsrBuild }) => ({
     cors: true,
     allowedHosts: true,
   },
-  resolve: {
-    alias: isSsrBuild
-      ? {
-          "react-dom/server": "react-dom/server.node",
-        }
-      : {
-          "react-dom/server": "react-dom/client", //Need to verify if this is correct
-        },
-  },
+  // resolve: {
+  //   alias: isSsrBuild
+  //     ? {
+  //         "react-dom/server": "react-dom/server.node",
+  //       }
+  //     : {
+  //         "react-dom/server": "react-dom/client", //Need to verify if this is correct
+  //       },
+  // },
 }));
