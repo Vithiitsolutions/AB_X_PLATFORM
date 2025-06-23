@@ -19,6 +19,15 @@ export const AnonymousRules = [
       delete: false,
     },
   },
+  {
+    modelName: "Component",
+    access: {
+      create: false,
+      read: true,
+      update: false,
+      delete: false,
+    },
+  },
 ];
 
 mercury.access.createProfile("Anonymous", AnonymousRules);
