@@ -1,3 +1,5 @@
+import Cookies from "js-cookie";
+
 import React, { useState } from "react";
 import Mess, { A, Box, Button, Image, Text } from "@mercury-js/mess";
 import { FaChevronDown } from "react-icons/fa";
@@ -113,9 +115,19 @@ function Navbar({
               height: 36,
               borderRadius: "100%",
               background: "gray",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              color: "white",
+              fontWeight: 500,
+              fontSize: 18,
+              textAlign:"center"
             },
           }}
-        />
+        >
+          <Text className="">{Cookies.get("userName")?.charAt(0).toUpperCase() || 'U'}
+          </Text>
+        </Box>
         <Text
           styles={{
             base: {
@@ -125,7 +137,7 @@ function Navbar({
             },
           }}
         >
-          User
+          {Cookies.get("userName")}
         </Text>
         <FaChevronDown size={14} color="#161616" />
 

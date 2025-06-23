@@ -62,6 +62,7 @@ function LogInContainer({sideImage, isDefault=false}: {sideImage: string, isDefa
             user {
               id
               role
+              name
             }
           }
         }`,
@@ -83,6 +84,8 @@ function LogInContainer({sideImage, isDefault=false}: {sideImage: string, isDefa
         Cookies.set("token", data?.signIn?.token);
         Cookies.set("userId", data?.signIn?.user?.id);
         Cookies.set("role", data?.signIn?.user?.role);
+        Cookies.set("userName", data?.signIn?.user?.name || "User");
+
         setEmail("");
         setPassword("") ;
         navigate("/dashboard");
