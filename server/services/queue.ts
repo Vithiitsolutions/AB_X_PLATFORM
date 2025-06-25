@@ -1,14 +1,12 @@
 import { Queue, Worker } from 'bullmq';
 import { Expo } from 'expo-server-sdk';
-import * as dotenv from 'dotenv';
 import mercury from '@mercury-js/core';
-dotenv.config();
 const expo = new Expo();
 const redisConnection = {
-    host: process.env.REDIS_HOST,
-    port: Number(process.env.REDIS_PORT),
-    username: process.env.REDIS_USERNAME,
-    password: process.env.REDIS_PASSWORD,
+    host: Deno.env.get("REDIS_HOST"),
+    port: Number(Deno.env.get("REDIS_PORT")),
+    username: Deno.env.get("REDIS_USERNAME"),
+    password:Deno.env.get("REDIS_PASSWORD"),
 }
 export const notificationQueue = new Queue('{notifications}', {
     connection: redisConnection
