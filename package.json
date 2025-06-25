@@ -54,6 +54,7 @@
     "jspdf": "^3.0.1",
     "lodash": "^4.17.21",
     "lucide-react": "^0.476.0",
+    "mongoose": "^8.16.0",
     "morgan": "^1.10.0",
     "multiselect-react-dropdown": "^2.0.25",
     "node-cron": "^3.0.3",
