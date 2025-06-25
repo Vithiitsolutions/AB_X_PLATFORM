@@ -1,34 +1,30 @@
 import mercury from "@mercury-js/core";
-
-export const file = mercury.createModel(
-  "File",
-  {
+export const file = mercury.createModel("File", {
     name: {
-      type: "string",
+        type: 'string',
     },
     description: {
-      type: "string",
+        type: 'string',
     },
     mimeType: {
-      type: "string",
+        type: 'string',
     },
     extension: {
-      type: "string",
+        type: 'string',
     },
     size: {
-      type: "float",
+        type: 'float',
     },
-    url: {
-      type: "string",
+    location: {
+        type: 'string',
     },
-    mediaId: {
-      type: "string",
+    type: {
+        type: "enum",
+        enumType: "string",
+        enum: ["image", "video", "pdf"],
+        // required: true
     },
-    base64: {
-      type: "string"
+    path: {
+        type: "string"
     }
-  },
-  {
-    historyTracking: false,
-  }
-);
+})
