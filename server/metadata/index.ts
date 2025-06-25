@@ -14,7 +14,7 @@ const queueService = QueueService.getInstance();
 mercury.queueService = queueService;
 
 // hooks
-import "./hooks/hook.ts"
+import "./hooks/index.ts"
 
 // Profiles
 import "./SystemAdmin.profile.ts";
