@@ -133,8 +133,8 @@ export class Platform {
 
   async setUpSystemAdmin() {
     let systemAdminProfile = await mercury.db.Profile.mongoModel.findOne({ name: 'SystemAdmin' });
-    mercury.access.profiles = mercury.access.profiles.filter((profile: Profile) => profile.name != "SystemAdmin");
     if (!_.isEmpty(systemAdminProfile)) return;
+    mercury.access.profiles = mercury.access.profiles.filter((profile: Profile) => profile.name != "SystemAdmin");
 
     systemAdminProfile = await mercury.db.Profile.mongoModel.create({
       name: 'SystemAdmin',
@@ -160,10 +160,25 @@ export class Platform {
   }
 
 
+  async setUpAnonymousProfile() {
+    let anonymousProfile = await mercury.db.Profile.mongoModel.findOne({ name: 'Anonymous' });
+    if (!_.isEmpty(anonymousProfile)) return;
+    await mercury.db.Profile.mongoModel.create({
+      name: 'Anonymous',
+      label: 'Anonymous',
+    });
+    // by default - 2 profiles (SystemAdmin and anonymous - with all default access)
+    // Create profile record if not present
+    // metamodel permissions - create if not present
+    // compose whatever permissions present inside db and then compose
+    // should i create meta records for meta models or just use model name and then proceed?
+  }
+
   public async initializeProfiles() {
     // Profiles from db and from mercury handle both during intialization step and also during api calls
     console.time("Profiles Initialization Time");
     await this.setUpSystemAdmin();
+    await this.setUpAnonymousProfile();
     try {
       const profiles = await mercury.db.Profile.mongoModel.aggregate(
         profilePipeline
