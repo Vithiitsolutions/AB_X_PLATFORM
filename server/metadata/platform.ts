@@ -132,10 +132,9 @@ export class Platform {
   // 4. Profile Ids - for code based profiles ?
 
   async setUpSystemAdmin() {
+    mercury.access.profiles = mercury.access.profiles.filter((profile: Profile) => profile.name != "SystemAdmin");
     let systemAdminProfile = await mercury.db.Profile.mongoModel.findOne({ name: 'SystemAdmin' });
     if (!_.isEmpty(systemAdminProfile)) return;
-    mercury.access.profiles = mercury.access.profiles.filter((profile: Profile) => profile.name != "SystemAdmin");
-
     systemAdminProfile = await mercury.db.Profile.mongoModel.create({
       name: 'SystemAdmin',
       label: 'SystemAdmin',
@@ -197,7 +196,6 @@ export class Platform {
           inheritedProfiles: profile.inheritedProfiles || [],
         };
       });
-
       for (const profileId in this.profileIdMapper) {
         this.profileIdMapper[profileId].permissions = this.composePermissions(
           this.profileIdMapper[profileId]
