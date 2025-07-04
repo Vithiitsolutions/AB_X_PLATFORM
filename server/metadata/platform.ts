@@ -8,7 +8,7 @@ import {
 import { SystemAdminRules } from "./SystemAdmin.profile";
 import { HistoryTrackingService } from "./historyTrackingService";
 import { defaultPermissionSet } from "./defaultPermissions";
-
+import { ViewComposer } from "./ViewComposer";
 export class Platform {
   profilesMapper = new Map();
   historyTrackingService = HistoryTrackingService.getInstance();
@@ -116,6 +116,7 @@ export class Platform {
       console.timeEnd("Models Initialization Time");
       await this.initializeProfiles();
       await this.createHistoryTrackingModels();
+      await this.composeViews();
     } catch (error) {
       console.error("Error during platform initialization:", error);
     } finally {
@@ -367,5 +368,9 @@ export class Platform {
 
   public async createHistoryTrackingModels() {
     await this.historyTrackingService.init();
+  }
+
+  public async composeViews() {
+    // await ViewComposer.composeViews();
   }
 }
