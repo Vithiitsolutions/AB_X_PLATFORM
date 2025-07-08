@@ -2,7 +2,9 @@ export const typeDefs = `
     type Query {
         signIn(value: String!, password: String!, validateBy: String!): LoginResponse
         getFormMetadataRecordCreate(formId: String): JSON
+        getSurveyStats(filter: PollStatsFilter): PollStat
         me: User
+
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
@@ -11,4 +13,18 @@ export const typeDefs = `
         token: String
         user: User
     }
+    type PollStats {
+        totalSurveys: Int
+        SurveysFiltered: Int 
+        SurveyCreatedPercentage:Float
+    }
+    input PollStatsFilter {
+        state: ID
+        district: ID
+        constituency: ID
+        startDate:String
+        endDate:String
+        leaderId:ID 
+    } 
+
 `;

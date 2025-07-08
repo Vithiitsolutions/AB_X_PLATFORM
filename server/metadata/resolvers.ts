@@ -4,7 +4,7 @@ import { Form } from "./FormService";
 import { sign } from "node:crypto";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
-
+import { getSurveyStats } from "../aggeregation/surveyReports";
 export default {
   Query: {
     signIn: async (
@@ -76,6 +76,17 @@ export default {
       const form = new Form(formId, ctx.user);
       return form.getFormMetadata();
     },
+
+    getSurveyStats :async (_:any, args:{filter?:any},context:any)=>{
+  try {
+    const result = await getSurveyStats(args.filter|| {});
+    return result
+  }catch(error:any){
+    console.log("Graphql Resolver Error :",Error)
+    throw new GraphQLError(error.message || "Failed to fetch activity summary")
+  }
+},
+     
   },
   Mutation: {
     createRecordsUsingForm: async (
