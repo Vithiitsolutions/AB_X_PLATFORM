@@ -4,6 +4,7 @@ export const typeDefs = `
         getFormMetadataRecordCreate(formId: String): JSON
         getUserAnalytics(input: UserAnalyticsInput): UserAnalyticsResult
         getUserScreenDuration(input:UserscreenInput):UserScreenDurationResponse
+        getActiveUsersCount(startDate: String, endDate: String,year:Int): ActiveCount
         retentionRatemetrics(date:String,stateId:String,districtId:String,constituencyId:String):JSON
         me: User
     }
@@ -20,16 +21,43 @@ export const typeDefs = `
     }
     input UserAnalyticsInput {
         date: String
+        startDate:String
+        endDate:String
         stateId: ID
         districtId: ID
         constituencyId: ID
+        year:Int
+    }
+    type MonthlySignup {
+        month: String
+        commonMan: Int
+        leaders: Int
+        total: Int
     }
     type UserAnalyticsResult {
         totalCount: Int
+        totalGrowth:Float
         commonCount: Int
+        commonGrowth:Float
         leaderCount: Int
+        leaderGrowth:Float
         maleCount: Int
+        maleGrowth:Float
         femaleCount: Int
+        femaleGrowth:Float
+        monthlySignupTrend: [MonthlySignup]
+    }
+    type MonthlyActiveTrend {
+        month: String
+        publicCount: Int
+        leaderCount: Int
+        total: Int
+    }
+    type ActiveCount {
+        totalActiveUsers: Int
+        publicCount: Int
+        leaderCount: Int
+        monthlyActiveTrend: [MonthlyActiveTrend!]!
     }
     type UserScreenDurationResponse{
         logins: [LoginDuration]
