@@ -371,6 +371,6 @@ export class Platform {
   }
 
   public async composeViews() {
-    // await ViewComposer.composeViews();
+    await ViewComposer.composeViews();
   }
 }

@@ -1,10 +1,12 @@
 import mercury from "@mercury-js/core";
+import _ from "lodash";
 
+// Search functionality - need to check - 
 export class ViewResolverEngine {
   constructor(private viewId: string) { }
 
   async getViewDetails() {
-    const view = await mercury.db.View.get({ _id: this.viewId }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "fields", populate: [{ path: "field", select: "_id name modelName type" }] }] });
+    const view = await mercury.db.View.get({ _id: this.viewId }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "fields", populate: [{ path: "field", select: "_id name modelName type ref" }] }] });
     return view;
   }
 
@@ -24,28 +26,32 @@ export class ViewResolverEngine {
 
     const pipeline: any[] = [];
     const project: Record<string, any> = {};
+    const recordKeyMap: Record<string, any> = {};
     const fieldSearchMap: { key: string; type: "local" | "lookup"; alias: string }[] = [];
 
     // 2. Handle lookups and projections
     for (const vf of viewFields) {
       const modelField = vf.field;
-      const fieldName = modelField.name;       // e.g. "name", "label"
-      const fromModel = modelField.modelName;  // e.g. "Product", "Status"
+      let fieldName = modelField.name;
+      let recordKey = "";      // e.g. "name", "label"
+      const fromModel = modelField.type == 'relationship' ? modelField.ref : modelField.modelName;  // e.g. "Product", "Status"
 
       const alias = fromModel; // Use model name as alias for clarity
 
       if (fromModel && fromModel !== baseModel) {
         // 2a. Lookup from related model
+        const mod: any = await mercury.db.Model.get({ name: fromModel }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "recordKey" }] });
+        recordKey = mod.recordKey.name;
         pipeline.push({
           $lookup: {
-            from: fromModel,
+            from: fromModel.toLowerCase() + 's',
             localField: fieldName, // check here model name to small case
             foreignField: "_id",
             as: alias,
             pipeline: [
               {
                 $project: {
-                  [fieldName]: 1,
+                  [recordKey]: 1,
                   _id: 0,
                 },
               },
@@ -60,10 +66,12 @@ export class ViewResolverEngine {
           },
         });
 
+        recordKeyMap[fieldName] = recordKey;
+
         // 2b. Project as namespaced key
-        const key = `${alias}.${fieldName}`; // e.g., product.name
-        project[key] = `$${alias}.${fieldName}`;
-        fieldSearchMap.push({ type: "lookup", key, alias });
+        const key = `${alias}.${recordKey}`; // e.g., product.name
+        project[key] = `$${alias}.${recordKey}`;
+        fieldSearchMap.push({ type: "lookup", key, alias: fieldName });
       } else {
         // 2c. Base model field
         const key = `${baseModel}.${fieldName}`;
@@ -74,12 +82,23 @@ export class ViewResolverEngine {
 
     // 3. Search (OR condition)
     if (search) {
-      const orConditions = fieldSearchMap.map((f) => ({
-        // For local model simple filed name should be enough
-        [f.key]: { $regex: search, $options: "i" },
-      }));
-      pipeline.push({ $match: { $or: orConditions } });
+      const orConditions = viewFields.map((vf) => {
+        const modelField = vf.field;
+        const isFromBaseModel = modelField.type != "relationship";
+
+        if (isFromBaseModel) {
+          return { [modelField.name]: { $regex: search, $options: "i" } };
+        } else {
+          const recordKey = recordKeyMap[modelField.name];
+          const alias = modelField.ref;
+          return { [`${alias}.${recordKey}`]: { $regex: search, $options: "i" } };
+        }
+      });
+      pipeline.push({
+        $match: { $or: orConditions }
+      });
     }
+
 
     // 4. Filters
     if (Object.keys(filters).length > 0) {
@@ -90,7 +109,8 @@ export class ViewResolverEngine {
     if (Object.keys(sort).length > 0) {
       pipeline.push({ $sort: sort });
     } else {
-      pipeline.push({ $sort: { _id: -1 } });
+      // By default created on - desc order?
+      pipeline.push({ $sort: { updatedOn: -1, createdOn: -1 } });
     }
 
     // 6. Pagination
@@ -112,9 +132,7 @@ export class ViewResolverEngine {
     return data.map((row) => {
       const result: Record<string, any> = {};
       for (const f of fieldSearchMap) {
-        if (f.key in row) {
-          result[f.alias] = row[f.key];
-        }
+        result[f.alias] = _.get(row, f.key);  // safe nested access
       }
       return result;
     });
@@ -136,41 +154,4 @@ export class ViewResolverEngine {
 
     return finalData;
   }
-
-  generateViewTypeSchema(viewFields: any[], baseModel: string) {
-    const typeMap: Record<string, string> = {};
-
-    for (const vf of viewFields) {
-      const field = vf.field;
-      if (!field) continue;
-
-      const isFromBaseModel = field.modelName === baseModel;
-      const key = isFromBaseModel ? field.name : field.modelName;
-
-      let gqlType = "String";
-      switch (field.type) {
-        case "number":
-          gqlType = "Float"; break;
-        case "boolean":
-          gqlType = "Boolean"; break;
-        case "date":
-          gqlType = "Date"; break;
-        case "enum":
-          gqlType = this.capitalizeEnumName(field.name); break;
-        case "string":
-        default:
-          gqlType = "String"; break;
-      }
-
-      typeMap[key] = gqlType;
-    }
-
-    return typeMap;
-  }
-
-  capitalizeEnumName(name: string) {
-    // Review
-    return name.charAt(0).toUpperCase() + name.slice(1) + "Enum";
-  }
-
 }
