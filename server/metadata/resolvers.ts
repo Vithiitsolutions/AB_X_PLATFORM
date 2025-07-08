@@ -3,7 +3,7 @@ import { GraphQLError } from "graphql";
 import { Form } from "./FormService";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
-import { getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth"
+import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth"
 export default {
   Query: {
     signIn: async (
@@ -80,23 +80,34 @@ export default {
       { input }: { input: any },
       ctx: any
     ) => {
-      console.log(ctx.user);
       const {
         date,
+        startDate,
+        endDate,
         stateId,
         districtId,
         constituencyId,
+        year
       } = input || {};
+
       return await getUserAnalytics({
         date,
+        startDate,
+        endDate,
         stateId,
         districtId,
         constituencyId,
+        year
       });
     },
     getUserScreenDuration: async (root: any, { input }: { input: any }, ctx: any) => {
       const ctxUser = ctx.user;
       const data = await getUserLoginDurationByDate(ctxUser.id, input.date);
+      return data;
+    },
+    getActiveUsersCount: async (root: any, { startDate, endDate, year }: { startDate: string, endDate: string, year: number }, ctx: any) => {
+      console.log(startDate, endDate);
+      const data = await getActiveUserCountWithRoles({ startDate, endDate, year })
       return data;
     },
     retentionRatemetrics: async (
