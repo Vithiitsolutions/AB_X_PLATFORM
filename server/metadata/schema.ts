@@ -3,6 +3,7 @@ export const typeDefs = `
         signIn(value: String!, password: String!, validateBy: String!): LoginResponse
         getFormMetadataRecordCreate(formId: String): JSON
         getSurveyStats(filter: PollStatsFilter): PollStat
+        getLeaderStats(filter:LeaderStatsFilter): LeaderStats
         me: User
 
     }
@@ -26,5 +27,19 @@ export const typeDefs = `
         endDate:String
         leaderId:ID 
     } 
+    type LeaderStats {
+        filteredLeaders: Int
+        totalLeaders: Int
+        positionStatusCount:Int
+    }
+   input LeaderStatsFilter {
+        state: ID
+        district: ID
+        constituency: ID
+        positionStatusId:String
+        startDate:String
+        endDate:String 
+    }    
+
 
 `;

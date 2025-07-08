@@ -5,6 +5,7 @@ import { sign } from "node:crypto";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
 import { getSurveyStats } from "../aggeregation/surveyReports";
+import {getLeaderStats} from "../aggeregation/TotalNo.ofLeaders"
 export default {
   Query: {
     signIn: async (
@@ -78,15 +79,23 @@ export default {
     },
 
     getSurveyStats :async (_:any, args:{filter?:any},context:any)=>{
-  try {
-    const result = await getSurveyStats(args.filter|| {});
-    return result
-  }catch(error:any){
-    console.log("Graphql Resolver Error :",Error)
-    throw new GraphQLError(error.message || "Failed to fetch activity summary")
+     try {
+      const result = await getSurveyStats(args.filter|| {});
+      return result
+  }  catch(error:any){
+      console.log("Graphql Resolver Error :",Error)
+      throw new GraphQLError(error.message || "Failed to fetch activity summary")
   }
 },
-     
+    getLeaderStats: async (_: any, args: { filter?: any }, context: any) => { 
+       try{
+         const stats = await getLeaderStats(args.filter || {});
+         return stats; 
+    }   catch (error: any) {
+          console.error("Error in resolver getLeaderStats:", error);
+          throw new GraphQLError(error.message || "Failed to fetch leader stats.");
+    }
+  }, 
   },
   Mutation: {
     createRecordsUsingForm: async (
