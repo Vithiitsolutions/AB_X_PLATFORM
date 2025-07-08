@@ -6,6 +6,7 @@ export const typeDefs = `
         getUserScreenDuration(input:UserscreenInput):UserScreenDurationResponse
         getActiveUsersCount(startDate: String, endDate: String,year:Int): ActiveCount
         retentionRatemetrics(date:String,stateId:String,districtId:String,constituencyId:String):JSON
+         getPostReportsSummary(filter: PostReportFilterInput): PostReportSummaryResponse
         me: User
     }
     type Mutation {
@@ -15,6 +16,13 @@ export const typeDefs = `
     input UserscreenInput{
         date:String
     }
+     input PostReportFilterInput {
+     startDate: String
+     endDate: String
+     stateId: ID
+     districtId: ID
+     constituencyId: ID
+}
     type LoginResponse {
         token: String
         user: User
@@ -71,4 +79,29 @@ export const typeDefs = `
        message: String!
        session: LoginSession
     }
+    type PostReportSummaryResponse {
+    reportSummary: ReportSummary
+    commonManFeedbackList: [FeedbackReport]
+    leaderFeedbackList: [FeedbackReport]
+    }
+    type ReportSummary {
+    totalReports: CountWithPercentage
+    reportsByCategory: CountWithPercentage
+    commonManFeedback: CountWithPercentage
+    leaderFeedback: CountWithPercentage
+}
+
+    type CountWithPercentage {
+    count: Int!
+    percentageChange: Float!
+}
+
+    type FeedbackReport {
+    postId: ID
+    postTitle: String
+    date: String
+    state: String
+    district: String
+    constituency: String
+}
 `;

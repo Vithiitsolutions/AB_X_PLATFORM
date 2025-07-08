@@ -4,6 +4,7 @@ import { Form } from "./FormService";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
 import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth"
+import { getPostReportsSummary } from "../Aggrigation/ReportPost.ts"
 export default {
   Query: {
     signIn: async (
@@ -66,6 +67,19 @@ export default {
         });
       }
       return user;
+    },
+    getPostReportsSummary: async (
+      root: any,
+      { filter }: { filter: any },
+      ctx: ApolloCtx
+    ) => {
+      try {
+        return await getPostReportsSummary(filter); // Imported from your aggregation file
+      } catch (error: any) {
+        throw new GraphQLError(
+          error.message || "Failed to fetch post report summary"
+        );
+      }
     },
     getFormMetadataRecordCreate: async (
       root: any,
