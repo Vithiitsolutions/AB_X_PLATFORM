@@ -3,17 +3,11 @@ export const typeDefs = `
         signIn(value: String!, password: String!, validateBy: String!): LoginResponse
         getFormMetadataRecordCreate(formId: String): JSON
         getUserAnalytics(input: UserAnalyticsInput): UserAnalyticsResult
-        getUserScreenDuration(input:UserscreenInput):UserScreenDurationResponse
         getActiveUsersCount(startDate: String, endDate: String,year:Int): ActiveCount
-        retentionRatemetrics(date:String,stateId:String,districtId:String,constituencyId:String):JSON
         me: User
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
-        recordUserLoginSession(startTime: String!, endTime: String): UserScreenTimeResponse
-    }
-    input UserscreenInput{
-        date:String
     }
     type LoginResponse {
         token: String
@@ -58,17 +52,5 @@ export const typeDefs = `
         publicCount: Int
         leaderCount: Int
         monthlyActiveTrend: [MonthlyActiveTrend!]!
-    }
-    type UserScreenDurationResponse{
-        logins: [LoginDuration]
-        totalDurationHours: Float
-    }
-    type LoginDuration {
-        loginId: ID
-        durationHours: Float
-    }
-    type UserScreenTimeResponse {
-       message: String!
-       session: LoginSession
     }
 `;
