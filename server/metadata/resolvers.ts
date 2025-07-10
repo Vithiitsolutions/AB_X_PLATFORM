@@ -100,11 +100,11 @@ export default {
         year
       });
     },
-    getUserScreenDuration: async (root: any, { input }: { input: any }, ctx: any) => {
-      const ctxUser = ctx.user;
-      const data = await getUserLoginDurationByDate(ctxUser.id, input.date);
-      return data;
-    },
+    // getUserScreenDuration: async (root: any, { input }: { input: any }, ctx: any) => {
+    //   const ctxUser = ctx.user;
+    //   const data = await getUserLoginDurationByDate(ctxUser.id, input.date);
+    //   return data;
+    // },
     getActiveUsersCount: async (root: any, { startDate, endDate, year }: { startDate: string, endDate: string, year: number }, ctx: any) => {
       console.log(startDate, endDate);
       const data = await getActiveUserCountWithRoles({ startDate, endDate, year })
@@ -180,83 +180,83 @@ export default {
       const form = new Form(formId, ctx.user);
       const response = await form.createRecordsUsingForm(formData);
       return response;
-    },
-    recordUserLoginSession: async (
-      root: any,
-      { startTime, endTime }: { startTime: string; endTime: string },
-      ctx: any
-    ) => {
-      if (!ctx.connect || !ctx.connect.user) {
-        throw new Error("User not authenticated.");
-      }
-      const ctxUser = ctx.user;
-      console.log(ctxUser, "hgfdf");
+  //   },
+  //   recordUserLoginSession: async (
+  //     root: any,
+  //     { startTime, endTime }: { startTime: string; endTime: string },
+  //     ctx: any
+  //   ) => {
+  //     if (!ctx.connect || !ctx.connect.user) {
+  //       throw new Error("User not authenticated.");
+  //     }
+  //     const ctxUser = ctx.user;
+  //     console.log(ctxUser, "hgfdf");
 
-      const date = new Date(startTime || Date.now());
-      const year = date.getUTCFullYear();
-      const month = date.getUTCMonth();
-      const day = date.getUTCDate();
-      const isSameDay = (d: Date) =>
-        d.getUTCFullYear() === year &&
-        d.getUTCMonth() === month &&
-        d.getUTCDate() === day;
-      let loginSession = await mercury.db.LoginSession.mongoModel.findOne({
-        user: ctxUser.id,
-        startTime: new Date(startTime),
-      });
-      if (loginSession) {
-        if (!loginSession.endTime && endTime) {
-          loginSession = await mercury.db.LoginSession.update(
-            loginSession.id,
-            { endTime: new Date(endTime) },
-            { id: ctxUser.id, profile: ctxUser.profile }
-          );
-        }
-        const userScreen = await mercury.db.UserScreenTime.mongoModel.findOne({ user: ctxUser.id });
-        if (userScreen && isSameDay(new Date(userScreen.date))) {
-          if (!userScreen.logins.includes(loginSession.id)) {
-            await mercury.db.UserScreenTime.mongoModel.updateOne(
-              { _id: userScreen._id },
-              { $addToSet: { logins: loginSession._id } }
-            );
-          }
-        }
-        return {
-          message: loginSession.endTime ? "Session updated with endTime." : "Session already exists.",
-          session: loginSession,
-        };
-      }
-      const latestActiveSession = await mercury.db.LoginSession.mongoModel.findOne({
-        user: ctxUser.id,
-        endTime: null,
-      });
-      if (latestActiveSession) {
-        throw new Error("User already has an active login session.");
-      }
-      let todayScreenTime = await mercury.db.UserScreenTime.mongoModel.findOne({ user: ctxUser.id });
-      if (!todayScreenTime || !isSameDay(new Date(todayScreenTime.date))) {
-        todayScreenTime = await mercury.db.UserScreenTime.create(
-          {
-            user: ctxUser.id,
-            date,
-            logins: [],
-          },
-          { id: ctxUser.id, profile: ctxUser.profile }
-        );
-      }
-      loginSession = await mercury.db.LoginSession.create(
-        {
-          user: ctxUser.id,
-          startTime: new Date(startTime),
-          endTime: endTime ? new Date(endTime) : undefined,
-        },
-        { id: ctxUser.id, profile: ctxUser.profile }
-      );
-      await mercury.db.UserScreenTime.mongoModel.updateOne(
-        { _id: todayScreenTime._id },
-        { $addToSet: { logins: loginSession._id } }
-      );
-      return { message: "New login session created.", session: loginSession };
-    }
-  },
+  //     const date = new Date(startTime || Date.now());
+  //     const year = date.getUTCFullYear();
+  //     const month = date.getUTCMonth();
+  //     const day = date.getUTCDate();
+  //     const isSameDay = (d: Date) =>
+  //       d.getUTCFullYear() === year &&
+  //       d.getUTCMonth() === month &&
+  //       d.getUTCDate() === day;
+  //     let loginSession = await mercury.db.LoginSession.mongoModel.findOne({
+  //       user: ctxUser.id,
+  //       startTime: new Date(startTime),
+  //     });
+  //     if (loginSession) {
+  //       if (!loginSession.endTime && endTime) {
+  //         loginSession = await mercury.db.LoginSession.update(
+  //           loginSession.id,
+  //           { endTime: new Date(endTime) },
+  //           { id: ctxUser.id, profile: ctxUser.profile }
+  //         );
+  //       }
+  //       const userScreen = await mercury.db.UserScreenTime.mongoModel.findOne({ user: ctxUser.id });
+  //       if (userScreen && isSameDay(new Date(userScreen.date))) {
+  //         if (!userScreen.logins.includes(loginSession.id)) {
+  //           await mercury.db.UserScreenTime.mongoModel.updateOne(
+  //             { _id: userScreen._id },
+  //             { $addToSet: { logins: loginSession._id } }
+  //           );
+  //         }
+  //       }
+  //       return {
+  //         message: loginSession.endTime ? "Session updated with endTime." : "Session already exists.",
+  //         session: loginSession,
+  //       };
+  //     }
+  //     const latestActiveSession = await mercury.db.LoginSession.mongoModel.findOne({
+  //       user: ctxUser.id,
+  //       endTime: null,
+  //     });
+  //     if (latestActiveSession) {
+  //       throw new Error("User already has an active login session.");
+  //     }
+  //     let todayScreenTime = await mercury.db.UserScreenTime.mongoModel.findOne({ user: ctxUser.id });
+  //     if (!todayScreenTime || !isSameDay(new Date(todayScreenTime.date))) {
+  //       todayScreenTime = await mercury.db.UserScreenTime.create(
+  //         {
+  //           user: ctxUser.id,
+  //           date,
+  //           logins: [],
+  //         },
+  //         { id: ctxUser.id, profile: ctxUser.profile }
+  //       );
+  //     }
+  //     loginSession = await mercury.db.LoginSession.create(
+  //       {
+  //         user: ctxUser.id,
+  //         startTime: new Date(startTime),
+  //         endTime: endTime ? new Date(endTime) : undefined,
+  //       },
+  //       { id: ctxUser.id, profile: ctxUser.profile }
+  //     );
+  //     await mercury.db.UserScreenTime.mongoModel.updateOne(
+  //       { _id: todayScreenTime._id },
+  //       { $addToSet: { logins: loginSession._id } }
+  //     );
+  //     return { message: "New login session created.", session: loginSession };
+  //   }
+  // },
 };
