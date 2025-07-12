@@ -4,12 +4,20 @@ import { Form } from "./FormService";
 import { sign } from "node:crypto";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
-
+import { getPostStats } from "../aggeregation/postAnalysis";
+import { getActivityStats } from "../aggeregation/activityAnalysis";
+import { getManifestoSurveyStats } from "../aggeregation/manifestosurvey";
+import { getUrgeApplicationStats } from "../aggeregation/urgeApplication";
+import { getLeaderStats } from "../aggeregation/leader";
 export default {
   Query: {
     signIn: async (
       _root: unknown,
-      { value, password, validateBy }: { value: string; password: string, validateBy: string },
+      {
+        value,
+        password,
+        validateBy,
+      }: { value: string; password: string; validateBy: string },
       _ctx: unknown
     ) => {
       const user: any = await mercury.db.User.get(
@@ -21,7 +29,7 @@ export default {
           profile: "SystemAdmin",
         }
       );
-      
+
       if (_.isEmpty(user)) {
         throw new GraphQLError("User not found", {
           extensions: {
@@ -43,13 +51,13 @@ export default {
           id: user._id,
           profile: user.role,
         },
-        process.env.JWT_SECRET || 'default-secret-key',
+        process.env.JWT_SECRET || "default-secret-key",
         {
           algorithm: "HS256",
-          expiresIn: "1d"
+          expiresIn: "1d",
         }
       );
-      return {token, user};
+      return { token, user };
     },
     me: async (_root: unknown, _args: unknown, ctx: any) => {
       const user = await mercury.db.User.get(
@@ -68,6 +76,17 @@ export default {
       }
       return user;
     },
+    getActivityStats: async (_: any, args: { filter?: any }, context: any) => {
+      try {
+        const stats = await getActivityStats(args.filter || {});
+        return stats;
+      } catch (error: any) {
+        console.error("Error in resolver getActivityDashboardStats:", error);
+        throw new GraphQLError(
+          error.message || "Failed to fetch activity dashboard stats."
+        );
+      }
+    },
     getFormMetadataRecordCreate: async (
       root: any,
       { formId }: { formId: string },
@@ -75,6 +94,56 @@ export default {
     ) => {
       const form = new Form(formId, ctx.user);
       return form.getFormMetadata();
+    },
+    getPostStats: async (_: any, args: { filter?: any }, context: any) => {
+      try {
+        const stats = await getPostStats(args.filter || {});
+        return stats;
+      } catch (error: any) {
+        console.error("Error in resolver getSupportAndResolvedStats:", error);
+        throw new GraphQLError(
+          error.message || "Failed to fetch support and resolved stats."
+        );
+      }
+    },
+    getManifestoSurveyStats: async (
+      _: any,
+      args: { filter?: any },
+      context: any
+    ) => {
+      try {
+        const postInfo = await getManifestoSurveyStats(args.filter);
+        return postInfo;
+      } catch (error: any) {
+        console.error("Error in resolver getpostInfo:", error);
+        throw new GraphQLError(error.message || "Failed to fetch post info.");
+      }
+    },
+    getUrgeApplicationStats: async (
+      _: any,
+      args: { filter: any },
+      context: any
+    ) => {
+      try {
+        const result = await getUrgeApplicationStats(args.filter || {});
+        return result;
+      } catch (error: any) {
+        console.log("Graphql Resolver Error :", Error);
+        throw new GraphQLError(
+          error.message || "Failed to fetch activity summary"
+        );
+      }
+    },
+    getLeaderStats: async (_: any, args: { filter?: any }, context: any) => {
+      try {
+        const stats = await getLeaderStats(args.filter || {});
+        return stats;
+      } catch (error: any) {
+        console.error("Error in resolver getLeaderStats:", error);
+        throw new GraphQLError(
+          error.message || "Failed to fetch leader stats."
+        );
+      }
     },
   },
   Mutation: {
