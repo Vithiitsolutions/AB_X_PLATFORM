@@ -4,6 +4,7 @@ export const typeDefs = `
         getFormMetadataRecordCreate(formId: String): JSON
         getUserAnalytics(input: UserAnalyticsInput): UserAnalyticsResult
         getActiveUsersCount(startDate: String, endDate: String,year:Int): ActiveCount
+        getManifestoSurveyStats(filter: DashboardFilter): DashboardStats
         me: User
     }
     type Mutation {
@@ -12,6 +13,26 @@ export const typeDefs = `
     type LoginResponse {
         token: String
         user: User
+    }
+    input DashboardFilter {
+       state: ID
+       district: ID
+       constituency: ID
+       startDate: String
+       endDate: String
+    }    
+    type DashboardStats {
+      manifestoStats: ManifestoStats
+      surveyStats: SurveyStats
+    }
+    type ManifestoStats {
+       totalManifestos: Int     
+       manifestoPercentage: Float
+    }
+    type SurveyStats {
+       totalSurveys: Int    
+       totalEndedSurveys: Int     
+       surveyPercentage: Float
     }
     input UserAnalyticsInput {
         date: String

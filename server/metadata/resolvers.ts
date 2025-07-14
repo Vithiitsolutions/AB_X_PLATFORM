@@ -3,7 +3,8 @@ import { GraphQLError } from "graphql";
 import { Form } from "./FormService";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
-import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth"
+import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth.ts"
+import {getManifestoSurveyStats} from "../Analytics/ManifestoSurvey.ts"
 export default {
   Query: {
     signIn: async (
@@ -100,6 +101,20 @@ export default {
         year
       });
     },
+    getManifestoSurveyStats: async (
+      _: any,
+      args: { filter?: any },
+      context: any
+    ) => {
+      try {
+        const postInfo = await getManifestoSurveyStats(args.filter);
+        return postInfo;
+      } catch (error: any) {
+        console.error("Error in resolver getpostInfo:", error);
+        throw new GraphQLError(error.message || "Failed to fetch post info.");
+      }
+    },
+
     // getUserScreenDuration: async (root: any, { input }: { input: any }, ctx: any) => {
     //   const ctxUser = ctx.user;
     //   const data = await getUserLoginDurationByDate(ctxUser.id, input.date);
