@@ -43,7 +43,12 @@ export const typeDefs = `
     type LeaderStats {
        totalLeaders: Int
        positionStatusCount:Int
-    }   
+       positionNameBreakdown: [PositionNameBreakdown]
+    } 
+    type PositionNameBreakdown {
+        name: String
+        count: Int
+    }
     input ActivityDashboardFilter {
       state: ID
       district: ID
