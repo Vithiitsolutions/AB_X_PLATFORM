@@ -7,6 +7,7 @@ export const typeDefs = `
         getManifestoSurveyStats(filter: DashboardFilter): DashboardStats
         getPostStats(filter: CombinedStatsFilter): CombinedStatsResponse
         getActivityStats(filter: ActivityDashboardFilter): ActivityDashboardStats
+        getLeaderStats(filter:LeaderStatsFilter): LeaderStats
         me: User
     }
     type Mutation {
@@ -16,7 +17,19 @@ export const typeDefs = `
         token: String
         user: User
     }
-      input ActivityDashboardFilter {
+    input LeaderStatsFilter {
+       state: ID
+       district: ID
+       constituency: ID
+       positionStatusId:String
+       startDate:String
+       endDate:String 
+    }
+    type LeaderStats {
+       totalLeaders: Int
+       positionStatusCount:Int
+    }   
+    input ActivityDashboardFilter {
       state: ID
       district: ID
       constituency: ID

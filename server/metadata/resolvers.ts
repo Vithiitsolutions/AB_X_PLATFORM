@@ -138,6 +138,17 @@ export default {
         );
       }
     },
+    getLeaderStats: async (_: any, args: { filter?: any }, context: any) => {
+      try {
+        const stats = await getLeaderStats(args.filter || {});
+        return stats;
+      } catch (error: any) {
+        console.error("Error in resolver getLeaderStats:", error);
+        throw new GraphQLError(
+          error.message || "Failed to fetch leader stats."
+        );
+      }
+    },
     // getUserScreenDuration: async (root: any, { input }: { input: any }, ctx: any) => {
     //   const ctxUser = ctx.user;
     //   const data = await getUserLoginDurationByDate(ctxUser.id, input.date);
