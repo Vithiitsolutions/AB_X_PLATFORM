@@ -7,6 +7,8 @@ import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDa
 import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey.ts"
 import { getPostStats } from "../Analytics/Post.ts";
 import { getActivityStats } from "../Analytics/Activity.ts";
+import { getLeaderStats } from "../Analytics/Leader.ts";
+import { getUrgeApplicationStats } from "../Analytics/UrgeRequest.ts"
 export default {
   Query: {
     signIn: async (
@@ -146,6 +148,21 @@ export default {
         console.error("Error in resolver getLeaderStats:", error);
         throw new GraphQLError(
           error.message || "Failed to fetch leader stats."
+        );
+      }
+    },
+    getUrgeApplicationStats: async (
+      _: any,
+      args: { filter: any },
+      context: any
+    ) => {
+      try {
+        const result = await getUrgeApplicationStats(args.filter || {});
+        return result;
+      } catch (error: any) {
+        console.log("Graphql Resolver Error :", Error);
+        throw new GraphQLError(
+          error.message || "Failed to fetch activity summary"
         );
       }
     },

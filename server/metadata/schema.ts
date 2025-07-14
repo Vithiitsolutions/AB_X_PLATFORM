@@ -8,6 +8,7 @@ export const typeDefs = `
         getPostStats(filter: CombinedStatsFilter): CombinedStatsResponse
         getActivityStats(filter: ActivityDashboardFilter): ActivityDashboardStats
         getLeaderStats(filter:LeaderStatsFilter): LeaderStats
+        getUrgeApplicationStats(filter: ApplicationStatsFilter): ApplicationStats 
         me: User
     }
     type Mutation {
@@ -16,6 +17,20 @@ export const typeDefs = `
     type LoginResponse {
         token: String
         user: User
+    }
+    input ApplicationStatsFilter {
+        state: ID
+        district: ID
+        constituency: ID
+        leaderId: ID
+        startDate: String
+        endDate: String
+    }
+    type ApplicationStats {
+       totalApplications: Int   
+       acceptedCount: Int
+       resolvedCount: Int
+       rejectedCount: Int
     }
     input LeaderStatsFilter {
        state: ID
