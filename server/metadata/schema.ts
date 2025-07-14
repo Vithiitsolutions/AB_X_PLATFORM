@@ -144,6 +144,9 @@ export const typeDefs = `
         femaleCount: Int
         femaleGrowth:Float
         monthlySignupTrend: [MonthlySignup]
+        newUserCount:Float,
+        newUserGrowth:Float,
+
     }
     type MonthlyActiveTrend {
         month: String

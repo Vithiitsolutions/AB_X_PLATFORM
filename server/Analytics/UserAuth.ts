@@ -134,6 +134,22 @@ export async function getUserAnalytics({
             total: data.total,
         };
     });
+    const now = new Date();
+    const currentMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
+    const currentMonthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+    const previous30DaysStart = new Date(currentMonthStart);
+    previous30DaysStart.setUTCDate(previous30DaysStart.getUTCDate() - 30);
+    const previous30DaysEnd = new Date(currentMonthStart);
+    previous30DaysEnd.setUTCHours(23, 59, 59, 999);
+    const newUserCount = await UserData.mongoModel.countDocuments({
+        ...filters,
+        createdOn: { $gte: currentMonthStart, $lte: currentMonthEnd },
+    });
+    const previousNewUserCount = await UserData.mongoModel.countDocuments({
+        ...filters,
+        createdOn: { $gte: previous30DaysStart, $lte: previous30DaysEnd },
+    });
+    const newUserGrowth = calculateGrowth(newUserCount, previousNewUserCount);
 
     return {
         totalCount,
@@ -149,6 +165,9 @@ export async function getUserAnalytics({
         // femaleGrowth: calculateGrowth(femaleCount, prevFemale),
         femaleGrowth: Math.round((femaleCount / totalCount) * 100),
         monthlySignupTrend,
+        newUserCount,
+        newUserGrowth,
+
     };
 }
 
