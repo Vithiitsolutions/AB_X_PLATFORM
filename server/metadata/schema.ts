@@ -5,6 +5,7 @@ export const typeDefs = `
         getUserAnalytics(input: UserAnalyticsInput): UserAnalyticsResult
         getActiveUsersCount(startDate: String, endDate: String,year:Int): ActiveCount
         getManifestoSurveyStats(filter: DashboardFilter): DashboardStats
+        getPostStats(filter: CombinedStatsFilter): CombinedStatsResponse
         me: User
     }
     type Mutation {
@@ -14,6 +15,41 @@ export const typeDefs = `
         token: String
         user: User
     }
+    input CombinedStatsFilter {
+         postId: ID
+         state: ID
+         district: ID
+         constituency: ID
+         category: ID
+         leaderId: ID
+         startDate: String
+         endDate: String
+    }
+    type PostStats {
+        totalResolved: Int
+        publicResolvedCount: Int
+         privateResolvedCount: Int
+        totalPosts: Int
+        commonManIssuesPostedPublic: Int
+        commonManIssuesPostedPrivate: Int
+        leaderIssuesPostedPublic: Int
+        leaderIssuesPostedPrivate: Int
+        totalCategory: Int
+        categoryPublic: Int
+        categoryPrivate: Int
+    }
+    type SupportSufferStats {
+         supportCount: Int
+         sufferCount: Int
+         totalCount: Int
+         supportRate: Float
+         sufferRate: Float
+    }
+    type CombinedStatsResponse {
+       postStats: PostStats
+       supportSufferStats: SupportSufferStats
+    }  
+
     input DashboardFilter {
        state: ID
        district: ID

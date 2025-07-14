@@ -4,7 +4,8 @@ import { Form } from "./FormService";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
 import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth.ts"
-import {getManifestoSurveyStats} from "../Analytics/ManifestoSurvey.ts"
+import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey.ts"
+import { getPostStats } from "../Analytics/Post.ts";
 export default {
   Query: {
     signIn: async (
@@ -112,6 +113,17 @@ export default {
       } catch (error: any) {
         console.error("Error in resolver getpostInfo:", error);
         throw new GraphQLError(error.message || "Failed to fetch post info.");
+      }
+    },
+    getPostStats: async (_: any, args: { filter?: any }, context: any) => {
+      try {
+        const stats = await getPostStats(args.filter || {});
+        return stats;
+      } catch (error: any) {
+        console.error("Error in resolver getSupportAndResolvedStats:", error);
+        throw new GraphQLError(
+          error.message || "Failed to fetch support and resolved stats."
+        );
       }
     },
 
