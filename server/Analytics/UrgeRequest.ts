@@ -1,5 +1,6 @@
 import mercury from "@mercury-js/core";
 import mongoose from "mongoose";
+
 interface ApplicationStatsFilter {
   state?: string;
   district?: string;
@@ -9,14 +10,17 @@ interface ApplicationStatsFilter {
   startDate?: string;
   endDate?: string;
 }
+
 export const getUrgeApplicationStats = async (
   filter: ApplicationStatsFilter = {}
 ) => {
   const toObjectId = (id?: string) =>
     id ? new mongoose.Types.ObjectId(id) : undefined;
+
   const filteredMatch: Record<string, any> = {
     ...(filter.leaderId && { leader: toObjectId(filter.leaderId) }),
   };
+
   if (filter.startDate || filter.endDate) {
     const dateRange: Record<string, any> = {};
     if (filter.startDate) {
@@ -31,6 +35,7 @@ export const getUrgeApplicationStats = async (
     }
     filteredMatch.createdOn = dateRange;
   }
+
   const locationMatch: Record<string, any> = {
     ...(filter.state && { "user.state": toObjectId(filter.state) }),
     ...(filter.district && { "user.district": toObjectId(filter.district) }),
@@ -38,6 +43,7 @@ export const getUrgeApplicationStats = async (
       "user.constituency": toObjectId(filter.constituency),
     }),
   };
+
   const pipeline = [
     { $match: filteredMatch },
     {
@@ -88,6 +94,7 @@ export const getUrgeApplicationStats = async (
             },
           },
         ],
+        urgeCount: [{ $count: "count" }],
         positionStatusCount: filter.positionStatusId
           ? [
               {
@@ -103,22 +110,29 @@ export const getUrgeApplicationStats = async (
       },
     },
   ];
+
   try {
     const [result] = await mercury.db.Application.mongoModel
       .aggregate(pipeline)
       .exec();
+
     const counts = result.statusCounts?.[0] || {};
     const positionStatusCount = result.positionStatusCount?.[0]?.count || 0;
+    const urgeCount = result.urgeCount?.[0]?.count || 0;
+
     const acceptedCount = counts.acceptedCount || 0;
     const resolvedCount = counts.resolvedCount || 0;
     const rejectedCount = counts.rejectedCount || 0;
+
     const totalApplications = acceptedCount + resolvedCount + rejectedCount;
+
     return {
       totalApplications,
       acceptedCount,
       resolvedCount,
       rejectedCount,
       positionStatusCount,
+      urgeCount,
     };
   } catch (err) {
     console.error("Aggregation Error:", err);

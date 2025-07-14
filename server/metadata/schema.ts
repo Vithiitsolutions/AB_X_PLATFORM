@@ -29,10 +29,12 @@ export const typeDefs = `
         endDate: String
     }
     type ApplicationStats {
-       totalApplications: Int   
-       acceptedCount: Int
-       resolvedCount: Int
-       rejectedCount: Int
+        totalApplications: Int,
+        acceptedCount: Int,
+        resolvedCount: Int,
+        rejectedCount: Int,
+        positionStatusCount: Int,
+        urgeCount: Int
     }
     input LeaderStatsFilter {
        state: ID
