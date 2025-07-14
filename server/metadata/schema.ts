@@ -9,7 +9,9 @@ export const typeDefs = `
         getActivityStats(filter: ActivityDashboardFilter): ActivityDashboardStats
         getLeaderStats(filter:LeaderStatsFilter): LeaderStats
         getUrgeApplicationStats(filter: ApplicationStatsFilter): ApplicationStats 
+        getNewsPostTrends(year: Int): [NewsTrend]
         me: User
+        
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
@@ -101,7 +103,11 @@ export const typeDefs = `
        postStats: PostStats
        supportSufferStats: SupportSufferStats
     }  
-
+    type NewsTrend {
+        month: String
+        commonMan: Int
+        leaders: Int
+    }
     input DashboardFilter {
        state: ID
        district: ID

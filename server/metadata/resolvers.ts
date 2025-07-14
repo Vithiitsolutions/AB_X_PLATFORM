@@ -9,6 +9,7 @@ import { getPostStats } from "../Analytics/Post.ts";
 import { getActivityStats } from "../Analytics/Activity.ts";
 import { getLeaderStats } from "../Analytics/Leader.ts";
 import { getUrgeApplicationStats } from "../Analytics/UrgeRequest.ts"
+import { getNewsPostTrends } from "../Analytics/News.ts";
 export default {
   Query: {
     signIn: async (
@@ -176,6 +177,10 @@ export default {
       const data = await getActiveUserCountWithRoles({ startDate, endDate, year })
       return data;
     },
+    getNewsPostTrends: async (_: any, args: { year?: number }, ctx: any) => {
+      return await getNewsPostTrends(args.year);
+    },
+
     // retentionRatemetrics: async (
     //   root: any,
     //   {
