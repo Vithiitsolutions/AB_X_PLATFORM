@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth.ts"
 import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey.ts"
 import { getPostStats } from "../Analytics/Post.ts";
+import { getActivityStats } from "../Analytics/Activity.ts";
 export default {
   Query: {
     signIn: async (
@@ -126,7 +127,17 @@ export default {
         );
       }
     },
-
+    getActivityStats: async (_: any, args: { filter?: any }, context: any) => {
+      try {
+        const stats = await getActivityStats(args.filter || {});
+        return stats;
+      } catch (error: any) {
+        console.error("Error in resolver getActivityDashboardStats:", error);
+        throw new GraphQLError(
+          error.message || "Failed to fetch activity dashboard stats."
+        );
+      }
+    },
     // getUserScreenDuration: async (root: any, { input }: { input: any }, ctx: any) => {
     //   const ctxUser = ctx.user;
     //   const data = await getUserLoginDurationByDate(ctxUser.id, input.date);

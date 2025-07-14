@@ -6,6 +6,7 @@ export const typeDefs = `
         getActiveUsersCount(startDate: String, endDate: String,year:Int): ActiveCount
         getManifestoSurveyStats(filter: DashboardFilter): DashboardStats
         getPostStats(filter: CombinedStatsFilter): CombinedStatsResponse
+        getActivityStats(filter: ActivityDashboardFilter): ActivityDashboardStats
         me: User
     }
     type Mutation {
@@ -14,6 +15,24 @@ export const typeDefs = `
     type LoginResponse {
         token: String
         user: User
+    }
+      input ActivityDashboardFilter {
+      state: ID
+      district: ID
+      constituency: ID
+      startDate:String
+      endDate:String
+    } 
+    type ActivityDashboardStats {
+      totalActivities: Int
+      totalSocialActivities: Int
+      totalPoliticalActivities: Int
+      totalPrivateActivities:Int
+      totalAttendCount: Int
+      politicalAttendCount: Int
+      socialAttendCount: Int
+      politicalMetricsRate:Float
+      socialMetricsRate:Float
     }
     input CombinedStatsFilter {
          postId: ID
