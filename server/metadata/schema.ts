@@ -27,6 +27,9 @@ export const typeDefs = `
     type MonthlyApplicationStat {
         month: String
         count: Int
+        acceptedCount:Int,
+        resolvedCount: Int,
+        rejectedCount: Int,
     }
     type MonthlyApplicationStatsResponse {
         year: Int
