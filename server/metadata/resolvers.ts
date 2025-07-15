@@ -8,7 +8,7 @@ import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey.ts"
 import { getPostStats } from "../Analytics/Post.ts";
 import { getActivityStats } from "../Analytics/Activity.ts";
 import { getLeaderStats } from "../Analytics/Leader.ts";
-import { getUrgeApplicationStats } from "../Analytics/UrgeRequest.ts"
+import { getMonthlyApplicationStats } from "../Analytics/UrgeRequest.ts"
 import { getNewsPostTrends } from "../Analytics/News.ts";
 export default {
   Query: {
@@ -158,7 +158,7 @@ export default {
       context: any
     ) => {
       try {
-        const result = await getUrgeApplicationStats(args.filter || {});
+        const result = await getMonthlyApplicationStats(args.filter || {});
         return result;
       } catch (error: any) {
         console.log("Graphql Resolver Error :", Error);

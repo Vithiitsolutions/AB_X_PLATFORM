@@ -8,7 +8,7 @@ export const typeDefs = `
         getPostStats(filter: CombinedStatsFilter): CombinedStatsResponse
         getActivityStats(filter: ActivityDashboardFilter): ActivityDashboardStats
         getLeaderStats(filter:LeaderStatsFilter): LeaderStats
-        getUrgeApplicationStats(filter: ApplicationStatsFilter): ApplicationStats 
+        getUrgeApplicationStats(filter: ApplicationStatsFilter): MonthlyApplicationStatsResponse 
         getNewsPostTrends(year: Int): [NewsTrend]
         me: User
         
@@ -21,20 +21,16 @@ export const typeDefs = `
         user: User
     }
     input ApplicationStatsFilter {
-        state: ID
-        district: ID
-        constituency: ID
         leaderId: ID
-        startDate: String
-        endDate: String
+        year: String
     }
-    type ApplicationStats {
-        totalApplications: Int,
-        acceptedCount: Int,
-        resolvedCount: Int,
-        rejectedCount: Int,
-        positionStatusCount: Int,
-        urgeCount: Int
+    type MonthlyApplicationStat {
+        month: String
+        count: Int
+    }
+    type MonthlyApplicationStatsResponse {
+        year: Int
+        monthlyCounts: [MonthlyApplicationStat!]!
     }
     input LeaderStatsFilter {
        state: ID

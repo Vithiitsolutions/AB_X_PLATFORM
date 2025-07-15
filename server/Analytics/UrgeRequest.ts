@@ -1,141 +1,67 @@
-import mercury from "@mercury-js/core";
 import mongoose from "mongoose";
+import mercury from "@mercury-js/core";
 
-interface ApplicationStatsFilter {
-  state?: string;
-  district?: string;
-  constituency?: string;
-  leaderId?: string;
-  positionStatusId?: string;
-  startDate?: string;
-  endDate?: string;
-}
-
-export const getUrgeApplicationStats = async (
-  filter: ApplicationStatsFilter = {}
+export const getMonthlyApplicationStats = async (
+  filter: { leaderId?: string; year?: string } = {}
 ) => {
   const toObjectId = (id?: string) =>
     id ? new mongoose.Types.ObjectId(id) : undefined;
 
-  const filteredMatch: Record<string, any> = {
+  const now = new Date();
+  const selectedYear = filter.year
+    ? parseInt(filter.year)
+    : now.getFullYear();
+
+  const startOfYear = new Date(`${selectedYear}-01-01T00:00:00.000Z`);
+  const endOfYear = new Date(`${selectedYear}-12-31T23:59:59.999Z`);
+
+  const matchFilter: Record<string, any> = {
+    createdOn: { $gte: startOfYear, $lte: endOfYear },
     ...(filter.leaderId && { leader: toObjectId(filter.leaderId) }),
   };
 
-  if (filter.startDate || filter.endDate) {
-    const dateRange: Record<string, any> = {};
-    if (filter.startDate) {
-      const start = new Date(filter.startDate);
-      start.setHours(0, 0, 0, 0);
-      dateRange.$gte = start;
-    }
-    if (filter.endDate) {
-      const end = new Date(filter.endDate);
-      end.setHours(23, 59, 59, 999);
-      dateRange.$lte = end;
-    }
-    filteredMatch.createdOn = dateRange;
-  }
-
-  const locationMatch: Record<string, any> = {
-    ...(filter.state && { "user.state": toObjectId(filter.state) }),
-    ...(filter.district && { "user.district": toObjectId(filter.district) }),
-    ...(filter.constituency && {
-      "user.constituency": toObjectId(filter.constituency),
-    }),
-  };
-
   const pipeline = [
-    { $match: filteredMatch },
+    { $match: matchFilter },
     {
-      $lookup: {
-        from: "users",
-        localField: "user",
-        foreignField: "_id",
-        as: "user",
-      },
-    },
-    { $unwind: "$user" },
-    { $match: locationMatch },
-    {
-      $lookup: {
-        from: "userattributes",
-        localField: "user._id",
-        foreignField: "user",
-        as: "attribute",
+      $group: {
+        _id: { $month: "$createdOn" },
+        count: { $sum: 1 },
       },
     },
     {
-      $unwind: {
-        path: "$attribute",
-        preserveNullAndEmptyArrays: true,
+      $project: {
+        month: "$_id",
+        count: 1,
+        _id: 0,
       },
     },
-    {
-      $facet: {
-        statusCounts: [
-          {
-            $group: {
-              _id: "$status",
-              count: { $sum: 1 },
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              acceptedCount: {
-                $sum: { $cond: [{ $eq: ["$_id", "ACCEPTED"] }, "$count", 0] },
-              },
-              resolvedCount: {
-                $sum: { $cond: [{ $eq: ["$_id", "RESOLVED"] }, "$count", 0] },
-              },
-              rejectedCount: {
-                $sum: { $cond: [{ $eq: ["$_id", "REJECTED"] }, "$count", 0] },
-              },
-            },
-          },
-        ],
-        urgeCount: [{ $count: "count" }],
-        positionStatusCount: filter.positionStatusId
-          ? [
-              {
-                $match: {
-                  "attribute.positionStatus": toObjectId(
-                    filter.positionStatusId
-                  ),
-                },
-              },
-              { $count: "count" },
-            ]
-          : [{ $match: { _id: null } }, { $count: "count" }],
-      },
-    },
+    { $sort: { month: 1 } },
+  ];
+
+  const monthNames = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
 
   try {
-    const [result] = await mercury.db.Application.mongoModel
+    const result = await mercury.db.Application.mongoModel
       .aggregate(pipeline)
       .exec();
 
-    const counts = result.statusCounts?.[0] || {};
-    const positionStatusCount = result.positionStatusCount?.[0]?.count || 0;
-    const urgeCount = result.urgeCount?.[0]?.count || 0;
-
-    const acceptedCount = counts.acceptedCount || 0;
-    const resolvedCount = counts.resolvedCount || 0;
-    const rejectedCount = counts.rejectedCount || 0;
-
-    const totalApplications = acceptedCount + resolvedCount + rejectedCount;
+    const monthlyCounts = Array.from({ length: 12 }, (_, i) => {
+      const monthData = result.find((r) => r.month === i + 1);
+      return {
+        month: monthNames[i],
+        count: monthData?.count || 0,
+      };
+    });
 
     return {
-      totalApplications,
-      acceptedCount,
-      resolvedCount,
-      rejectedCount,
-      positionStatusCount,
-      urgeCount,
+      year: selectedYear,
+      monthlyCounts,
     };
   } catch (err) {
     console.error("Aggregation Error:", err);
-    throw new Error("Failed to fetch application stats");
+    throw new Error("Failed to fetch monthly application stats");
   }
 };
