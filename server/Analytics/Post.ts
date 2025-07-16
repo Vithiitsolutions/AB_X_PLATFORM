@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import mercury from "@mercury-js/core";
+
 interface CombinedFilter {
   postId?: string;
   state?: string;
@@ -10,17 +11,34 @@ interface CombinedFilter {
   endDate?: string;
   leaderId?: string;
 }
+
 export const getPostStats = async (filter: CombinedFilter = {}) => {
+
   const toObjectId = (id?: string) =>
     id ? new mongoose.Types.ObjectId(id) : undefined;
+
   const baseMatch: any = {};
   const postMatch: Record<string, any> = {};
+
   if (filter.state) baseMatch.state = toObjectId(filter.state);
   if (filter.district) baseMatch.district = toObjectId(filter.district);
   if (filter.constituency)
     baseMatch.constituency = toObjectId(filter.constituency);
   if (filter.category) baseMatch.category = toObjectId(filter.category);
+  if (filter.leaderId) {
+    baseMatch.$or = [
+      {
+        access: "PRIVATE",
+        assignedTo: toObjectId(filter.leaderId),
+      },
+      {
+        access: "PUBLIC",
+        acceptedBy: toObjectId(filter.leaderId),
+      },
+    ];
+  }
   if (filter.postId) postMatch._id = toObjectId(filter.postId);
+
   const dateRange: any = {};
   if (filter.startDate) {
     const start = new Date(filter.startDate);
@@ -32,16 +50,20 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
     end.setHours(23, 59, 59, 999);
     dateRange.$lte = end;
   }
+
   if (Object.keys(dateRange).length) {
     baseMatch.createdOn = dateRange;
     postMatch.createdOn = dateRange;
   }
+
   const resolvedMatch = {
     ...baseMatch,
     status: "Resolved",
     isDeleted: false,
-    ...(filter.leaderId && { assignedTo: toObjectId(filter.leaderId) }),
   };
+
+  
+
   const postPipeline = [
     { $match: baseMatch },
     {
@@ -153,6 +175,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
       },
     },
   ];
+
   const supportSufferPipeline = [
     {
       $match: {
@@ -186,21 +209,24 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
       $group: {
         _id: null,
         supportCount: {
-          $sum: { $cond: [{ $eq: ["$_id", "Supported"] }, "$count", 0] },
+          $sum: { $cond: [{ $eq: ["_id", "Supported"] }, "$count", 0] },
         },
         sufferCount: {
-          $sum: { $cond: [{ $eq: ["$_id", "Suffered"] }, "$count", 0] },
+          $sum: { $cond: [{ $eq: ["_id", "Suffered"] }, "$count", 0] },
         },
       },
     },
   ];
+
   const [postStatsResult] = await mercury.db.Post.mongoModel.aggregate(
     postPipeline
   );
   const [supportStats] = await mercury.db.PostAction.mongoModel.aggregate(
     supportSufferPipeline
   );
+
   const getValue = (arr: any[], key: string) => arr?.[0]?.[key] || 0;
+
   const publicResolvedCount = getValue(
     postStatsResult.publicPrivateResolved,
     "publicResolvedCount"
@@ -210,6 +236,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
     "privateResolvedCount"
   );
   const totalResolved = publicResolvedCount + privateResolvedCount;
+
   const commonManIssuesPostedPublic = getValue(
     postStatsResult.commonManStats,
     "commonManIssuesPostedPublic"
@@ -226,23 +253,27 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
     postStatsResult.leaderStats,
     "leaderIssuesPostedPrivate"
   );
+
   const totalPosts =
     commonManIssuesPostedPublic +
     commonManIssuesPostedPrivate +
     leaderIssuesPostedPublic +
     leaderIssuesPostedPrivate;
+
   const totalCategory = getValue(postStatsResult.totalCategory, "count");
-  let categoryPublic = getValue(
+  const categoryPublic = getValue(
     postStatsResult.categoryStats,
     "categoryPublic"
   );
-  let categoryPrivate = getValue(
+  const categoryPrivate = getValue(
     postStatsResult.categoryStats,
     "categoryPrivate"
   );
+
   const supportCount = supportStats?.supportCount || 0;
   const sufferCount = supportStats?.sufferCount || 0;
   const totalSupportSuffer = supportCount + sufferCount;
+
   return {
     postStats: {
       totalResolved,
