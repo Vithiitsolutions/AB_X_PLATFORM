@@ -13,13 +13,18 @@ export const typeDefs = `
         getReportedPostCount(filter: PostCountFilter): [MonthlyPostStats]
         supportTrendstats(filter: AboutPostCountFilter): [MonthlyRolePostStats]
         me: User
-        
+        CategoryStatsCount: [CategoryStatsResult]
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
     }
     input AboutPostCountFilter {
          year: Int  
+    }
+    type CategoryStatsResult {
+        name: String
+        postReportCount: Int
+        newsReportCount: Int
     }
     type MonthlyRolePostStats {
         month: String

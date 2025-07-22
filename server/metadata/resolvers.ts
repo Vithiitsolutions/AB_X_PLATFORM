@@ -12,6 +12,7 @@ import { getMonthlyApplicationStats } from "../Analytics/UrgeRequest.ts"
 import { getNewsPostTrends } from "../Analytics/News.ts";
 import { getReportedPostCount } from "../Analytics/PostReports.ts";
 import { supportTrendstats } from "../Analytics/SupportTicket.ts";
+import { CategoryStatsCount } from "../Analytics/NewsReports.ts";
 export default {
   Query: {
     signIn: async (
@@ -200,7 +201,18 @@ export default {
       } catch (error: any) {
         console.error("Error in resolver getSupportAndResolvedStats:", error);
         throw new GraphQLError(
-        error.message || "Failed to fetch support and resolved stats."
+          error.message || "Failed to fetch support and resolved stats."
+        );
+      }
+    },
+    CategoryStatsCount: async () => {
+      try {
+        const stats = await CategoryStatsCount();
+        return stats;
+      } catch (error: any) {
+        console.error("Error in CategoryStatsCount resolver:", error);
+        throw new GraphQLError(
+          error.message || "Failed to fetch category stats"
         );
       }
     },
