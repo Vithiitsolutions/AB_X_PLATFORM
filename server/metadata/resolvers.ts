@@ -11,6 +11,7 @@ import { getLeaderStats } from "../Analytics/Leader.ts";
 import { getMonthlyApplicationStats } from "../Analytics/UrgeRequest.ts"
 import { getNewsPostTrends } from "../Analytics/News.ts";
 import { getReportedPostCount } from "../Analytics/PostReports.ts";
+import { supportTrendstats } from "../Analytics/SupportTicket.ts";
 export default {
   Query: {
     signIn: async (
@@ -181,7 +182,7 @@ export default {
     getNewsPostTrends: async (_: any, args: { year?: number }, ctx: any) => {
       return await getNewsPostTrends(args.year);
     },
-    getReportedPostCount: async (root: any, args: { filter?: any }, context: any) => {
+    getReportedPostCount: async (root: any, args: { filter?: any }, ctx: any) => {
       try {
         const stats = await getReportedPostCount(args.filter || {});
         return stats;
@@ -189,6 +190,17 @@ export default {
         console.error("Error in resolver getSupportAndResolvedStats:", error);
         throw new GraphQLError(
           error.message || "Failed to fetch support and resolved stats."
+        );
+      }
+    },
+    supportTrendstats: async (root: any, args: { filter?: any }, ctx: any) => {
+      try {
+        const stats = await supportTrendstats(args.filter || {});
+        return stats;
+      } catch (error: any) {
+        console.error("Error in resolver getSupportAndResolvedStats:", error);
+        throw new GraphQLError(
+        error.message || "Failed to fetch support and resolved stats."
         );
       }
     },

@@ -11,18 +11,27 @@ export const typeDefs = `
         getUrgeApplicationStats(filter: ApplicationStatsFilter): MonthlyApplicationStatsResponse 
         getNewsPostTrends(year: Int): [NewsTrend]
         getReportedPostCount(filter: PostCountFilter): [MonthlyPostStats]
+        supportTrendstats(filter: AboutPostCountFilter): [MonthlyRolePostStats]
         me: User
         
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
     }
+    input AboutPostCountFilter {
+         year: Int  
+    }
+    type MonthlyRolePostStats {
+        month: String
+        leaderPosts: Int
+        publicPosts: Int
+    }
     type MonthlyPostStats {
         month: String
         totalPosts: Int
     }
     input PostCountFilter {
-     year: Int
+      year: Int
     }
     type LoginResponse {
         token: String
