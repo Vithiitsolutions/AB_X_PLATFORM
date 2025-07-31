@@ -23,4 +23,4 @@ RUN yarn build
 EXPOSE 4000
 
 # Run both services
-CMD ["start"]
+CMD ["yarn", "start"]
