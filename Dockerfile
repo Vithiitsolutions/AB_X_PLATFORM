@@ -14,13 +14,13 @@ RUN deno install
 COPY . .
 
 # Patch Apollo server for restarts
-RUN deno task patch-server
+RUN npm run patch-server
 
 # Build the application
-RUN deno task build
+RUN npm run build
 
 # Expose ports for both services
 EXPOSE 4000
 
 # Run both services
-CMD ["task", "start"]
+CMD ["run", "start"]
