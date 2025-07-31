@@ -1,24 +1,20 @@
+import "dotenv/config";
 import compression from "compression";
 import express, { NextFunction, Request, Response } from "express";
 import morgan from "morgan";
 import { expressMiddleware } from "@apollo/server/express4";
 import cors from "cors";
 import bodyParser from "body-parser";
-import { WebSocketClient, WebSocketServer } from "websocket";
+import { WebSocketServer, WebSocket } from "ws";
 // Mercury Core setup - Metadata API
-import MetaApi from "./server/metadata/index.ts";
-import { metaEvents } from "./server/metadata/Events.ts";
-import { meta } from "./app/routes/counter.tsx";
-import { profile } from "node:console";
-import { Platform } from "./server/metadata/platform.ts";
-import { transformSync } from "@babel/core";
-import presetReact from "@babel/preset-react";
+import MetaApi from "./server/metadata/index.js";
+import { metaEvents } from "./server/metadata/Events.js";
 import jwt from "jsonwebtoken";
 
-let interval: number;
+let interval: NodeJS.Timeout;
 // Websocket setup
-const wss = new WebSocketServer(9080);
-wss.on("connection", function (ws: WebSocketClient) {
+const wss = new WebSocketServer({ port: 9080 });
+wss.on("connection", function (ws: WebSocket) {
   // ws.on("message", function (message: string) {
   interval = setInterval(() => {
     ws.send(
@@ -38,10 +34,10 @@ wss.on("close", function () {
 });
 // Short-circuit the type-checking of the built output.
 const BUILD_PATH = "./build/server/index.js";
-const DEVELOPMENT = Deno.env.get("NODE_ENV") === "development";
-const PORT = Number.parseInt(Deno.env.get("PORT") || "3000");
-const DB_URL = Deno.env.get("DB_URL");
-const REDIS_URL = Deno.env.get("REDIS_URL");
+const DEVELOPMENT = process.env.NODE_ENV === "development";
+const PORT = Number.parseInt(process.env.PORT || "3000");
+const DB_URL = process.env.DB_URL;
+const REDIS_URL = process.env.REDIS_URL;
 
 const app = express();
 // Platform API Server
@@ -50,7 +46,7 @@ const app = express();
 // });
 // Metadata API server
 export const metaServer = new MetaApi({
-  db: DB_URL,
+  db: DB_URL || "mongodb://localhost:27017/mercury",
   redisUrl: REDIS_URL,
 });
 await metaServer.start();
@@ -92,7 +88,7 @@ app.use(
             profile: decoded.profile || "Anonymous",
           };
         } catch (err) {
-          console.warn("JWT verification failed:", err.message);
+          console.warn("JWT verification failed:", (err as Error).message);
         }
       }
       if(profileHeader){
