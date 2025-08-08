@@ -13,6 +13,7 @@ import { getNewsPostTrends } from "../Analytics/News.ts";
 import { getReportedPostCount } from "../Analytics/PostReports.ts";
 import { supportTrendstats } from "../Analytics/SupportTicket.ts";
 import { CategoryStatsCount } from "../Analytics/NewsReports.ts";
+import { SurveyQuery } from "../masterApis/Survey.ts";
 export default {
   Query: {
     signIn: async (
@@ -216,6 +217,7 @@ export default {
         );
       }
     },
+    ...SurveyQuery
 
     // retentionRatemetrics: async (
     //   root: any,

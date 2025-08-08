@@ -14,6 +14,7 @@ export const typeDefs = `
         supportTrendstats(filter: AboutPostCountFilter): [MonthlyRolePostStats]
         me: User
         CategoryStatsCount: [CategoryStatsResult]
+        getSurveyDetails(surveyId: String): SurveyDetailResponse
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
@@ -193,5 +194,52 @@ export const typeDefs = `
         publicCount: Int
         leaderCount: Int
         monthlyActiveTrend: [MonthlyActiveTrend!]!
+    }
+    type SurveyDetailResponse {
+        survey: SurveyInfoResponse,
+        results: SurveyResultResponse
+    }
+    type SurveyInfoResponse {
+        id: ID!,
+        title: String,
+        description: String,
+        surveyType: String,
+        endDate: DateTime,
+        createdBy: CreatedBy,
+        createdOn: DateTime
+        politicalParty: Party
+        isResultPublished: Boolean,
+        questions: [QuestionResponse]
+    }
+    type QuestionResponse {
+        id: ID!,
+        questionText: String,
+        order: Int,
+        options: [OptionResponse],
+        userSelection: String
+    }
+    type SurveyResultResponse {
+        totalResponses: Int,
+        questionResults: [QuestionResult]
+    }
+    type QuestionResult {
+        question: ID!,
+        options: [Option]
+    }
+    type Option {
+        option: ID!,
+        count: Int,
+        percentage: Int
+    }
+    type OptionResponse {
+        id: ID!,
+        optionText: String,
+        order: Int
+    }
+    type CreatedBy {
+        id: ID!
+        name: String,
+        email: String,
+        profilePic: String
     }
 `;
