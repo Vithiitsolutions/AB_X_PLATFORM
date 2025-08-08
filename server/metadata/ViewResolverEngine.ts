@@ -51,8 +51,8 @@ export class ViewResolverEngine {
             pipeline: [
               {
                 $project: {
+                  _id: 1,
                   [recordKey]: 1,
-                  _id: 0,
                 },
               },
             ],
@@ -69,9 +69,13 @@ export class ViewResolverEngine {
         recordKeyMap[fieldName] = recordKey;
 
         // 2b. Project as namespaced key
-        const key = `${alias}.${recordKey}`; // e.g., product.name
-        project[key] = `$${alias}.${recordKey}`;
-        fieldSearchMap.push({ type: "lookup", key, alias: fieldName });
+        // const key = `${alias}.${recordKey}`; // e.g., product.name
+        project[`${fieldName}`] = {
+          id: `$${alias}._id`,
+          [recordKey]: `$${alias}.${recordKey}`
+        };
+
+        fieldSearchMap.push({ type: "lookup", key: fieldName, alias: fieldName });
       } else {
         // 2c. Base model field
         const key = `${baseModel}.${fieldName}`;
@@ -132,11 +136,13 @@ export class ViewResolverEngine {
     return data.map((row) => {
       const result: Record<string, any> = {};
       for (const f of fieldSearchMap) {
-        result[f.alias] = _.get(row, f.key);  // safe nested access
+        // Now handles both scalar and object (relationship) values correctly
+        result[f.alias] = _.get(row, f.key);
       }
       return result;
     });
   }
+
 
   // Combine everything
   async resolveViewData(options: {
