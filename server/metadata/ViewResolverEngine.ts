@@ -176,4 +176,28 @@ export class ViewResolverEngine {
 
     return finalData;
   }
+
+  // Get total count for pagination
+  async getTotalCount(options: {
+    filters?: Record<string, any>;
+    search?: string;
+  }) {
+    const { model, pipeline } = await this.buildAggregationPipeline({
+      ...options,
+      page: 1,
+      limit: 1
+    });
+
+    // Remove pagination stages and projection from pipeline for count
+    const countPipeline = pipeline.filter(stage => 
+      !stage.$skip && !stage.$limit && !stage.$project
+    );
+
+    // Add count stage
+    countPipeline.push({ $count: "total" });
+
+    const result = await mercury.db[model].mongoModel.aggregate(countPipeline);
+    
+    return result.length > 0 ? result[0].total : 0;
+  }
 }

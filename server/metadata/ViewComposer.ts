@@ -47,6 +47,11 @@ export class ViewComposer {
       const gqlType = toGraphQLTypeDef(typeMap, typeName);
       typeDefs += `\n${gqlType}`;
 
+      // Add pagination wrapper type
+      const paginatedTypeName = `${typeName}Paginated`;
+      const paginatedType = `type ${paginatedTypeName} {\n  totalDocs: Int\n  docs: [${typeName}]\n}`;
+      typeDefs += `\n${paginatedType}`;
+
       // Add new subtypes to schema
       for (const [_, def] of subTypes) {
         typeDefs += `\n${def}`;
@@ -67,11 +72,16 @@ export class ViewComposer {
         const resolverName = _.camelCase(`${view.modelName}ViewFor${profileName}`);
 
         resolvers.Query[resolverName] = async (_: any, args: ViewQueryArgs = {}) => {
-          return await engine.resolveViewData(args);
+          const data = await engine.resolveViewData(args);
+          const totalDocs = await engine.getTotalCount(args);
+          return {
+            totalDocs,
+            docs: data
+          };
         };
 
         queryFields.push(
-          `${resolverName}(filters: JSON, sort: JSON, page: Int, limit: Int, search: String): [${typeName}]`
+          `${resolverName}(filters: JSON, sort: JSON, page: Int, limit: Int, search: String): ${paginatedTypeName}`
         );
       }
     }
