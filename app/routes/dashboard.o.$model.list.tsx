@@ -5,6 +5,7 @@ import { serverFetch } from "../utils/action";
 import { GET_VIEW, LIST_VIEW } from "../utils/query";
 import {
   GET_DYNAMIC_MODEL_LIST,
+  GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS,
   getModelFieldRefModelKey,
   getSearchCompostion,
   parseCookies,
@@ -98,19 +99,21 @@ export async function loader({
       );
     }
   }
-  const str = await GET_DYNAMIC_MODEL_LIST(
+  const str = await GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS(
     params?.model as string,
     response1?.listViewFields?.docs.map((doc: any) => doc.field),
     request.headers.get("Cookie")
   );
+
   const modelData = await serverFetch(
     str,
     {
       sort: {
-        createdOn: "desc",
+        createdOn: -1,
       },
       limit: 10,
-      offset: 0,
+      page: 1,
+      search: "",
     },
     {
       cache: "no-store",
@@ -118,25 +121,30 @@ export async function loader({
       cookies: request.headers.get("Cookie"),
     }
   );
-  const searchComposition = getSearchCompostion(
-    response1?.listViewFields?.docs.map((doc: any) => doc.field),
-    ""
-  );
 
+  // const searchComposition = getSearchCompostion(
+  //   response1?.listViewFields?.docs.map((doc: any) => doc.field),
+  //   ""
+  // );
+
+  const apiName = `${params?.model.charAt(0).toLowerCase()}${params?.model.slice(
+    1
+  )}ViewFor${cookieObject.role}`;
   return {
     view: response?.getView,
     dynamicQueryString: str,
-    modelData: modelData?.[`list${params?.model}s`]?.docs,
-    totalDocs: modelData?.[`list${params?.model}s`]?.totalDocs,
+    modelData: modelData?.[apiName]?.docs,
+    totalDocs: modelData?.[apiName]?.totalDocs,
     modelName: params?.model,
     viewFields: response1?.listViewFields,
     refKeyMap,
-    searchVariables: searchComposition,
+    // searchVariables: searchComposition,
     buttons: response?.getView?.buttons?.filter((btn: any) =>
       btn.profiles
         .map((item: any) => item?.id)
         .includes(profileResponse?.listProfiles?.docs[0]?.id)
     ),
+    apiName
   };
 }
 
@@ -151,8 +159,9 @@ const dashboard = ({
     modelName: string;
     viewFields: any;
     refKeyMap: any;
-    searchVaraiables: any;
+    // searchVaraiables: any;
     buttons: any[];
+    apiName: string;
   };
 }) => {
   return (
@@ -176,7 +185,8 @@ const dashboard = ({
           viewId={loaderData.view?.id}
           refKeyMap={loaderData?.refKeyMap}
           buttons={loaderData?.buttons}
-          searchVaraiables={loaderData?.searchVaraiables}
+          apiName={loaderData?.apiName}
+          // searchVaraiables={loaderData?.searchVaraiables}
         />
       )}
     </Box>

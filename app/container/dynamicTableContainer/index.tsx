@@ -25,7 +25,8 @@ function DynamicTableContainer({
   viewFields,
   refKeyMap,
   buttons,
-  searchVaraiables,
+  apiName,
+  // searchVaraiables,
 }: {
   modelData: any;
   totalDocs: number;
@@ -35,17 +36,20 @@ function DynamicTableContainer({
   viewFields: any;
   refKeyMap: Record<string, string>;
   buttons: any;
-  searchVaraiables: any;
+  apiName: string;
+  // searchVaraiables: any;
 }) {
   const [listModelData, listModelDataResponse] = useLazyQuery(serverFetch);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
-  const [sorting, setSorting] = React.useState<SortingState>([{
-    desc: true,
-    id: "updatedOn"
-  }]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    {
+      desc: true,
+      id: "updatedOn",
+    },
+  ]);
   const [objectDataList, setObjectDataList] = React.useState<any>(modelData);
   const [totalDocsCount, setTotalDocsCount] = React.useState(totalDocs);
   const [columnsData, setColumnsData] = React.useState([]);
@@ -254,7 +258,7 @@ function DynamicTableContainer({
     })();
   }, []);
   const debouncedListModelData = React.useCallback(
-    _.debounce((query, variables, options) => {
+    _.debounce((query: string, variables: any, options: any) => {
       listModelData(query, variables, options);
     }, 500),
     []
@@ -264,15 +268,12 @@ function DynamicTableContainer({
       debouncedListModelData(
         dynamicQueryString,
         {
-          ...getSearchCompostion(
-            viewFields?.docs?.map((field: any) => field?.field),
-            searchText
-          ),
+          search: searchText,
           sort: {
-            [sorting[0]?.id || "createdOn"]: sorting[0]?.desc ? "desc" : "asc",
+            [sorting[0]?.id || "createdOn"]: sorting[0]?.desc ? -1 : 1,
           },
           limit: pagination.pageSize,
-          offset: pagination.pageIndex * pagination.pageSize,
+          page: pagination.pageIndex + 1,
         },
         {
           cache: "no-store",
@@ -290,10 +291,10 @@ function DynamicTableContainer({
   useEffect(() => {
     if (listModelDataResponse.data) {
       setObjectDataList(
-        listModelDataResponse.data?.[`list${modelName}s`]?.docs || []
+        listModelDataResponse.data?.[apiName]?.docs || []
       );
       setTotalDocsCount(
-        listModelDataResponse.data?.[`list${modelName}s`]?.totalDocs || 0
+        listModelDataResponse.data?.[apiName]?.totalDocs || 0
       );
     }
 
