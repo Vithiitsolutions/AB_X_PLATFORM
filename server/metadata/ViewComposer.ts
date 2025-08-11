@@ -18,7 +18,6 @@ export const fieldTypeMap: { [key: string]: string } = {
   float: 'Float',
 };
 
-const generatedSubTypes: Map<string, string> = new Map();
 
 export class ViewComposer {
   static async composeViews() {
@@ -91,6 +90,7 @@ async function generateViewTypeSchema(viewFields: any[], baseModel: string): Pro
   const enums: { name: string, values: string[] }[] = [];
   const subTypes: Map<string, string> = new Map();
 
+  typeMap["id"] = "ID";
   for (const vf of viewFields) {
     const field = vf.field;
     if (!field) continue;

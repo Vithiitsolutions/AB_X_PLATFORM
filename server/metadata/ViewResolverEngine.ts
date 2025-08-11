@@ -1,5 +1,6 @@
 import mercury from "@mercury-js/core";
 import _ from "lodash";
+import { ObjectId } from "mongodb";
 
 // Search functionality - need to check - 
 export class ViewResolverEngine {
@@ -28,6 +29,15 @@ export class ViewResolverEngine {
     const project: Record<string, any> = {};
     const recordKeyMap: Record<string, any> = {};
     const fieldSearchMap: { key: string; type: "local" | "lookup"; alias: string }[] = [];
+
+    project["id"] = "$_id";
+
+    fieldSearchMap.push({
+      type: "local",
+      key: "_id",
+      alias: "id"
+    });
+
 
     // 2. Handle lookups and projections
     for (const vf of viewFields) {
@@ -98,6 +108,12 @@ export class ViewResolverEngine {
           return { [`${alias}.${recordKey}`]: { $regex: search, $options: "i" } };
         }
       });
+      try {
+        const objectId = new ObjectId(search);
+        orConditions.push({ _id: objectId });
+      } catch (err) {
+        orConditions.push({ _id: { $regex: search, $options: "i" } });
+      }
       pipeline.push({
         $match: { $or: orConditions }
       });
