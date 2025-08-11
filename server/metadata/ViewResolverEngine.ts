@@ -96,27 +96,43 @@ export class ViewResolverEngine {
 
     // 3. Search (OR condition)
     if (search) {
-      const orConditions = viewFields.map((vf) => {
+      const orConditions: any[] = [];
+      
+      viewFields.forEach((vf) => {
         const modelField = vf.field;
         const isFromBaseModel = modelField.type != "relationship";
+        const fieldName = modelField.name;
+        const fieldType = modelField.type;
 
         if (isFromBaseModel) {
-          return { [modelField.name]: { $regex: search, $options: "i" } };
+          // Handle different field types for base model fields
+          const searchConditions = this.buildSearchConditions(fieldName, fieldType, search, modelField.enumValues);
+          orConditions.push(...searchConditions);
         } else {
-          const recordKey = recordKeyMap[modelField.name];
+          // Handle relationship fields
+          const recordKey = recordKeyMap[fieldName];
           const alias = modelField.ref;
-          return { [`${alias}.${recordKey}`]: { $regex: search, $options: "i" } };
+          const lookupFieldPath = `${alias}.${recordKey}`;
+          
+          // For relationship fields, we assume the recordKey is typically a string
+          orConditions.push({ [lookupFieldPath]: { $regex: search, $options: "i" } });
         }
       });
+
+      // Try to match ObjectId
       try {
         const objectId = new ObjectId(search);
         orConditions.push({ _id: objectId });
       } catch (err) {
+        // If not a valid ObjectId, add string regex search for _id
         orConditions.push({ _id: { $regex: search, $options: "i" } });
       }
-      pipeline.push({
-        $match: { $or: orConditions }
-      });
+
+      if (orConditions.length > 0) {
+        pipeline.push({
+          $match: { $or: orConditions }
+        });
+      }
     }
 
 
@@ -175,6 +191,103 @@ export class ViewResolverEngine {
     const finalData = this.flattenViewData(rawData, fieldSearchMap);
 
     return finalData;
+  }
+
+  // Build search conditions based on field type
+  private buildSearchConditions(fieldName: string, fieldType: string, searchValue: string, enumValues?: string[]): any[] {
+    const conditions: any[] = [];
+    const trimmedSearch = searchValue.trim();
+    
+    if (!trimmedSearch) {
+      return conditions;
+    }
+    
+    switch (fieldType) {
+      case 'string':
+        // String fields: case-insensitive regex search
+        conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
+        break;
+        
+      case 'number':
+      case 'int':
+        // Number fields: exact match and partial match for number conversion
+        const numValue = parseFloat(trimmedSearch);
+        if (!isNaN(numValue)) {
+          conditions.push({ [fieldName]: numValue });
+        }
+        // Also try string representation in case numbers are stored as strings
+        conditions.push({ [fieldName]: { $regex: `^${trimmedSearch}`, $options: "i" } });
+        break;
+        
+      case 'float':
+        // Float fields: exact match and partial match
+        const floatValue = parseFloat(trimmedSearch);
+        if (!isNaN(floatValue)) {
+          conditions.push({ [fieldName]: floatValue });
+        }
+        // Also try string representation
+        conditions.push({ [fieldName]: { $regex: `^${trimmedSearch}`, $options: "i" } });
+        break;
+        
+      case 'boolean':
+        // Boolean fields: match various boolean representations
+        const lowerSearch = trimmedSearch.toLowerCase();
+        if (['true', 'yes', '1', 'on', 'enabled'].includes(lowerSearch)) {
+          conditions.push({ [fieldName]: true });
+        } else if (['false', 'no', '0', 'off', 'disabled'].includes(lowerSearch)) {
+          conditions.push({ [fieldName]: false });
+        }
+        // Partial matches for boolean strings
+        if ('true'.includes(lowerSearch) || 'yes'.includes(lowerSearch)) {
+          conditions.push({ [fieldName]: true });
+        }
+        if ('false'.includes(lowerSearch) || 'no'.includes(lowerSearch)) {
+          conditions.push({ [fieldName]: false });
+        }
+        break;
+        
+      case 'date':
+        // Date fields: try multiple date formats and ranges
+        try {
+          const dateValue = new Date(trimmedSearch);
+          if (!isNaN(dateValue.getTime())) {
+            const startOfDay = new Date(dateValue);
+            startOfDay.setHours(0, 0, 0, 0);
+            const endOfDay = new Date(dateValue);
+            endOfDay.setHours(23, 59, 59, 999);
+            
+            conditions.push({ 
+              [fieldName]: { 
+                $gte: startOfDay, 
+                $lte: endOfDay 
+              } 
+            });
+          }
+        } catch (err) {
+          // If date parsing fails, try string search on date field
+          conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
+        }
+        break;
+        
+      case 'enum':
+        // Enum fields: case-insensitive partial match
+        if (enumValues && enumValues.length > 0) {
+          enumValues.forEach(enumValue => {
+            if (enumValue.toLowerCase().includes(trimmedSearch.toLowerCase())) {
+              conditions.push({ [fieldName]: enumValue });
+            }
+          });
+        }
+        // Fallback to regex search if no enum matches found
+        conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
+        break;
+      default:
+        // Default to string search for unknown types
+        conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
+        break;
+    }
+    
+    return conditions;
   }
 
   // Get total count for pagination
