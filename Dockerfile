@@ -1,26 +1,26 @@
-# Use Node.js version 20 as base image
-FROM denoland/deno
+# Use Node.js version 22 as base image
+FROM node:22-alpine
 
 # Set working directory
 WORKDIR /app
 
 # Copy package files
-COPY package*.json deno.json deno.lock ./
+COPY package*.json ./
 
 # Install dependencies
-RUN deno install
+RUN yarn install
 
 # Copy the rest of the application
 COPY . .
 
 # Patch Apollo server for restarts
-RUN deno task patch-server
+RUN yarn patch-server
 
 # Build the application
-RUN deno task build
+RUN yarn build
 
 # Expose ports for both services
 EXPOSE 4000
 
 # Run both services
-CMD ["task", "start"]
+CMD ["yarn", "start"]
