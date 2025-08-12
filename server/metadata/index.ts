@@ -14,18 +14,7 @@ const queueService = QueueService.getInstance();
 mercury.queueService = queueService;
 
 // hooks
-import "./hooks/Model.hook.ts";
-import "./hooks/permission.ts";
-import "./hooks/modelField.ts";
-import "./hooks/fieldPermission.ts";
-import "./hooks/profile.ts";
-import "./hooks/modelOption.ts";
-import "./hooks/fieldOption.ts";
-import "./hooks/function.ts";
-import "./hooks/resolverSchema.ts";
-import "./hooks/hook.ts";
-import "./hooks/file.ts";
-import "./hooks/cronJob.ts";
+import "./hooks/index.ts"
 
 // Profiles
 // import "./SystemAdmin.profile.ts";
