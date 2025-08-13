@@ -153,6 +153,7 @@ export const typeDefs = `
         month: String!
         count: Int!
     }
+        
     type SurveyStats {
        totalSurveys: Int    
        totalEndedSurveys: Int     

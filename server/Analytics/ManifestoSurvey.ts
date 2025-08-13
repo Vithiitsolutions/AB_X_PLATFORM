@@ -12,6 +12,7 @@ interface DashboardFilter {
 const toObjectId = (id?: string): mongoose.Types.ObjectId | undefined =>
   id ? new mongoose.Types.ObjectId(id) : undefined;
 
+
 const calculatePercentage = (current: number, previous: number): number => {
   if (previous === 0) return current === 0 ? 0 : 100;
   return +(((current - previous) / previous) * 100).toFixed(2);
