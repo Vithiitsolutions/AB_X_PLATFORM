@@ -147,6 +147,11 @@ export const typeDefs = `
     type ManifestoStats {
        totalManifestos: Int     
        manifestoPercentage: Float
+       monthlyManifestos: [MonthlyManifestoStats]
+    }
+    type MonthlyManifestoStats {
+        month: String!
+        count: Int!
     }
     type SurveyStats {
        totalSurveys: Int    
