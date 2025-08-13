@@ -138,6 +138,7 @@ export const typeDefs = `
        constituency: ID
        startDate: String
        endDate: String
+       year: String
     }    
     type DashboardStats {
       manifestoStats: ManifestoStats
@@ -146,6 +147,11 @@ export const typeDefs = `
     type ManifestoStats {
        totalManifestos: Int     
        manifestoPercentage: Float
+       monthlyManifestos: [MonthlyManifestoStats]
+    }
+    type MonthlyManifestoStats {
+        month: String!
+        count: Int!
     }
     type SurveyStats {
        totalSurveys: Int    
