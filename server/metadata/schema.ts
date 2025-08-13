@@ -62,16 +62,17 @@ export const typeDefs = `
        state: ID
        district: ID
        constituency: ID
-       positionStatusId:String
+       partyId: String
+       positionName: String
        startDate:String
        endDate:String 
     }
     type LeaderStats {
        totalLeaders: Int
        positionStatusCount:Int
-       positionNameBreakdown: [PositionNameBreakdown]
+       positionStatusBreakdown: [positionStatusBreakdown]
     } 
-    type PositionNameBreakdown {
+    type positionStatusBreakdown {
         name: String
         count: Int
     }
@@ -138,7 +139,6 @@ export const typeDefs = `
        constituency: ID
        startDate: String
        endDate: String
-       year: String
     }    
     type DashboardStats {
       manifestoStats: ManifestoStats
@@ -147,13 +147,7 @@ export const typeDefs = `
     type ManifestoStats {
        totalManifestos: Int     
        manifestoPercentage: Float
-       monthlyManifestos: [MonthlyManifestoStats]
     }
-    type MonthlyManifestoStats {
-        month: String!
-        count: Int!
-    }
-        
     type SurveyStats {
        totalSurveys: Int    
        totalEndedSurveys: Int     

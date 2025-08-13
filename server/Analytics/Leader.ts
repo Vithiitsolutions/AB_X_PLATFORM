@@ -5,7 +5,8 @@ interface LeaderStatsFilter {
   state?: string;
   district?: string;
   constituency?: string;
-  positionStatusId?: string;
+  partyId?: string;
+  positionName?: string;
   startDate?: string;
   endDate?: string;
 }
@@ -55,50 +56,49 @@ export const getLeaderStats = async (filter: LeaderStatsFilter = {}) => {
     {
       $facet: {
         totalLeaders: [{ $count: "count" }],
-        positionStatusCount: filter.positionStatusId
-          ? [
+        positionStatusBreakdown: [
+          ...(filter.partyId
+            ? [
               {
                 $match: {
-                  "attribute.positionStatus": toObjectId(filter.positionStatusId),
+                  "attribute.politicalParty": toObjectId(filter.partyId),
                 },
               },
-              { $count: "count" },
             ]
-          : [{ $match: { _id: null } }, { $count: "count" }],
-        positionNameBreakdown: [
-          ...(filter.positionStatusId
+            : []),
+          ...(filter.positionName
             ? [
-                {
-                  $match: {
-                    "attribute.positionStatus": toObjectId(filter.positionStatusId),
-                  },
+              {
+                $match: {
+                  "attribute.positionName": toObjectId(filter.positionName),
                 },
-              ]
+              },
+            ]
             : []),
           {
             $group: {
-              _id: "$attribute.positionName",
+              _id: "$attribute.positionStatus",
               count: { $sum: 1 },
             },
           },
           {
             $lookup: {
-              from: "positionnames", // change this if your collection name differs
+              from: "positionstatuses",
               localField: "_id",
               foreignField: "_id",
-              as: "positionName",
+              as: "positionStatus",
             },
           },
           {
             $unwind: {
-              path: "$positionName",
+              path: "$positionStatus",
               preserveNullAndEmptyArrays: true,
             },
           },
           {
             $project: {
               _id: 0,
-              name: "$positionName.value",
+              name: "$positionStatus.value",
               count: 1,
             },
           },
@@ -111,7 +111,6 @@ export const getLeaderStats = async (filter: LeaderStatsFilter = {}) => {
 
   return {
     totalLeaders: result.totalLeaders[0]?.count || 0,
-    positionStatusCount: result.positionStatusCount[0]?.count || 0,
-    positionNameBreakdown: result.positionNameBreakdown || [],
+    positionStatusBreakdown: result.positionStatusBreakdown || [],
   };
 };
