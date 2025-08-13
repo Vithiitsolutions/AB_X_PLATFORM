@@ -30,6 +30,62 @@ export const getModelFieldRefModelKey = async (
   return modelName === "File" ? "name" : data?.getModel?.recordKey?.name || "";
 };
 
+export const GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS =  async (
+  modelName: string,
+  modelFields: any[],
+  cookies?: string
+) => {
+  if (modelName === "File") {
+    return `query ListFiles($sort: sortFileInput, $offset: Int!, $limit: Int!, $where: whereFileInput) {
+  listFiles(sort: $sort, offset: $offset, limit: $limit, where: $where) {
+    docs {
+      id
+      mediaId
+      name
+      size
+      url
+      mimeType
+      description
+      extension
+    }
+    limit
+    offset
+    totalDocs
+  }
+}`;
+  } else {
+    let str = `query ${modelName}ViewFor${parseCookies(cookies as string).role}($search: String, $limit: Int, $page: Int, $sort: JSON, $filters: JSON) {
+      ${modelName.charAt(0).toLowerCase() + modelName.slice(1)}ViewFor${parseCookies(cookies as string).role}(search: $search, limit: $limit, page: $page, sort: $sort, filters: $filters) {
+          totalDocs
+          docs {
+          id
+              `;
+
+    const fieldPromises = modelFields.map(async (item: any) => {
+      if (item.type === "virtual" || item.type === "relationship") {
+        const refModelKey = await getModelFieldRefModelKey(item.ref, cookies);
+        return `
+              ${item.name} {
+                  id
+                  ${refModelKey}
+              }`;
+      }
+      return `
+              ${item.name}`;
+    });
+
+    const fieldStrings = await Promise.all(fieldPromises);
+    str += fieldStrings.join("");
+
+    str += `
+              }
+          }
+      }`;
+
+    return str;
+  }
+};
+
 export const GET_DYNAMIC_MODEL_LIST = async (
   modelName: string,
   modelFields: any[],

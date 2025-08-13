@@ -1,10 +1,25 @@
 {
-  "include": [".react-router/types/**/*"],
+  "include": [".react-router/types/**/*", "**/*"],
+  "exclude": ["node_modules", "build"],
   "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "strict": true,
+    "isolatedModules": true,
+    "preserveWatchOutput": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
     "rootDirs": [".", "./.react-router/types"],
     "baseUrl": "./",
     "paths": {
-      "/app": ["@/"]
-    }
+      "~/*": ["./app/*"]
+    },
+    "types": ["vite/client", "node"]
   }
 }
