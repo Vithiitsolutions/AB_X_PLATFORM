@@ -15,9 +15,29 @@ export const typeDefs = `
         me: User
         CategoryStatsCount: [CategoryStatsResult]
         getSurveyDetails(surveyId: String): SurveyDetailResponse
+        getLeaderProfile(userId:String): LeaderProfile
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
+    }
+    type LeaderProfile {
+        id: String
+        name: String
+        profile: String
+        email:String
+        contactNumber: String
+        location: String
+        solvedIssues: Int
+        communityActivities: Int
+        politicalParty:PoliticalParty
+        positionStatus:String
+        positionName:String
+        members: Int
+    }
+    type PoliticalParty {
+        banner: String
+        logo: String
+        name: String
     }
     input AboutPostCountFilter {
          year: Int  
