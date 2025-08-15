@@ -147,7 +147,15 @@ export const typeDefs = `
     type CombinedStatsResponse {
        postStats: PostStats
        supportSufferStats: SupportSufferStats
+       monthlyStats: [MonthlyPostStats!]!
     }  
+    type MonthlyPostStats {
+        month: String! 
+        totalPosts: Int!
+        totalResolved: Int!
+        publicResolved: Int!
+        privateResolved: Int!
+    }
     type NewsTrend {
         month: String
         commonMan: Int
