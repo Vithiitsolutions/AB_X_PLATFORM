@@ -8,7 +8,7 @@ import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey"
 import { getPostStats } from "../Analytics/Post";
 import { getActivityStats } from "../Analytics/Activity";
 import { getLeaderStats } from "../Analytics/Leader";
-import { getMonthlyApplicationStats } from "../Analytics/UrgeRequest"
+import { getApplicationDetails, getMonthlyApplicationStats } from "../Analytics/UrgeRequest"
 import { getNewsPostTrends } from "../Analytics/News";
 import { getReportedPostCount } from "../Analytics/PostReports";
 import { supportTrendstats } from "../Analytics/SupportTicket";
@@ -315,15 +315,15 @@ export default {
         throw new Error("Failed to fetch manifesto details.");
       }
     },
-    // getApplicationDetails: async (root: any, { applicationId }: { applicationId: string }, ctx: any) => {
-    //   try {
-    //     const application = await getApplicationDetails(applicationId);
-    //     return application;
-    //   } catch (error) {
-    //     console.error("GraphQL Resolver Error:", error);
-    //     throw new Error("Failed to fetch application details.");
-    //   }
-    // },
+    getApplicationDetails: async (root: any, { applicationId }: { applicationId: string }, ctx: any) => {
+      try {
+        const application = await getApplicationDetails(applicationId);
+        return application;
+      } catch (error) {
+        console.error("GraphQL Resolver Error:", error);
+        throw new Error("Failed to fetch application details.");
+      }
+    },
 
     ...SurveyQuery
 
