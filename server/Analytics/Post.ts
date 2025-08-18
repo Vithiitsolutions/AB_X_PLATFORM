@@ -10,7 +10,7 @@ interface CombinedFilter {
     startDate?: string;
     endDate?: string;
     leaderId?: string;
-    year?: number; 
+    year?: number;
 }
 
 export const getPostStats = async (filter: CombinedFilter = {}) => {
@@ -54,6 +54,23 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         baseMatch.createdOn = dateRange;
         postMatch.createdOn = dateRange;
     }
+
+    let postDetails = null;
+    if (filter.postId) {
+        postDetails = await mercury.db.Post.mongoModel
+            .findById(toObjectId(filter.postId))
+            .populate('category')
+            .populate('images')
+            .populate('state')
+            .populate('district')
+            .populate('constituency')
+            .populate('user')
+            .populate('assignedTo')
+            .populate('acceptedBy')
+            .populate('resolvedBy')
+            .exec();
+    }
+
     const now = new Date();
     const year = filter.year || now.getFullYear();
 
@@ -336,7 +353,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
     const sufferCount = supportStats?.[0]?.sufferCount || 0;
     const totalSupportSuffer = supportCount + sufferCount;
 
-    return {
+    const result: any = {
         postStats: {
             totalResolved,
             publicResolvedCount,
@@ -365,4 +382,35 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         },
         monthlyStats: monthlyStats,
     };
+
+    // Add post details if postId was provided
+    if (filter.postId && postDetails) {
+        result.postDetails = {
+            _id: postDetails._id,
+            access: postDetails.access,
+            description: postDetails.description,
+            category: postDetails.category,
+            images: postDetails.images,
+            state: postDetails.state,
+            district: postDetails.district,
+            constituency: postDetails.constituency,
+            user: postDetails.user,
+            assignedTo: postDetails.assignedTo,
+            acceptedBy: postDetails.acceptedBy,
+            acceptedAt: postDetails.acceptedAt ? postDetails.acceptedAt.toISOString() : null,
+            resolvedBy: postDetails.resolvedBy,
+            resolvedAt: postDetails.resolvedAt ? postDetails.resolvedAt.toISOString() : null,
+            suffered: postDetails.suffered,
+            support: postDetails.support,
+            hasUserSuffered: postDetails.hasUserSuffered,
+            hasUserSupported: postDetails.hasUserSupported,
+            status: postDetails.status,
+            tags: postDetails.tags,
+            isDeleted: postDetails.isDeleted,
+            saved: postDetails.saved,
+            createdOn: postDetails.createdOn ? postDetails.createdOn.toISOString() : null,
+            updatedOn: postDetails.updatedOn ? postDetails.updatedOn.toISOString() : null,
+        };
+    }
+    return result;
 };

@@ -188,6 +188,7 @@ export const typeDefs = `
        postStats: PostStats
        supportSufferStats: SupportSufferStats
        monthlyStats: [MonthlyPostStats!]!
+       postDetails: Post 
     }  
     type MonthlyPostStats {
         month: String! 
