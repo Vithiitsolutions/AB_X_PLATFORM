@@ -3,19 +3,19 @@ import { GraphQLError } from "graphql";
 import { Form } from "./FormService";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
-import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth.ts"
-import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey.ts"
-import { getPostStats } from "../Analytics/Post.ts";
-import { getActivityStats } from "../Analytics/Activity.ts";
-import { getLeaderStats } from "../Analytics/Leader.ts";
-import { getApplicationDetails, getMonthlyApplicationStats } from "../Analytics/UrgeRequest.ts"
-import { getNewsPostTrends } from "../Analytics/News.ts";
-import { getReportedPostCount } from "../Analytics/PostReports.ts";
-import { supportTrendstats } from "../Analytics/SupportTicket.ts";
-import { CategoryStatsCount } from "../Analytics/NewsReports.ts";
-import { SurveyQuery } from "../masterApis/Survey.ts";
+import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth"
+import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey"
+import { getPostStats } from "../Analytics/Post";
+import { getActivityStats } from "../Analytics/Activity";
+import { getLeaderStats } from "../Analytics/Leader";
+import { getMonthlyApplicationStats } from "../Analytics/UrgeRequest"
+import { getNewsPostTrends } from "../Analytics/News";
+import { getReportedPostCount } from "../Analytics/PostReports";
+import { supportTrendstats } from "../Analytics/SupportTicket";
+import { CategoryStatsCount } from "../Analytics/NewsReports";
+import { SurveyQuery } from "../masterApis/Survey";
 import mongoose, { Types } from "mongoose";
-import { getManifestoDetails } from "../Analytics/Manifesto.ts";
+import { getManifestoDetails } from "../Analytics/Manifesto";
 export default {
   Query: {
     signIn: async (
@@ -315,15 +315,15 @@ export default {
         throw new Error("Failed to fetch manifesto details.");
       }
     },
-    getApplicationDetails: async (root: any, { applicationId }: { applicationId: string }, ctx: any) => {
-      try {
-        const application = await getApplicationDetails(applicationId);
-        return application;
-      } catch (error) {
-        console.error("GraphQL Resolver Error:", error);
-        throw new Error("Failed to fetch application details.");
-      }
-    },
+    // getApplicationDetails: async (root: any, { applicationId }: { applicationId: string }, ctx: any) => {
+    //   try {
+    //     const application = await getApplicationDetails(applicationId);
+    //     return application;
+    //   } catch (error) {
+    //     console.error("GraphQL Resolver Error:", error);
+    //     throw new Error("Failed to fetch application details.");
+    //   }
+    // },
 
     ...SurveyQuery
 
