@@ -17,9 +17,33 @@ export const typeDefs = `
         getSurveyDetails(surveyId: String): SurveyDetailResponse
         getLeaderProfile(userId:String): LeaderProfile
         getManifestoDetails(input: GetManifestoDetailsInput!): ManifestoDetails
+        getApplicationDetails(applicationId: ID!): ApplicationDetails
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
+    }
+    type ApplicationDetails {
+        _id: ID!
+        user: String
+        leader: String
+        category: String
+        title: String!
+        description: String
+        attachments: [String!]
+        status: ApplicationStatus!
+        comments: String
+        inProgressAt: String
+        acceptedAt: String
+        resolvedAt: String
+        rejectedAt: String
+        createdOn: String
+    }
+    enum ApplicationStatus {
+        PENDING
+        IN_PROGRESS
+        ACCEPTED
+        RESOLVED
+        REJECTED
     }
     type LeaderProfile {
         id: String

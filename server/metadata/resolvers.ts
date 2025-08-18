@@ -8,7 +8,7 @@ import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey.ts"
 import { getPostStats } from "../Analytics/Post.ts";
 import { getActivityStats } from "../Analytics/Activity.ts";
 import { getLeaderStats } from "../Analytics/Leader.ts";
-import { getMonthlyApplicationStats } from "../Analytics/UrgeRequest.ts"
+import { getApplicationDetails, getMonthlyApplicationStats } from "../Analytics/UrgeRequest.ts"
 import { getNewsPostTrends } from "../Analytics/News.ts";
 import { getReportedPostCount } from "../Analytics/PostReports.ts";
 import { supportTrendstats } from "../Analytics/SupportTicket.ts";
@@ -313,6 +313,15 @@ export default {
       } catch (error) {
         console.error("Error in getManifestoDetails resolver:", error);
         throw new Error("Failed to fetch manifesto details.");
+      }
+    },
+    getApplicationDetails: async (root: any, { applicationId }: { applicationId: string }, ctx: any) => {
+      try {
+        const application = await getApplicationDetails(applicationId);
+        return application;
+      } catch (error) {
+        console.error("GraphQL Resolver Error:", error);
+        throw new Error("Failed to fetch application details.");
       }
     },
 
