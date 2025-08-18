@@ -15,6 +15,7 @@ import { supportTrendstats } from "../Analytics/SupportTicket.ts";
 import { CategoryStatsCount } from "../Analytics/NewsReports.ts";
 import { SurveyQuery } from "../masterApis/Survey.ts";
 import mongoose, { Types } from "mongoose";
+import { getManifestoDetails } from "../Analytics/Manifesto.ts";
 export default {
   Query: {
     signIn: async (
@@ -232,7 +233,7 @@ export default {
           { id: "1", profile: "SystemAdmin" },
           { populate: [{ path: "profilePic" }, { path: "constituency" }] }
         );
-        const userAttribute:any = await userAttributes.get(
+        const userAttribute: any = await userAttributes.get(
           { user: userData._id },
           { id: "1", profile: "SystemAdmin" },
           {
@@ -246,11 +247,11 @@ export default {
             ],
           }
         );
-        const leaderTeam:any= await mercury.db.BuildTeam.get(
+        const leaderTeam: any = await mercury.db.BuildTeam.get(
           { leader: userId },
           { id: "1", profile: "SystemAdmin" },
         );
-        const solvedIssuesPromise:any = IssueData.mongoModel.aggregate([
+        const solvedIssuesPromise: any = IssueData.mongoModel.aggregate([
           {
             $match: {
               resolvedBy: new mongoose.Types.ObjectId(userId),
@@ -305,6 +306,16 @@ export default {
         throw new Error(`Failed to fetch leader profile: ${error.message}`);
       }
     },
+    getManifestoDetails: async (_: any, { input }: { input: any }, ctx: any) => {
+      try {
+        const manifesto = await getManifestoDetails(input.manifestoId);
+        return manifesto;
+      } catch (error) {
+        console.error("Error in getManifestoDetails resolver:", error);
+        throw new Error("Failed to fetch manifesto details.");
+      }
+    },
+
     ...SurveyQuery
 
     // retentionRatemetrics: async (
