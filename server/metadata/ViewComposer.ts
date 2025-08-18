@@ -40,7 +40,7 @@ export class ViewComposer {
             {
               path: "fields",
               populate: [
-                { path: "field", select: "name modelName type enumValues ref" },
+                { path: "field", select: "name modelName type enumValues ref many" },
               ],
             },
             { path: "profiles", select: "name" },
@@ -122,6 +122,7 @@ async function generateViewTypeSchema(
   typeMap["id"] = "ID";
   for (const vf of viewFields) {
     const field = vf.field;
+    
     if (!field) continue;
 
     let mod: any;
@@ -143,30 +144,30 @@ async function generateViewTypeSchema(
 
     switch (field.type) {
       case "number":
-        gqlType = "Int";
-        break;
+      gqlType = field.many ? "[Int]" : "Int";
+      break;
       case "boolean":
-        gqlType = "Boolean";
-        break;
+      gqlType = field.many ? "[Boolean]" : "Boolean";
+      break;
       case "date":
-        gqlType = "DateTime";
-        break;
+      gqlType = field.many ? "[DateTime]" : "DateTime";
+      break;
       case "float":
-        gqlType = "Float";
-        break;
+      gqlType = field.many ? "[Float]" : "Float";
+      break;
       case "enum":
-        const enumName = capitalizeEnumName(field.name);
-        gqlType = enumName;
-        if (field.enumValues) {
-          enums.push({ name: enumName, values: field.enumValues });
-        }
-        break;
+      const enumName = capitalizeEnumName(field.name);
+      gqlType = field.many ? `[${enumName}]` : enumName;
+      if (field.enumValues) {
+        enums.push({ name: enumName, values: field.enumValues });
+      }
+      break;
       case "relationship":
       case "virtual":
-        gqlType = registerSubType(field.name, mod?.recordKey, subTypes);
-        break;
+      gqlType = field.many ? `[${registerSubType(field.name, mod?.recordKey, subTypes)}]`: `${registerSubType(field.name, mod?.recordKey, subTypes)}`;
+      break;
       default:
-        gqlType = "String";
+      gqlType = field.many ? "[String]" : "String";
     }
 
     typeMap[key] = gqlType;
