@@ -6,24 +6,37 @@ interface DashboardFilter {
   constituency?: string;
   startDate?: string;
   endDate?: string;
+  year?: string;
 }
+
 const toObjectId = (id?: string): mongoose.Types.ObjectId | undefined =>
   id ? new mongoose.Types.ObjectId(id) : undefined;
+
+
 const calculatePercentage = (current: number, previous: number): number => {
   if (previous === 0) return current === 0 ? 0 : 100;
   return +(((current - previous) / previous) * 100).toFixed(2);
 };
+
+const monthNames = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
+
 export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
   const now = new Date();
   const ManifestoModel = mercury.db.Manifesto.mongoModel;
   const SurveyModel = mercury.db.Survey.mongoModel;
+
   const locationFilters: Record<string, any> = {};
   if (filter.state) locationFilters.state = toObjectId(filter.state);
   if (filter.district) locationFilters.district = toObjectId(filter.district);
   if (filter.constituency) locationFilters.constituency = toObjectId(filter.constituency);
+
   let currentStart: Date | undefined;
   let currentEnd: Date | undefined;
   const createdOn: Record<string, any> = {};
+
   if (filter.startDate) {
     currentStart = new Date(filter.startDate);
     currentStart.setHours(0, 0, 0, 0);
@@ -34,9 +47,31 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
     currentEnd.setHours(23, 59, 59, 999);
     createdOn.$lte = currentEnd;
   }
+
   const hasDateFilter = !!(currentStart && currentEnd);
-  const combinedFilter = { ...locationFilters, ...(hasDateFilter ? { createdOn } : {}) }; 
-  const [manifestoAgg, surveyAgg] = await Promise.all([
+  const combinedFilter = { ...locationFilters, ...(hasDateFilter ? { createdOn } : {}) };
+
+  const yearForMonthlyStats = filter.year ? parseInt(filter.year) : now.getFullYear();
+  const manifestoMonthlyAggregation = [
+    {
+      $match: {
+        ...locationFilters,
+        createdOn: {
+          $gte: new Date(yearForMonthlyStats, 0, 1),
+          $lte: new Date(yearForMonthlyStats, 11, 31, 23, 59, 59, 999),
+        },
+      },
+    },
+    {
+      $group: {
+        _id: { $month: "$createdOn" },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ];
+
+  const [manifestoAgg, surveyAgg, monthlyManifestosResult] = await Promise.all([
     ManifestoModel.aggregate([
       { $match: combinedFilter },
       { $group: { _id: null, totalManifestos: { $sum: 1 } } }
@@ -59,24 +94,31 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
           ]
         }
       }
-    ])
+    ]),
+    ManifestoModel.aggregate(manifestoMonthlyAggregation),
   ]);
+
   const manifestoCount = manifestoAgg[0]?.totalManifestos || 0;
   const surveyCount = surveyAgg[0]?.totalSurveys[0]?.count || 0;
   const endedSurveyCount = surveyAgg[0]?.totalEndedSurveys[0]?.count || 0;
+
   let manifestoPercentage: number | null = null;
   let surveyPercentage: number | null = null;
+
   if (hasDateFilter) {
     const duration = currentEnd!.getTime() - currentStart!.getTime();
     const prevEnd = new Date(currentStart!.getTime() - 1);
     const prevStart = new Date(prevEnd.getTime() - duration);
     prevStart.setHours(0, 0, 0, 0);
     prevEnd.setHours(23, 59, 59, 999);
+
     const previousDateFilter = { createdOn: { $gte: prevStart, $lte: prevEnd } };
+
     const [previousManifestos, previousSurveys] = await Promise.all([
       ManifestoModel.countDocuments({ ...locationFilters, ...previousDateFilter }),
       SurveyModel.countDocuments({ ...locationFilters, ...previousDateFilter }),
     ]);
+
     manifestoPercentage = calculatePercentage(manifestoCount, previousManifestos);
     surveyPercentage = calculatePercentage(surveyCount, previousSurveys);
   } else {
@@ -96,10 +138,19 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
     surveyPercentage = calculatePercentage(cmSurveys, pmSurveys);
   }
 
+  const monthlyManifestos = monthNames.map((month, index) => {
+    const monthData = monthlyManifestosResult.find(item => item._id === index + 1);
+    return {
+      month: month,
+      count: monthData?.count || 0,
+    };
+  });
+
   return {
     manifestoStats: {
       totalManifestos: manifestoCount,
       manifestoPercentage,
+      monthlyManifestos: monthlyManifestos,
     },
     surveyStats: {
       totalSurveys: surveyCount,

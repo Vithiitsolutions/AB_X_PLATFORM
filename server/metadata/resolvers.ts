@@ -8,12 +8,14 @@ import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey.ts"
 import { getPostStats } from "../Analytics/Post.ts";
 import { getActivityStats } from "../Analytics/Activity.ts";
 import { getLeaderStats } from "../Analytics/Leader.ts";
-import { getMonthlyApplicationStats } from "../Analytics/UrgeRequest.ts"
+import { getApplicationDetails, getMonthlyApplicationStats } from "../Analytics/UrgeRequest.ts"
 import { getNewsPostTrends } from "../Analytics/News.ts";
 import { getReportedPostCount } from "../Analytics/PostReports.ts";
 import { supportTrendstats } from "../Analytics/SupportTicket.ts";
 import { CategoryStatsCount } from "../Analytics/NewsReports.ts";
 import { SurveyQuery } from "../masterApis/Survey.ts";
+import mongoose, { Types } from "mongoose";
+import { getManifestoDetails } from "../Analytics/Manifesto.ts";
 export default {
   Query: {
     signIn: async (
@@ -217,6 +219,112 @@ export default {
         );
       }
     },
+    getLeaderProfile: async (
+      root: any,
+      { userId }: { userId: string },
+      ctx: any
+    ) => {
+      try {
+        const IssueData = mercury.db.Post;
+        const CommunityActivityData = mercury.db.Activity;
+        const userAttributes = mercury.db.UserAttribute;
+        const userData: any = await mercury.db.User.get(
+          { _id: userId },
+          { id: "1", profile: "SystemAdmin" },
+          { populate: [{ path: "profilePic" }, { path: "constituency" }] }
+        );
+        const userAttribute: any = await userAttributes.get(
+          { user: userData._id },
+          { id: "1", profile: "SystemAdmin" },
+          {
+            populate: [
+              {
+                path: "politicalParty",
+                populate: [{ path: "banner" }, { path: "logo" }],
+              },
+              { path: "positionName" },
+              { path: "positionStatus" },
+            ],
+          }
+        );
+        const leaderTeam: any = await mercury.db.BuildTeam.get(
+          { leader: userId },
+          { id: "1", profile: "SystemAdmin" },
+        );
+        const solvedIssuesPromise: any = IssueData.mongoModel.aggregate([
+          {
+            $match: {
+              resolvedBy: new mongoose.Types.ObjectId(userId),
+              status: "Resolved",
+            },
+          },
+          { $count: "solvedIssues" },
+        ]);
+        const communityActivitiesPromise =
+          CommunityActivityData.mongoModel.aggregate([
+            {
+              $match: {
+                owner: new mongoose.Types.ObjectId(userId),
+                type: { $in: ["SOCIAL", "POLITICAL"] },
+              },
+            },
+            { $count: "communityActivities" },
+          ]);
+        const [solvedIssues, communityActivities] = await Promise.all([
+          solvedIssuesPromise,
+          communityActivitiesPromise,
+        ]);
+        return {
+          members: leaderTeam?.team?.length || 0,
+          id: userData?._id,
+          email: userData?.email,
+          name: userData?.name,
+          profile: userData?.profilePic?.location || "",
+          contactNumber: userData?.mobile,
+          location: userData?.constituency?.name,
+          solvedIssues:
+            solvedIssues.length > 0 ? solvedIssues[0].solvedIssues : 0,
+          communityActivities:
+            communityActivities.length > 0
+              ? communityActivities[0].communityActivities
+              : 0,
+          politicalParty: {
+            name: userAttribute?.politicalParty?.name || "No Party",
+            banner:
+              userAttribute?.politicalParty?.banner?.location ||
+              `https://assets.mercuryx.cloud/sandbox/signed/52d067fb-11b2-44e5-88a9-93205d700690`,
+            logo:
+              userAttribute?.politicalParty?.logo?.location ||
+              `https://assets.mercuryx.cloud/sandbox/signed/52d067fb-11b2-44e5-88a9-93205d700690`,
+          },
+          positionName:
+            userAttribute?.positionName?.value || "No Position Name",
+          positionStatus:
+            userAttribute?.positionStatus?.value || "No Position Status",
+        };
+      } catch (error: any) {
+        throw new Error(`Failed to fetch leader profile: ${error.message}`);
+      }
+    },
+    getManifestoDetails: async (_: any, { input }: { input: any }, ctx: any) => {
+      try {
+        const manifesto = await getManifestoDetails(input.manifestoId);
+        return manifesto;
+      } catch (error) {
+        console.error("Error in getManifestoDetails resolver:", error);
+        throw new Error("Failed to fetch manifesto details.");
+      }
+    },
+    getApplicationDetails: async (root: any, { applicationId }: { applicationId: string }, ctx: any) => {
+      try {
+        const application = await getApplicationDetails(applicationId);
+        return application;
+      } catch (error) {
+        console.error("GraphQL Resolver Error:", error);
+        throw new Error("Failed to fetch application details.");
+      }
+    },
+
     ...SurveyQuery
 
     // retentionRatemetrics: async (

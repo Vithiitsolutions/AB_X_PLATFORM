@@ -15,9 +15,69 @@ export const typeDefs = `
         me: User
         CategoryStatsCount: [CategoryStatsResult]
         getSurveyDetails(surveyId: String): SurveyDetailResponse
+        getLeaderProfile(userId:String): LeaderProfile
+        getManifestoDetails(input: GetManifestoDetailsInput!): ManifestoDetails
+        getApplicationDetails(applicationId: ID!): ApplicationDetails
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
+    }
+    type ApplicationDetails {
+        _id: ID!
+        user: String
+        leader: String
+        category: String
+        title: String!
+        description: String
+        attachments: [String!]
+        status: ApplicationStatus!
+        comments: String
+        inProgressAt: String
+        acceptedAt: String
+        resolvedAt: String
+        rejectedAt: String
+        createdOn: String
+    }
+    enum ApplicationStatus {
+        PENDING
+        IN_PROGRESS
+        ACCEPTED
+        RESOLVED
+        REJECTED
+    }
+    type LeaderProfile {
+        id: String
+        name: String
+        profile: String
+        email:String
+        contactNumber: String
+        location: String
+        solvedIssues: Int
+        communityActivities: Int
+        politicalParty:PoliticalParty
+        positionStatus:String
+        positionName:String
+        members: Int
+    }
+    input GetManifestoDetailsInput {
+        manifestoId: ID!
+    }
+    type ManifestoDetails {
+        _id: ID!
+        manifestoType: String!
+        title: String!
+        images: [String!]
+        manifesto: [String!]
+        state: String
+        district: String
+        constituency: String
+        dislikesCount: Int
+        likesCount: Int
+    }
+    type PoliticalParty {
+        banner: String
+        logo: String
+        name: String
     }
     input AboutPostCountFilter {
          year: Int  
@@ -62,16 +122,17 @@ export const typeDefs = `
        state: ID
        district: ID
        constituency: ID
-       positionStatusId:String
+       partyId: String
+       positionName: String
        startDate:String
        endDate:String 
     }
     type LeaderStats {
        totalLeaders: Int
        positionStatusCount:Int
-       positionNameBreakdown: [PositionNameBreakdown]
+       positionStatusBreakdown: [positionStatusBreakdown]
     } 
-    type PositionNameBreakdown {
+    type positionStatusBreakdown {
         name: String
         count: Int
     }
@@ -126,7 +187,15 @@ export const typeDefs = `
     type CombinedStatsResponse {
        postStats: PostStats
        supportSufferStats: SupportSufferStats
+       monthlyStats: [MonthlyPostStats!]!
     }  
+    type MonthlyPostStats {
+        month: String! 
+        totalPosts: Int!
+        totalResolved: Int!
+        publicResolved: Int!
+        privateResolved: Int!
+    }
     type NewsTrend {
         month: String
         commonMan: Int
@@ -138,6 +207,7 @@ export const typeDefs = `
        constituency: ID
        startDate: String
        endDate: String
+       year: Int
     }    
     type DashboardStats {
       manifestoStats: ManifestoStats
@@ -146,6 +216,11 @@ export const typeDefs = `
     type ManifestoStats {
        totalManifestos: Int     
        manifestoPercentage: Float
+       monthlyManifestos: [MonthlyManifestoStats]
+    }
+    type MonthlyManifestoStats {
+        month: String!
+        count: Int!
     }
     type SurveyStats {
        totalSurveys: Int    

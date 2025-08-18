@@ -5,7 +5,8 @@ interface LeaderStatsFilter {
   state?: string;
   district?: string;
   constituency?: string;
-  positionStatusId?: string;
+  partyId?: string;
+  positionName?: string;
   startDate?: string;
   endDate?: string;
 }
@@ -13,14 +14,11 @@ interface LeaderStatsFilter {
 export const getLeaderStats = async (filter: LeaderStatsFilter = {}) => {
   const toObjectId = (val?: string) =>
     val ? new mongoose.Types.ObjectId(val) : undefined;
-
   const baseMatch = { role: "LEADER" };
   const filterMatch: any = { ...baseMatch };
-
   if (filter.state) filterMatch.state = toObjectId(filter.state);
   if (filter.district) filterMatch.district = toObjectId(filter.district);
   if (filter.constituency) filterMatch.constituency = toObjectId(filter.constituency);
-
   if (filter.startDate || filter.endDate) {
     const dateRange: any = {};
     if (filter.startDate) {
@@ -35,6 +33,10 @@ export const getLeaderStats = async (filter: LeaderStatsFilter = {}) => {
     }
     filterMatch.createdOn = dateRange;
   }
+  const positionStatuses = await mercury.db.PositionStatus.mongoModel.find({}, '_id value');
+  const attributeMatch: any = {};
+  if (filter.partyId) attributeMatch["attribute.politicalParty"] = toObjectId(filter.partyId);
+  if (filter.positionName) attributeMatch["attribute.positionName"] = toObjectId(filter.positionName);
 
   const pipeline = [
     { $match: filterMatch },
@@ -52,54 +54,15 @@ export const getLeaderStats = async (filter: LeaderStatsFilter = {}) => {
         preserveNullAndEmptyArrays: true,
       },
     },
+    { $match: attributeMatch },
     {
       $facet: {
         totalLeaders: [{ $count: "count" }],
-        positionStatusCount: filter.positionStatusId
-          ? [
-              {
-                $match: {
-                  "attribute.positionStatus": toObjectId(filter.positionStatusId),
-                },
-              },
-              { $count: "count" },
-            ]
-          : [{ $match: { _id: null } }, { $count: "count" }],
-        positionNameBreakdown: [
-          ...(filter.positionStatusId
-            ? [
-                {
-                  $match: {
-                    "attribute.positionStatus": toObjectId(filter.positionStatusId),
-                  },
-                },
-              ]
-            : []),
+        positionStatusBreakdown: [
           {
             $group: {
-              _id: "$attribute.positionName",
+              _id: "$attribute.positionStatus",
               count: { $sum: 1 },
-            },
-          },
-          {
-            $lookup: {
-              from: "positionnames", // change this if your collection name differs
-              localField: "_id",
-              foreignField: "_id",
-              as: "positionName",
-            },
-          },
-          {
-            $unwind: {
-              path: "$positionName",
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              name: "$positionName.value",
-              count: 1,
             },
           },
         ],
@@ -108,10 +71,21 @@ export const getLeaderStats = async (filter: LeaderStatsFilter = {}) => {
   ];
 
   const [result] = await mercury.db.User.mongoModel.aggregate(pipeline);
+  console.log(result, "result");
+
+  const processedBreakdown = positionStatuses.map((status: { _id: any; value: any; }) => {
+    const foundStatus = result.positionStatusBreakdown.find(
+      (item: any) => item._id && item._id.equals(status._id)
+    );
+
+    return {
+      name: status.value,
+      count: foundStatus?.count || 0,
+    };
+  });
 
   return {
     totalLeaders: result.totalLeaders[0]?.count || 0,
-    positionStatusCount: result.positionStatusCount[0]?.count || 0,
-    positionNameBreakdown: result.positionNameBreakdown || [],
+    positionStatusBreakdown: processedBreakdown,
   };
 };
