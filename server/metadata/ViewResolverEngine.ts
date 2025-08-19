@@ -46,15 +46,20 @@ export class ViewResolverEngine {
       let recordKey = "";      // e.g. "name", "label"
       const fromModel = modelField.type == 'relationship' ? modelField.ref : modelField.modelName;  // e.g. "Product", "Status"
 
-      const alias = fromModel; // Use model name as alias for clarity
+      // Use field name as alias to avoid conflicts when multiple fields reference the same model
+      const alias = _.upperFirst(_.camelCase(fieldName)); // e.g. "user" -> "User", "assignedTo" -> "AssignedTo"
 
       if (fromModel && fromModel !== baseModel) {
         // 2a. Lookup from related model
         const mod: any = await mercury.db.Model.get({ name: fromModel }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "recordKey" }] });
         recordKey = mod.recordKey.name;
+        
+        // Handle pluralization edge cases
+        const pluralizedCollection = this.pluralizeModelName(fromModel);
+        
         pipeline.push({
           $lookup: {
-            from: fromModel.toLowerCase() + 's',
+            from: pluralizedCollection,
             localField: fieldName, // check here model name to small case
             foreignField: "_id",
             as: alias,
@@ -111,7 +116,7 @@ export class ViewResolverEngine {
         } else {
           // Handle relationship fields
           const recordKey = recordKeyMap[fieldName];
-          const alias = modelField.ref;
+          const alias = _.upperFirst(_.camelCase(fieldName)); // Use same alias pattern as lookup
           const lookupFieldPath = `${alias}.${recordKey}`;
           
           // For relationship fields, we assume the recordKey is typically a string
@@ -155,7 +160,8 @@ export class ViewResolverEngine {
 
     // 7. Final projection
     pipeline.push({ $project: project });
-
+    console.log("Aggregation Pipeline:", JSON.stringify(pipeline, null, 2));
+    
     return {
       model: baseModel,
       pipeline,
@@ -191,6 +197,33 @@ export class ViewResolverEngine {
     const finalData = this.flattenViewData(rawData, fieldSearchMap);
 
     return finalData;
+  }
+
+  // Helper method to properly pluralize model names for collection names
+  private pluralizeModelName(modelName: string): string {
+    const lowerCaseModel = modelName.toLowerCase();
+    
+    // Handle words ending in 'y' preceded by a consonant (category -> categories)
+    if (lowerCaseModel.endsWith('y') && lowerCaseModel.length > 1) {
+      const secondLastChar = lowerCaseModel[lowerCaseModel.length - 2];
+      // Check if the character before 'y' is a consonant (not a vowel)
+      if (!'aeiou'.includes(secondLastChar)) {
+        return lowerCaseModel.slice(0, -1) + 'ies';
+      }
+    }
+    
+    // Handle words ending in 's', 'ss', 'sh', 'ch', 'x', 'z' (class -> classes)
+    if (lowerCaseModel.endsWith('s') || 
+        lowerCaseModel.endsWith('ss') || 
+        lowerCaseModel.endsWith('sh') || 
+        lowerCaseModel.endsWith('ch') || 
+        lowerCaseModel.endsWith('x') || 
+        lowerCaseModel.endsWith('z')) {
+      return lowerCaseModel + 'es';
+    }
+    
+    // Default case: just add 's'
+    return lowerCaseModel + 's';
   }
 
   // Build search conditions based on field type
