@@ -18,9 +18,14 @@ export const typeDefs = `
         getLeaderProfile(userId:String): LeaderProfile
         getManifestoDetails(input: GetManifestoDetailsInput!): ManifestoDetails
         getApplicationDetails(applicationId: ID!): ApplicationDetails
+        getSurveyCounts: SurveyCounts
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
+    }
+    type SurveyCounts {
+        totalSurveys: Int
+        surveysWithResponses: Int
     }
     type ApplicationDetails {
         _id: ID!

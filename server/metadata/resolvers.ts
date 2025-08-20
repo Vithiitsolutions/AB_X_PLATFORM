@@ -324,6 +324,20 @@ export default {
         throw new Error("Failed to fetch application details.");
       }
     },
+    getSurveyCounts: async (root: any, { }, ctx: any) => {
+      try {
+        const totalSurveys = await mercury.db.Survey.mongoModel.countDocuments({});
+        const surveysWithResponses = await mercury.db.SurveyResponse.mongoModel.distinct("survey");
+        const countWithResponses = surveysWithResponses.length;
+        return {
+          totalSurveys: totalSurveys,
+          surveysWithResponses: countWithResponses
+        };
+      } catch (error) {
+        console.error("Error getting survey counts:", error);
+        throw error;
+      }
+    },
 
     ...SurveyQuery
 
