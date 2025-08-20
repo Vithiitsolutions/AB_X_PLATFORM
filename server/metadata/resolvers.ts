@@ -326,19 +326,80 @@ export default {
     },
     getSurveyCounts: async (root: any, { }, ctx: any) => {
       try {
-        const totalSurveys = await mercury.db.Survey.mongoModel.countDocuments({});
-        const surveysWithResponses = await mercury.db.SurveyResponse.mongoModel.distinct("survey");
-        const countWithResponses = surveysWithResponses.length;
-        return {
-          totalSurveys: totalSurveys,
-          surveysWithResponses: countWithResponses
-        };
+        const totalSurveysByMonth = await mercury.db.Survey.mongoModel.aggregate([
+          {
+            $match: {
+              createdAt: { $ne: null } // Exclude documents where createdAt is null
+            }
+          },
+          {
+            $group: {
+              _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+              count: { $sum: 1 }
+            }
+          },
+          { $sort: { "_id": 1 } }
+        ]);
+        // Aggregation pipeline to get monthly response counts
+        const responsesByMonth = await mercury.db.SurveyResponse.mongoModel.aggregate([
+          {
+            $lookup: {
+              from: "surveys",
+              localField: "survey",
+              foreignField: "_id",
+              as: "surveyDetails"
+            }
+          },
+          { $unwind: "$surveyDetails" },
+          {
+            $match: {
+              "surveyDetails.createdAt": { $ne: null } // Exclude documents where the linked survey's createdAt is null
+            }
+          },
+          {
+            $group: {
+              _id: { $dateToString: { format: "%Y-%m", date: "$surveyDetails.createdAt" } },
+              count: { $addToSet: "$survey" }
+            }
+          },
+          {
+            $project: {
+              _id: 1,
+              count: { $size: "$count" }
+            }
+          },
+          { $sort: { "_id": 1 } }
+        ]);        // Combine the results into a single, clean format
+        const monthlyData: any = {};
+
+        // Populate monthlyData with total survey counts
+        totalSurveysByMonth.forEach((item: { _id: string | number; count: any; }) => {
+          monthlyData[item._id] = {
+            totalSurveys: item.count,
+            surveysWithResponses: 0 // Initialize to 0
+          };
+        });
+
+        // Add response counts to the correct months
+        responsesByMonth.forEach((item: { _id: string | number; count: any; }) => {
+          if (monthlyData[item._id]) {
+            monthlyData[item._id].surveysWithResponses = item.count;
+          }
+        });
+
+        // Convert the object to an array for a cleaner API response
+        const result = Object.keys(monthlyData).map(month => ({
+          month,
+          ...monthlyData[month]
+        }));
+
+        console.log("Monthly Survey and Response Counts:", result);
+        return result;
       } catch (error) {
-        console.error("Error getting survey counts:", error);
+        console.error("Error getting monthly survey counts:", error);
         throw error;
       }
     },
-
     ...SurveyQuery
 
     // retentionRatemetrics: async (
