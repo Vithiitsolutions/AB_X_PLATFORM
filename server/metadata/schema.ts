@@ -168,6 +168,7 @@ export const typeDefs = `
          leaderId: ID
          startDate: String
          endDate: String
+         year:String
     }
     type PostStats {
         totalResolved: Int
