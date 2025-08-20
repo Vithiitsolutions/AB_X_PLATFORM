@@ -1,6 +1,7 @@
 import _ from "lodash";
 import mercury from "@mercury-js/core";
 import { ViewResolverEngine } from "./ViewResolverEngine";
+import { log } from "util";
 
 type ViewQueryArgs = {
   filters?: Record<string, any>;
@@ -11,13 +12,12 @@ type ViewQueryArgs = {
 };
 
 export const fieldTypeMap: { [key: string]: string } = {
-  string: 'String',
-  number: 'Int',
-  boolean: 'Boolean',
-  date: 'DateTime',
-  float: 'Float',
+  string: "String",
+  number: "Int",
+  boolean: "Boolean",
+  date: "DateTime",
+  float: "Float",
 };
-
 
 export class ViewComposer {
   static async composeViews() {
@@ -37,13 +37,21 @@ export class ViewComposer {
         { id: "1", profile: "SystemAdmin" },
         {
           populate: [
-            { path: "fields", populate: [{ path: "field", select: "name modelName type enumValues ref" }] },
+            {
+              path: "fields",
+              populate: [
+                { path: "field", select: "name modelName type enumValues ref many" },
+              ],
+            },
             { path: "profiles", select: "name" },
           ],
         }
       );
 
-      const { typeMap, enums, subTypes } = await generateViewTypeSchema(viewWithFields.fields, view.modelName);
+      const { typeMap, enums, subTypes } = await generateViewTypeSchema(
+        viewWithFields.fields,
+        view.modelName
+      );
       const gqlType = toGraphQLTypeDef(typeMap, typeName);
       typeDefs += `\n${gqlType}`;
 
@@ -68,15 +76,22 @@ export class ViewComposer {
         : [viewWithFields.profile];
 
       for (const profile of profiles) {
-        const profileName = profile?.name ? _.upperFirst(_.camelCase(profile.name)) : "Unknown";
-        const resolverName = _.camelCase(`${view.modelName}ViewFor${profileName}`);
+        const profileName = profile?.name
+          ? _.upperFirst(_.camelCase(profile.name))
+          : "Unknown";
+        const resolverName = _.camelCase(
+          `${view.modelName}ViewFor${profileName}`
+        );
 
-        resolvers.Query[resolverName] = async (_: any, args: ViewQueryArgs = {}) => {
+        resolvers.Query[resolverName] = async (
+          _: any,
+          args: ViewQueryArgs = {}
+        ) => {
           const data = await engine.resolveViewData(args);
           const totalDocs = await engine.getTotalCount(args);
           return {
             totalDocs,
-            docs: data
+            docs: data,
           };
         };
 
@@ -85,32 +100,43 @@ export class ViewComposer {
         );
       }
     }
-
-    typeDefs += `\ntype Query {\n  ${queryFields.join("\n  ")}\n}`;
-    mercury.addGraphqlSchema(typeDefs, resolvers);
+    if (views.length > 0) {
+      typeDefs += `\ntype Query {\n  ${queryFields.join("\n  ")}\n}`;
+      mercury.addGraphqlSchema(typeDefs, resolvers);
+    }
   }
 }
 
-async function generateViewTypeSchema(viewFields: any[], baseModel: string): Promise<{
-  typeMap: Record<string, string>,
-  enums: { name: string, values: string[] }[],
-  subTypes: Map<string, string>
+async function generateViewTypeSchema(
+  viewFields: any[],
+  baseModel: string
+): Promise<{
+  typeMap: Record<string, string>;
+  enums: { name: string; values: string[] }[];
+  subTypes: Map<string, string>;
 }> {
   const typeMap: Record<string, string> = {};
-  const enums: { name: string, values: string[] }[] = [];
+  const enums: { name: string; values: string[] }[] = [];
   const subTypes: Map<string, string> = new Map();
 
   typeMap["id"] = "ID";
   for (const vf of viewFields) {
     const field = vf.field;
+    
     if (!field) continue;
 
     let mod: any;
-    const fromModel = ['relationship', 'virtual'].includes(field.type) ? field.ref : field.modelName;
+    const fromModel = ["relationship", "virtual"].includes(field.type)
+      ? field.ref
+      : field.modelName;
     const isFromBaseModel = fromModel === baseModel;
 
     if (!isFromBaseModel && fromModel) {
-      mod = await mercury.db.Model.get({ name: fromModel }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "recordKey" }] });
+      mod = await mercury.db.Model.get(
+        { name: fromModel },
+        { id: "1", profile: "SystemAdmin" },
+        { populate: [{ path: "recordKey" }] }
+      );
     }
 
     const key = field.name;
@@ -118,26 +144,30 @@ async function generateViewTypeSchema(viewFields: any[], baseModel: string): Pro
 
     switch (field.type) {
       case "number":
-        gqlType = "Int"; break;
+      gqlType = field.many ? "[Int]" : "Int";
+      break;
       case "boolean":
-        gqlType = "Boolean"; break;
+      gqlType = field.many ? "[Boolean]" : "Boolean";
+      break;
       case "date":
-        gqlType = "DateTime"; break;
+      gqlType = field.many ? "[DateTime]" : "DateTime";
+      break;
       case "float":
-        gqlType = "Float"; break;
+      gqlType = field.many ? "[Float]" : "Float";
+      break;
       case "enum":
-        const enumName = capitalizeEnumName(field.name);
-        gqlType = enumName;
-        if (field.enumValues) {
-          enums.push({ name: enumName, values: field.enumValues });
-        }
-        break;
+      const enumName = capitalizeEnumName(field.name);
+      gqlType = field.many ? `[${enumName}]` : enumName;
+      if (field.enumValues) {
+        enums.push({ name: enumName, values: field.enumValues });
+      }
+      break;
       case "relationship":
       case "virtual":
-        gqlType = registerSubType(field.name, mod?.recordKey, subTypes);
-        break;
+      gqlType = field.many ? `[${registerSubType(field.name, mod?.recordKey, subTypes)}]`: `${registerSubType(field.name, mod?.recordKey, subTypes)}`;
+      break;
       default:
-        gqlType = "String";
+      gqlType = field.many ? "[String]" : "String";
     }
 
     typeMap[key] = gqlType;
@@ -146,11 +176,17 @@ async function generateViewTypeSchema(viewFields: any[], baseModel: string): Pro
   return { typeMap, enums, subTypes };
 }
 
-function registerSubType(fieldName: string, recordKey: { name: string; type: string } | undefined, subTypes: Map<string, string>): string {
+function registerSubType(
+  fieldName: string,
+  recordKey: { name: string; type: string } | undefined,
+  subTypes: Map<string, string>
+): string {
   const refTypeName = `${capitalize(fieldName)}Ref`;
 
   if (!subTypes.has(refTypeName)) {
-    const fieldType = recordKey?.type ? fieldTypeMap[recordKey.type] || "String" : null;
+    const fieldType = recordKey?.type
+      ? fieldTypeMap[recordKey.type] || "String"
+      : null;
     const fieldName = recordKey?.name || null;
 
     const fields = [`  id: ID`];
@@ -165,7 +201,10 @@ function registerSubType(fieldName: string, recordKey: { name: string; type: str
   return refTypeName;
 }
 
-function toGraphQLTypeDef(typeMap: Record<string, string>, typeName: string): string {
+function toGraphQLTypeDef(
+  typeMap: Record<string, string>,
+  typeName: string
+): string {
   const lines = [`type ${typeName} {`];
   for (const key in typeMap) {
     lines.push(`  ${key}: ${typeMap[key]}`);

@@ -57,72 +57,90 @@ export async function loader({ request }: any) {
   }
 
   const response = await serverFetch(
-    `query Docs($where: whereTabInput, $sort: sortTabInput) {
-        listTabs(where: $where, sort: $sort) {
-          docs {
+    `query Docs($where: whereTabInput, $sort: sortTabInput, $limit: Int!, $offset: Int!) {
+  listTabs(where: $where, sort: $sort, limit: $limit, offset: $offset) {
+    docs {
+      id
+      label
+      order
+      icon
+      type
+      recordId
+      profiles {
+        id
+        label
+        name
+      }
+      page {
+        id
+        name
+        slug
+      }
+      model {
+        id
+        label
+        name
+      }
+      childTabs {
+        id
+        profiles {
+          id
+          label
+          name
+        }
+        icon
+        label
+        order
+        type
+        recordId
+        model {
+          id
+          label
+          name
+        }
+        profiles {
+          id
+          label
+          name
+        }
+        page {
+          id
+          name
+          slug
+        }
+        childTabs {
+          id
+          icon
+          profiles {
             id
             label
-            order
-            icon
-            type
-            recordId
-            model {
-                id
-                label
-                name
-              }
-            childTabs {
-              id
-              profiles {
-              id
-              label
-              name
-
-            }
-              icon
-              label
-              order
-              type
-            recordId
-              model {
-                id
-                label
-                name
-              }
-              childTabs {
-              id
-              icon
-              profiles {
-              id
-              label
-              name
-
-            }
-              label
-              order
-              type
-            recordId
-              model {
-                id
-                label
-                name
-              }
-            }
-            }
-            profiles {
-              id
-              label
-              name
-
-            }
-            page {
-              id
-              name
-              slug
-            }
+            name
+          }
+          label
+          order
+          type
+          recordId
+          model {
+            id
+            label
+            name
+          }
+          profiles {
+            id
+            label
+            name
+          }
+          page {
+            id
+            name
+            slug
           }
         }
-      }`,
+      }
+    }
+  }
+}
+`,
     {
       where: {
         parent: {
@@ -132,6 +150,8 @@ export async function loader({ request }: any) {
           is: profileResponse?.listProfiles?.docs[0]?.id,
         },
       },
+      limit: 1000,
+      offset: 0,
       sort: {
         order: "asc",
       },

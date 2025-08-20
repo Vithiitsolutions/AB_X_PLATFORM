@@ -11,11 +11,11 @@ export class Asset {
     this.authorization = this.getAuthorization();
   }
   getAuthorization() {
-    this.API_KEY = Deno.env.get("MERCURY_ASSET_API_KEY");
-    this.BUCKET_NAME = Deno.env.get("MERCURY_ASSET_BUCKET_NAME");
-    this.APP_SECRET = Deno.env.get("MERCURY_ASSET_APP_SECRET");
-    this.ASSET_ENDPOINT = Deno.env.get("MERCURY_ASSET_ENDPOINT");
-    this.FOLDER_NAME = Deno.env.get("MERCURY_ASSET_FOLDER_NAME");
+    this.API_KEY = process.env.MERCURY_ASSET_API_KEY!;
+    this.BUCKET_NAME = process.env.MERCURY_ASSET_BUCKET_NAME!;
+    this.APP_SECRET = process.env.MERCURY_ASSET_APP_SECRET!;
+    this.ASSET_ENDPOINT = process.env.MERCURY_ASSET_ENDPOINT!;
+    this.FOLDER_NAME = process.env.MERCURY_ASSET_FOLDER_NAME!;
 
     const token = jwt.sign(
       { eat: Math.floor(Date.now() / 1000) + 10 * 60 },
