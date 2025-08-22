@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx @react-router/dev dev",
+    "dev:be": "./start-backend.sh",
     "build": "npx @react-router/dev build",
     "start": "node --import tsx/esm server.ts",
     "start:prod": "node build/server/index.js",
@@ -60,7 +61,7 @@
     "morgan": "^1.10.0",
     "multiselect-react-dropdown": "^2.0.25",
     "node-cron": "^3.0.3",
-    "nodemailer": "^7.0.3",
+    "nodemailer": "^7.0.5",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-hook-form": "^7.54.2",
@@ -89,6 +90,7 @@
     "@types/react-dom": "19.0.0",
     "@types/websocket": "^1.0.10",
     "@types/ws": "^8.18.1",
+    "nodemon": "^3.1.10",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }

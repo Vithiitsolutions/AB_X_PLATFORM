@@ -3,19 +3,19 @@ import { GraphQLError } from "graphql";
 import { Form } from "./FormService";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
-import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth.ts"
-import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey.ts"
-import { getPostStats } from "../Analytics/Post.ts";
-import { getActivityStats } from "../Analytics/Activity.ts";
-import { getLeaderStats } from "../Analytics/Leader.ts";
-import { getApplicationDetails, getMonthlyApplicationStats } from "../Analytics/UrgeRequest.ts"
-import { getNewsPostTrends } from "../Analytics/News.ts";
-import { getReportedPostCount } from "../Analytics/PostReports.ts";
-import { supportTrendstats } from "../Analytics/SupportTicket.ts";
-import { CategoryStatsCount } from "../Analytics/NewsReports.ts";
-import { SurveyQuery } from "../masterApis/Survey.ts";
+import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth"
+import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey"
+import { getPostStats } from "../Analytics/Post";
+import { getActivityStats } from "../Analytics/Activity";
+import { getLeaderStats } from "../Analytics/Leader";
+import { getApplicationDetails, getMonthlyApplicationStats } from "../Analytics/UrgeRequest"
+import { getNewsPostTrends } from "../Analytics/News";
+import { getReportedPostCount } from "../Analytics/PostReports";
+import { supportTrendstats } from "../Analytics/SupportTicket";
+import { CategoryStatsCount } from "../Analytics/NewsReports";
+import { SurveyQuery } from "../masterApis/Survey";
 import mongoose, { Types } from "mongoose";
-import { getManifestoDetails } from "../Analytics/Manifesto.ts";
+import { getManifestoDetails } from "../Analytics/Manifesto";
 export default {
   Query: {
     signIn: async (
@@ -324,7 +324,82 @@ export default {
         throw new Error("Failed to fetch application details.");
       }
     },
+    getSurveyCounts: async (root: any, { }, ctx: any) => {
+      try {
+        const totalSurveysByMonth = await mercury.db.Survey.mongoModel.aggregate([
+          {
+            $match: {
+              createdAt: { $ne: null } // Exclude documents where createdAt is null
+            }
+          },
+          {
+            $group: {
+              _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+              count: { $sum: 1 }
+            }
+          },
+          { $sort: { "_id": 1 } }
+        ]);
+        // Aggregation pipeline to get monthly response counts
+        const responsesByMonth = await mercury.db.SurveyResponse.mongoModel.aggregate([
+          {
+            $lookup: {
+              from: "surveys",
+              localField: "survey",
+              foreignField: "_id",
+              as: "surveyDetails"
+            }
+          },
+          { $unwind: "$surveyDetails" },
+          {
+            $match: {
+              "surveyDetails.createdAt": { $ne: null } // Exclude documents where the linked survey's createdAt is null
+            }
+          },
+          {
+            $group: {
+              _id: { $dateToString: { format: "%Y-%m", date: "$surveyDetails.createdAt" } },
+              count: { $addToSet: "$survey" }
+            }
+          },
+          {
+            $project: {
+              _id: 1,
+              count: { $size: "$count" }
+            }
+          },
+          { $sort: { "_id": 1 } }
+        ]);        // Combine the results into a single, clean format
+        const monthlyData: any = {};
 
+        // Populate monthlyData with total survey counts
+        totalSurveysByMonth.forEach((item: { _id: string | number; count: any; }) => {
+          monthlyData[item._id] = {
+            totalSurveys: item.count,
+            surveysWithResponses: 0 // Initialize to 0
+          };
+        });
+
+        // Add response counts to the correct months
+        responsesByMonth.forEach((item: { _id: string | number; count: any; }) => {
+          if (monthlyData[item._id]) {
+            monthlyData[item._id].surveysWithResponses = item.count;
+          }
+        });
+
+        // Convert the object to an array for a cleaner API response
+        const result = Object.keys(monthlyData).map(month => ({
+          month,
+          ...monthlyData[month]
+        }));
+
+        console.log("Monthly Survey and Response Counts:", result);
+        return result;
+      } catch (error) {
+        console.error("Error getting monthly survey counts:", error);
+        throw error;
+      }
+    },
     ...SurveyQuery
 
     // retentionRatemetrics: async (

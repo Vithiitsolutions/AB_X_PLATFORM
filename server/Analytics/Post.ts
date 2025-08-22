@@ -10,7 +10,7 @@ interface CombinedFilter {
     startDate?: string;
     endDate?: string;
     leaderId?: string;
-    year?: number; 
+    year?: number;
 }
 
 export const getPostStats = async (filter: CombinedFilter = {}) => {
@@ -54,6 +54,33 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         baseMatch.createdOn = dateRange;
         postMatch.createdOn = dateRange;
     }
+
+    let postDetails = null;
+    if (filter.postId) {
+        postDetails = await mercury.db.Post.mongoModel
+            .findById(toObjectId(filter.postId))
+            .populate('category')
+            .populate('images')
+            .populate('state')
+            .populate('district')
+            .populate('constituency')
+            .populate('user')
+            .populate('assignedTo')
+            .populate({
+                path: 'acceptedBy',
+                populate: {
+                    path: 'userAttributes',
+                    populate: [
+                        { path: 'politicalParty' },
+                        { path: 'positionName' },
+                        { path: 'positionStatus' }
+                    ]
+                },
+            })
+            .populate('resolvedBy')
+            .exec();
+    }
+
     const now = new Date();
     const year = filter.year || now.getFullYear();
 
@@ -336,7 +363,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
     const sufferCount = supportStats?.[0]?.sufferCount || 0;
     const totalSupportSuffer = supportCount + sufferCount;
 
-    return {
+    const result: any = {
         postStats: {
             totalResolved,
             publicResolvedCount,
@@ -365,4 +392,103 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         },
         monthlyStats: monthlyStats,
     };
+
+    // Add post details if postId was provided
+    if (filter.postId && postDetails) {
+        result.postDetails = {
+            _id: postDetails._id,
+            id: postDetails._id.toString(), // 👈 ensure GraphQL `id`
+            access: postDetails.access,
+            description: postDetails.description,
+            category: postDetails.category,
+            images: postDetails.images,
+            state: postDetails.state,
+            district: postDetails.district,
+            constituency: postDetails.constituency,
+            user: postDetails.user && {
+                ...postDetails.user.toObject?.() ?? postDetails.user,
+                id: postDetails.user._id.toString(),
+            },
+            assignedTo: postDetails.assignedTo?.map((u: any) => ({
+                ...u.toObject?.() ?? u,
+                id: u._id.toString(),
+            })),
+            acceptedBy: await Promise.all(postDetails.acceptedBy?.map(async (user: any) => {
+                let attrs = [];
+                if (user.userAttributes) {
+                    attrs = [user.userAttributes];
+                }
+                const politicalParty = user.userAttributes?.politicalParty?.name || 
+                                     user.userAttributes?.politicalParty?.value || 
+                                     null;
+                const positionName = user.userAttributes?.positionName?.name || 
+                                   user.userAttributes?.positionName?.value || 
+                                   null;
+                const positionStatus = user.userAttributes?.positionStatus?.name || 
+                                     user.userAttributes?.positionStatus?.value || 
+                                     null;
+
+                return {
+                    id: user._id.toString(), 
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    politicalParty,
+                    positionName,
+                    positionStatus,
+                    userAttributes: user.userAttributes ? {
+                        id: user.userAttributes._id.toString(),
+                        _id: user.userAttributes._id,
+                        politicalParty: user.userAttributes.politicalParty ? {
+                            id: typeof user.userAttributes.politicalParty === 'object' 
+                                ? user.userAttributes.politicalParty._id?.toString() || user.userAttributes.politicalParty.id?.toString()
+                                : user.userAttributes.politicalParty.toString(),
+                            name: typeof user.userAttributes.politicalParty === 'object'
+                                ? user.userAttributes.politicalParty.name || user.userAttributes.politicalParty.value || null
+                                : null
+                        } : null,
+                        positionStatus: user.userAttributes.positionStatus ? {
+                            id: typeof user.userAttributes.positionStatus === 'object' 
+                                ? user.userAttributes.positionStatus._id?.toString() || user.userAttributes.positionStatus.id?.toString()
+                                : user.userAttributes.positionStatus.toString(),
+                            value: typeof user.userAttributes.positionStatus === 'object'
+                                ? user.userAttributes.positionStatus.value || user.userAttributes.positionStatus.name || null
+                                : null
+                        } : null,
+                        ...(user.userAttributes.positionName && {
+                            positionName: {
+                                id: typeof user.userAttributes.positionName === 'object' 
+                                    ? user.userAttributes.positionName._id?.toString() || user.userAttributes.positionName.id?.toString()
+                                    : user.userAttributes.positionName.toString(),
+                                name: typeof user.userAttributes.positionName === 'object'
+                                    ? user.userAttributes.positionName.name || user.userAttributes.positionName.value || null
+                                    : null
+                            }
+                        }),
+                        description: user.userAttributes.description,
+                        createdOn: user.userAttributes.createdOn ? user.userAttributes.createdOn.toISOString() : null,
+                        updatedOn: user.userAttributes.updatedOn ? user.userAttributes.updatedOn.toISOString() : null
+                    } : null
+                };
+            }) || []),
+            acceptedAt: postDetails.acceptedAt ? postDetails.acceptedAt.toISOString() : null,
+            resolvedBy: postDetails.resolvedBy?.map((u: any) => ({
+                ...u.toObject?.() ?? u,
+                id: u._id.toString(),
+            })),
+            resolvedAt: postDetails.resolvedAt ? postDetails.resolvedAt.toISOString() : null,
+            suffered: postDetails.suffered,
+            support: postDetails.support,
+            hasUserSuffered: postDetails.hasUserSuffered,
+            hasUserSupported: postDetails.hasUserSupported,
+            status: postDetails.status,
+            tags: postDetails.tags,
+            isDeleted: postDetails.isDeleted,
+            saved: postDetails.saved,
+            createdOn: postDetails.createdOn ? postDetails.createdOn.toISOString() : null,
+            updatedOn: postDetails.updatedOn ? postDetails.updatedOn.toISOString() : null,
+        };
+    }
+
+    return result;
 };

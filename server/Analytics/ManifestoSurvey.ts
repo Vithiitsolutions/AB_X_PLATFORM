@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import mercury from "@mercury-js/core";
+
 interface DashboardFilter {
   state?: string;
   district?: string;
@@ -11,7 +12,6 @@ interface DashboardFilter {
 
 const toObjectId = (id?: string): mongoose.Types.ObjectId | undefined =>
   id ? new mongoose.Types.ObjectId(id) : undefined;
-
 
 const calculatePercentage = (current: number, previous: number): number => {
   if (previous === 0) return current === 0 ? 0 : 100;
@@ -52,7 +52,7 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
   const combinedFilter = { ...locationFilters, ...(hasDateFilter ? { createdOn } : {}) };
 
   const yearForMonthlyStats = filter.year ? parseInt(filter.year) : now.getFullYear();
-  const manifestoMonthlyAggregation = [
+  const monthlyManifestoAggregationPipeline = [
     {
       $match: {
         ...locationFilters,
@@ -70,8 +70,47 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
     },
     { $sort: { _id: 1 } },
   ];
+  const monthlySurveyAggregationPipeline = [
+    {
+      $match: {
+        ...locationFilters,
+        createdOn: {
+          $gte: new Date(yearForMonthlyStats, 0, 1),
+          $lte: new Date(yearForMonthlyStats, 11, 31, 23, 59, 59, 999),
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: "surveyresponses",
+        localField: "_id",
+        foreignField: "survey",
+        as: "responses",
+      },
+    },
+    {
+      $addFields: {
+        responses: { $ifNull: ["$responses", []] }, // ✅ ensure array
+      },
+    },
+    {
+      $group: {
+        _id: { $month: "$createdOn" },
+        count: { $sum: 1 },
+        respondedCount: {
+          $sum: { $cond: [{ $gt: [{ $size: "$responses" }, 0] }, 1, 0] },
+        },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ];
 
-  const [manifestoAgg, surveyAgg, monthlyManifestosResult] = await Promise.all([
+  const [
+    manifestoAgg,
+    surveyAgg,
+    monthlyManifestosResult,
+    monthlySurveysResult
+  ] = await Promise.all([
     ManifestoModel.aggregate([
       { $match: combinedFilter },
       { $group: { _id: null, totalManifestos: { $sum: 1 } } }
@@ -95,7 +134,8 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
         }
       }
     ]),
-    ManifestoModel.aggregate(manifestoMonthlyAggregation),
+    ManifestoModel.aggregate(monthlyManifestoAggregationPipeline),
+    SurveyModel.aggregate(monthlySurveyAggregationPipeline),
   ]);
 
   const manifestoCount = manifestoAgg[0]?.totalManifestos || 0;
@@ -146,6 +186,15 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
     };
   });
 
+  const monthlySurveys = monthNames.map((month, index) => {
+    const monthData = monthlySurveysResult.find(item => item._id === index + 1);
+    return {
+      month: month,
+      count: monthData?.count || 0,
+      responseCount: monthData?.respondedCount || 0,
+    };
+  });
+
   return {
     manifestoStats: {
       totalManifestos: manifestoCount,
@@ -156,6 +205,7 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
       totalSurveys: surveyCount,
       totalEndedSurveys: endedSurveyCount,
       surveyPercentage,
+      monthlySurveys: monthlySurveys,
     },
   };
 };

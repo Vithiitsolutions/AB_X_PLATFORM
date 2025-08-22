@@ -18,9 +18,15 @@ export const typeDefs = `
         getLeaderProfile(userId:String): LeaderProfile
         getManifestoDetails(input: GetManifestoDetailsInput!): ManifestoDetails
         getApplicationDetails(applicationId: ID!): ApplicationDetails
+        getSurveyCounts: [SurveyMonthlyData]
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
+    }
+    type SurveyMonthlyData {
+        month: String
+        totalSurveys: Int
+        surveysWithResponses: Int
     }
     type ApplicationDetails {
         _id: ID!
@@ -163,6 +169,7 @@ export const typeDefs = `
          leaderId: ID
          startDate: String
          endDate: String
+         year:Int
     }
     type PostStats {
         totalResolved: Int
@@ -188,6 +195,7 @@ export const typeDefs = `
        postStats: PostStats
        supportSufferStats: SupportSufferStats
        monthlyStats: [MonthlyPostStats!]!
+       postDetails: Post 
     }  
     type MonthlyPostStats {
         month: String! 
@@ -226,6 +234,12 @@ export const typeDefs = `
        totalSurveys: Int    
        totalEndedSurveys: Int     
        surveyPercentage: Float
+       monthlySurveys: [MonthlySurveyStats]
+    }
+    type MonthlySurveyStats{
+        month: String
+        count: Int
+        responseCount: Int
     }
     input UserAnalyticsInput {
         date: String

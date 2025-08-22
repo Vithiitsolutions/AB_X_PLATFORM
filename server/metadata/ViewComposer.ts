@@ -37,12 +37,7 @@ export class ViewComposer {
         { id: "1", profile: "SystemAdmin" },
         {
           populate: [
-            {
-              path: "fields",
-              populate: [
-                { path: "field", select: "name modelName type enumValues ref" },
-              ],
-            },
+            { path: "fields", populate: [{ path: "field", select: "name modelName type enumValues ref many" }] },
             { path: "profiles", select: "name" },
           ],
         }
@@ -122,6 +117,7 @@ async function generateViewTypeSchema(
   typeMap["id"] = "ID";
   for (const vf of viewFields) {
     const field = vf.field;
+
     if (!field) continue;
 
     let mod: any;
@@ -163,13 +159,13 @@ async function generateViewTypeSchema(
         break;
       case "relationship":
       case "virtual":
-        gqlType = registerSubType(field.name, mod?.recordKey, subTypes);
+        gqlType = `${registerSubType(field.name, mod?.recordKey, subTypes)}`;
         break;
       default:
         gqlType = "String";
     }
 
-    typeMap[key] = gqlType;
+    typeMap[key] = field.many ? `[${gqlType}]` : gqlType;
   }
 
   return { typeMap, enums, subTypes };
@@ -200,10 +196,7 @@ function registerSubType(
   return refTypeName;
 }
 
-function toGraphQLTypeDef(
-  typeMap: Record<string, string>,
-  typeName: string
-): string {
+function toGraphQLTypeDef(typeMap: Record<string, string>, typeName: string): string {
   const lines = [`type ${typeName} {`];
   for (const key in typeMap) {
     lines.push(`  ${key}: ${typeMap[key]}`);

@@ -12,25 +12,76 @@ import { metaEvents } from "./server/metadata/Events.js";
 import jwt from "jsonwebtoken";
 
 let interval: NodeJS.Timeout;
-// Websocket setup
-const wss = new WebSocketServer({ port: 9080 });
+// Websocket setup with error handling
+const WS_PORT = Number.parseInt(process.env.WS_PORT || "9080");
+
+let wss: WebSocketServer;
+
+try {
+  wss = new WebSocketServer({ port: WS_PORT });
+  console.log(`WebSocket server started on port ${WS_PORT}`);
+} catch (error) {
+  console.error(`Failed to start WebSocket server on port ${WS_PORT}:`, error);
+  process.exit(1);
+}
+
 wss.on("connection", function (ws: WebSocket) {
-  // ws.on("message", function (message: string) {
+  console.log("New WebSocket connection established");
+  
   interval = setInterval(() => {
-    ws.send(
-      JSON.stringify({
-        data: new Date().toLocaleTimeString("en", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }),
-      })
-    );
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(
+        JSON.stringify({
+          data: new Date().toLocaleTimeString("en", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+        })
+      );
+    }
   }, 1000);
-  // });
+
+  ws.on("close", function () {
+    console.log("WebSocket connection closed");
+    if (interval) {
+      clearInterval(interval);
+    }
+  });
+
+  ws.on("error", function (error) {
+    console.error("WebSocket error:", error);
+    if (interval) {
+      clearInterval(interval);
+    }
+  });
 });
-wss.on("close", function () {
-  clearInterval(interval);
+
+wss.on("error", function (error) {
+  console.error("WebSocket server error:", error);
+});
+
+// Graceful shutdown handling
+process.on("SIGINT", () => {
+  console.log("\nShutting down gracefully...");
+  if (interval) {
+    clearInterval(interval);
+  }
+  wss.close(() => {
+    console.log("WebSocket server closed");
+    process.exit(0);
+  });
+});
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received, shutting down gracefully...");
+  if (interval) {
+    clearInterval(interval);
+  }
+  wss.close(() => {
+    console.log("WebSocket server closed");
+    process.exit(0);
+  });
 });
 // Short-circuit the type-checking of the built output.
 const BUILD_PATH = "./build/server/index.js";

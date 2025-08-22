@@ -1,0 +1,11 @@
+{
+  "watch": ["server", "server.ts"],
+  "ext": "ts,js,json",
+  "ignore": ["build/", "node_modules/", "*.test.ts", "*.spec.ts"],
+  "exec": "node --import tsx/esm server.ts",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "delay": 1000,
+  "signal": "SIGTERM"
+}
