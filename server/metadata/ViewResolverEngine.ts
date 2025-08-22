@@ -7,7 +7,7 @@ export class ViewResolverEngine {
   constructor(private viewId: string) { }
 
   async getViewDetails() {
-    const view = await mercury.db.View.get({ _id: this.viewId }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "fields", populate: [{ path: "field", select: "_id name modelName type ref" }] }] });
+    const view = await mercury.db.View.get({ _id: this.viewId }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "fields", populate: [{ path: "field", select: "_id name modelName type ref many" }] }] });
     return view;
   }
 
@@ -44,19 +44,21 @@ export class ViewResolverEngine {
       const modelField = vf.field;
       let fieldName = modelField.name;
       let recordKey = "";      // e.g. "name", "label"
-      const fromModel = modelField.type == 'relationship' ? modelField.ref : modelField.modelName;  // e.g. "Product", "Status"
+      const fromModel = ['relationship', 'virtual'].includes(modelField.type) ? modelField.ref : modelField.modelName;  // e.g. "Product", "Status"
 
       // Use field name as alias to avoid conflicts when multiple fields reference the same model
       const alias = _.upperFirst(_.camelCase(fieldName)); // e.g. "user" -> "User", "assignedTo" -> "AssignedTo"
 
+      // Different Model
       if (fromModel && fromModel !== baseModel) {
         // 2a. Lookup from related model
         const mod: any = await mercury.db.Model.get({ name: fromModel }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "recordKey" }] });
+        // Check if recordKey not present - we should display only id
         recordKey = mod.recordKey.name;
-        
+
         // Handle pluralization edge cases
         const pluralizedCollection = this.pluralizeModelName(fromModel);
-        
+
         pipeline.push({
           $lookup: {
             from: pluralizedCollection,
@@ -74,21 +76,33 @@ export class ViewResolverEngine {
           },
         });
 
-        pipeline.push({
-          $unwind: {
-            path: `$${alias}`,
-            preserveNullAndEmptyArrays: true,
-          },
-        });
-
+        // For user if we want to display email, fieldName = user, recordKey - email
         recordKeyMap[fieldName] = recordKey;
 
-        // 2b. Project as namespaced key
-        // const key = `${alias}.${recordKey}`; // e.g., product.name
-        project[`${fieldName}`] = {
-          id: `$${alias}._id`,
-          [recordKey]: `$${alias}.${recordKey}`
-        };
+        if (!modelField.many) {
+          pipeline.push({
+            $unwind: {
+              path: `$${alias}`,
+              preserveNullAndEmptyArrays: true,
+            },
+          });
+          project[`${fieldName}`] = {
+            id: `$${alias}._id`,
+            [recordKey]: `$${alias}.${recordKey}`
+          };
+        } else {
+          // many relationship projection (array → map)
+          project[fieldName] = {
+            $map: {
+              input: `$${alias}`,
+              as: "item",
+              in: {
+                id: `$$item._id`,
+                [recordKey]: `$$item.${recordKey}`,
+              },
+            },
+          };
+        }
 
         fieldSearchMap.push({ type: "lookup", key: fieldName, alias: fieldName });
       } else {
@@ -102,7 +116,7 @@ export class ViewResolverEngine {
     // 3. Search (OR condition)
     if (search) {
       const orConditions: any[] = [];
-      
+
       viewFields.forEach((vf) => {
         const modelField = vf.field;
         const isFromBaseModel = modelField.type != "relationship";
@@ -118,7 +132,7 @@ export class ViewResolverEngine {
           const recordKey = recordKeyMap[fieldName];
           const alias = _.upperFirst(_.camelCase(fieldName)); // Use same alias pattern as lookup
           const lookupFieldPath = `${alias}.${recordKey}`;
-          
+
           // For relationship fields, we assume the recordKey is typically a string
           orConditions.push({ [lookupFieldPath]: { $regex: search, $options: "i" } });
         }
@@ -160,14 +174,17 @@ export class ViewResolverEngine {
 
     // 7. Final projection
     pipeline.push({ $project: project });
-    console.log("Aggregation Pipeline:", JSON.stringify(pipeline, null, 2));
-    
+    // console.log("Aggregation Pipeline:", JSON.stringify(pipeline, null, 2));
+
     return {
       model: baseModel,
       pipeline,
       fieldSearchMap, // used for flattening
     };
   }
+
+  //   View - Post
+  // Fields - description, user, acceptedBy - multiple users
 
   // Utility to flatten "product.name" => "product"
   flattenViewData(data: Record<string, any>[], fieldSearchMap: { key: string; alias: string }[]) {
@@ -202,7 +219,7 @@ export class ViewResolverEngine {
   // Helper method to properly pluralize model names for collection names
   private pluralizeModelName(modelName: string): string {
     const lowerCaseModel = modelName.toLowerCase();
-    
+
     // Handle words ending in 'y' preceded by a consonant (category -> categories)
     if (lowerCaseModel.endsWith('y') && lowerCaseModel.length > 1) {
       const secondLastChar = lowerCaseModel[lowerCaseModel.length - 2];
@@ -211,17 +228,17 @@ export class ViewResolverEngine {
         return lowerCaseModel.slice(0, -1) + 'ies';
       }
     }
-    
+
     // Handle words ending in 's', 'ss', 'sh', 'ch', 'x', 'z' (class -> classes)
-    if (lowerCaseModel.endsWith('s') || 
-        lowerCaseModel.endsWith('ss') || 
-        lowerCaseModel.endsWith('sh') || 
-        lowerCaseModel.endsWith('ch') || 
-        lowerCaseModel.endsWith('x') || 
-        lowerCaseModel.endsWith('z')) {
+    if (lowerCaseModel.endsWith('s') ||
+      lowerCaseModel.endsWith('ss') ||
+      lowerCaseModel.endsWith('sh') ||
+      lowerCaseModel.endsWith('ch') ||
+      lowerCaseModel.endsWith('x') ||
+      lowerCaseModel.endsWith('z')) {
       return lowerCaseModel + 'es';
     }
-    
+
     // Default case: just add 's'
     return lowerCaseModel + 's';
   }
@@ -230,17 +247,17 @@ export class ViewResolverEngine {
   private buildSearchConditions(fieldName: string, fieldType: string, searchValue: string, enumValues?: string[]): any[] {
     const conditions: any[] = [];
     const trimmedSearch = searchValue.trim();
-    
+
     if (!trimmedSearch) {
       return conditions;
     }
-    
+
     switch (fieldType) {
       case 'string':
         // String fields: case-insensitive regex search
         conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
         break;
-        
+
       case 'number':
       case 'int':
         // Number fields: exact match and partial match for number conversion
@@ -251,7 +268,7 @@ export class ViewResolverEngine {
         // Also try string representation in case numbers are stored as strings
         conditions.push({ [fieldName]: { $regex: `^${trimmedSearch}`, $options: "i" } });
         break;
-        
+
       case 'float':
         // Float fields: exact match and partial match
         const floatValue = parseFloat(trimmedSearch);
@@ -261,7 +278,7 @@ export class ViewResolverEngine {
         // Also try string representation
         conditions.push({ [fieldName]: { $regex: `^${trimmedSearch}`, $options: "i" } });
         break;
-        
+
       case 'boolean':
         // Boolean fields: match various boolean representations
         const lowerSearch = trimmedSearch.toLowerCase();
@@ -278,7 +295,7 @@ export class ViewResolverEngine {
           conditions.push({ [fieldName]: false });
         }
         break;
-        
+
       case 'date':
         // Date fields: try multiple date formats and ranges
         try {
@@ -288,12 +305,12 @@ export class ViewResolverEngine {
             startOfDay.setHours(0, 0, 0, 0);
             const endOfDay = new Date(dateValue);
             endOfDay.setHours(23, 59, 59, 999);
-            
-            conditions.push({ 
-              [fieldName]: { 
-                $gte: startOfDay, 
-                $lte: endOfDay 
-              } 
+
+            conditions.push({
+              [fieldName]: {
+                $gte: startOfDay,
+                $lte: endOfDay
+              }
             });
           }
         } catch (err) {
@@ -301,7 +318,7 @@ export class ViewResolverEngine {
           conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
         }
         break;
-        
+
       case 'enum':
         // Enum fields: case-insensitive partial match
         if (enumValues && enumValues.length > 0) {
@@ -319,7 +336,7 @@ export class ViewResolverEngine {
         conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
         break;
     }
-    
+
     return conditions;
   }
 
@@ -335,7 +352,7 @@ export class ViewResolverEngine {
     });
 
     // Remove pagination stages and projection from pipeline for count
-    const countPipeline = pipeline.filter(stage => 
+    const countPipeline = pipeline.filter(stage =>
       !stage.$skip && !stage.$limit && !stage.$project
     );
 
@@ -343,7 +360,7 @@ export class ViewResolverEngine {
     countPipeline.push({ $count: "total" });
 
     const result = await mercury.db[model].mongoModel.aggregate(countPipeline);
-    
+
     return result.length > 0 ? result[0].total : 0;
   }
 }
