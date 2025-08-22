@@ -19,6 +19,7 @@ export const typeDefs = `
         getManifestoDetails(input: GetManifestoDetailsInput!): ManifestoDetails
         getApplicationDetails(applicationId: ID!): ApplicationDetails
         getSurveyCounts: [SurveyMonthlyData]
+        listLeaders(filter: LocationFilter): [Leader]
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
@@ -64,6 +65,36 @@ export const typeDefs = `
         positionStatus:String
         positionName:String
         members: Int
+    }
+    type Leader {
+        _id: ID!
+        name: String!
+        positionStatus:PositionNameValue
+        positionName:PositionNameValue
+        state: String
+        district: String
+        constituency: String
+        politicalParty: Party
+        profilePic:String
+        requestSent:Boolean
+        requestStatus:String
+    }
+    type PositionNameValue {
+        value: String
+    }
+    type Party {
+        name: String
+        label: String
+        nationalParty: Boolean
+        regionalParty: Boolean
+        description: String
+        logo:File
+        banner:File
+    }
+    input LocationFilter {
+        state: String
+        district: String
+        constituency: String
     }
     input GetManifestoDetailsInput {
         manifestoId: ID!
