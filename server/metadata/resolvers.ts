@@ -13,6 +13,7 @@ import { getNewsPostTrends } from "../Analytics/News";
 import { getReportedPostCount } from "../Analytics/PostReports";
 import { supportTrendstats } from "../Analytics/SupportTicket";
 import { CategoryStatsCount } from "../Analytics/NewsReports";
+import { listLeaders } from "../Analytics/ListLeaders";
 import { SurveyQuery } from "../masterApis/Survey";
 import mongoose, { Types } from "mongoose";
 import { getManifestoDetails } from "../Analytics/Manifesto";
@@ -400,6 +401,18 @@ export default {
         throw error;
       }
     },
+    listLeaders: async (
+      root: any,
+      {
+        filter,
+      }: {
+        filter?: { state?: string; district?: string; constituency?: string };
+      },
+      ctx: any
+    ) => {
+      return await listLeaders(filter);
+    },
+
     ...SurveyQuery
 
     // retentionRatemetrics: async (
