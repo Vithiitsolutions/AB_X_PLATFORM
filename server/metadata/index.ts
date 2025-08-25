@@ -26,6 +26,7 @@ import "./hooks/resolverSchema.ts";
 import "./hooks/hook.ts";
 import "./hooks/file.ts";
 import "./hooks/cronJob.ts";
+import "./hooks/package";
 
 // Profiles
 // import "./SystemAdmin.profile.ts";
@@ -40,6 +41,7 @@ import { CronService } from "./CronService.ts";
 import { HistoryTracking } from "@mercury-js/plugins/historyTracking";
 import { RedisCache } from "@mercury-js/plugins/redis";
 import { RecordOwner } from "@mercury-js/plugins/recordOwner";
+import { PackageInstaller } from "./PackageInstaller";
 
 interface IMetaApiConfig {
   db: string;
@@ -48,6 +50,7 @@ interface IMetaApiConfig {
 export default class MetaApi {
   public platform: Platform;
   public cronService: CronService;
+  public packageInstaller: PackageInstaller;
 
   schema = applyMiddleware(
     makeExecutableSchema({
@@ -67,15 +70,16 @@ export default class MetaApi {
       new RedisCache({
         client: {
           socket: {
-            tls: false
+            tls: false,
           },
           url: redisUrl,
-        }
+        },
       }),
       // new RecordOwner()
     ]);
     mercury.addGraphqlSchema(typeDefs, resolvers);
     this.cronService = new CronService({ id: "", profile: "SystemAdmin" });
+    this.packageInstaller = new PackageInstaller();
   }
 
   async start() {
@@ -87,6 +91,8 @@ export default class MetaApi {
     await this.restart();
     await addResolversFromDBToMercury();
     await registerHooksFromDB();
+    await this.packageInstaller.init();
+    await this.packageInstaller.initialInstall();
   }
   async restart() {
     this.config.schema = applyMiddleware(
