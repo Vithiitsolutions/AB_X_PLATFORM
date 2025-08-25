@@ -77,6 +77,14 @@ export async function getUserAnalytics({
         UserData.mongoModel.countDocuments({ ...previousFilters, gender: "Male" }),
         UserData.mongoModel.countDocuments({ ...previousFilters, gender: "Female" }),
     ]);
+
+    // New queries to get counts by gender and role
+    const [maleCommonCount, maleLeaderCount, femaleCommonCount, femaleLeaderCount] = await Promise.all([
+        UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Male", role: "PUBLIC" }),
+        UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Male", role: "LEADER" }),
+        UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Female", role: "PUBLIC" }),
+        UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Female", role: "LEADER" }),
+    ]);
     const selectedYear = year || new Date().getUTCFullYear();
     const yearStart = new Date(Date.UTC(selectedYear, 0, 1, 0, 0, 0, 0));
     const yearEnd = new Date(Date.UTC(selectedYear, 11, 31, 23, 59, 59, 999));
@@ -159,15 +167,21 @@ export async function getUserAnalytics({
         leaderCount,
         leaderGrowth: calculateGrowth(leaderCount, prevLeader),
         maleCount,
-        // maleGrowth: calculateGrowth(maleCount, prevMale),
         maleGrowth: totalCount > 0 ? Math.round((maleCount / totalCount) * 100) : 0,
         femaleCount,
-        // femaleGrowth: calculateGrowth(femaleCount, prevFemale),
-        femaleGrowth:totalCount > 0 ? Math.round((femaleCount / totalCount) * 100) : 0,
+        femaleGrowth: totalCount > 0 ? Math.round((femaleCount / totalCount) * 100) : 0,
+        // Add the new specific counts
+        maleCommonCount,
+        maleCommonGrowth: totalCount > 0 ? Math.round((maleCommonCount / totalCount) * 100) : 0,
+        maleLeaderCount,
+        maleLeaderGrowth: totalCount > 0 ? Math.round((maleLeaderCount / totalCount) * 100) : 0,
+        femaleCommonCount,
+        femaleCommonGrowth: totalCount > 0 ? Math.round((femaleCommonCount / totalCount) * 100) : 0,
+        femaleLeaderCount,
+        femaleLeaderGrowth: totalCount > 0 ? Math.round((femaleLeaderCount / totalCount) * 100) : 0,
         monthlySignupTrend,
         newUserCount,
         newUserGrowth,
-
     };
 }
 
@@ -223,8 +237,6 @@ export async function getUserLoginDurationByDate(userId: string, date: string) {
                 logins: {
                     $push: {
                         loginId: "$loginRecords._id",
-                        // startTime: "$loginRecords.startTime",
-                        // endTime: "$loginRecords.endTime",
                         durationHours: "$durationHours"
                     }
                 }

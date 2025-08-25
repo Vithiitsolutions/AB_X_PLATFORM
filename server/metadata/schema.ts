@@ -296,8 +296,16 @@ export const typeDefs = `
         leaderGrowth:Float
         maleCount: Int
         maleGrowth:Float
+        maleCommonCount:Int,
+        maleLeaderCount:Int,
         femaleCount: Int
         femaleGrowth:Float
+        femaleCommonCount:Int,
+        femaleLeaderCount:Int,
+        maleCommonGrowth:Float,
+        femaleCommonGrowth:Float,
+        maleLeaderGrowth:Float,
+        femaleLeaderGrowth:Float,
         monthlySignupTrend: [MonthlySignup]
         newUserCount:Float,
         newUserGrowth:Float,
