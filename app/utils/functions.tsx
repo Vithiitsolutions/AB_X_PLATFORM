@@ -36,8 +36,8 @@ export const GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS =  async (
   cookies?: string
 ) => {
   if (modelName === "File") {
-    return `query ListFiles($sort: sortFileInput, $offset: Int!, $limit: Int!, $where: whereFileInput) {
-  listFiles(sort: $sort, offset: $offset, limit: $limit, where: $where) {
+    return `query ListFiles($sort: sortFileInput, $offset: Int!, $limit: Int!, $where: whereFileInput, $filters: JSON) {
+  listFiles(sort: $sort, offset: $offset, limit: $limit, where: $where, filters: $filters) {
     docs {
       id
       mediaId

@@ -122,6 +122,7 @@ export const GET_VIEW = `
     id
     description
     name
+    filters
     buttons {
       id
       icon

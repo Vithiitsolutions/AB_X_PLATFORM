@@ -21,6 +21,7 @@ function DynamicTableContainer({
   modelData,
   modelName,
   dynamicQueryString,
+  filters,
   viewId,
   viewFields,
   refKeyMap,
@@ -32,6 +33,7 @@ function DynamicTableContainer({
   totalDocs: number;
   modelName: string;
   dynamicQueryString: string;
+  filters: any;
   viewId: string;
   viewFields: any;
   refKeyMap: Record<string, string>;
@@ -274,6 +276,7 @@ function DynamicTableContainer({
           },
           limit: pagination.pageSize,
           page: pagination.pageIndex + 1,
+          filters: filters || {},
         },
         {
           cache: "no-store",
@@ -290,12 +293,8 @@ function DynamicTableContainer({
 
   useEffect(() => {
     if (listModelDataResponse.data) {
-      setObjectDataList(
-        listModelDataResponse.data?.[apiName]?.docs || []
-      );
-      setTotalDocsCount(
-        listModelDataResponse.data?.[apiName]?.totalDocs || 0
-      );
+      setObjectDataList(listModelDataResponse.data?.[apiName]?.docs || []);
+      setTotalDocsCount(listModelDataResponse.data?.[apiName]?.totalDocs || 0);
     }
 
     if (listModelDataResponse.error) {
