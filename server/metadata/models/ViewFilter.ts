@@ -9,13 +9,7 @@ export const viewFilter = mercury.createModel("ViewFilter", {
     type: "string",
     required: true,
   },
-  function: {
-    type: "relationship",
-    ref: "Function"
-  },
-  type: {
-    type: "enum",
-    enum: ["range", "select"],
-    enumType: "string"
+  filterJson: {
+    type: "string"
   }
 });

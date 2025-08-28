@@ -2,16 +2,11 @@ import React, { useEffect } from "react";
 import { useLazyQuery } from "../../utils/hook";
 import { serverFetch } from "../../utils/action";
 
-import { A, Text, Box, Input } from "@mercury-js/mess";
+import { A, Text, Box } from "@mercury-js/mess";
 import DynamicTable from "../../components/table";
 
 import { PaginationState, SortingState } from "@tanstack/react-table";
 import { ChevronsUpDown } from "lucide-react";
-import { LIST_VIEW } from "../../utils/query";
-import {
-  getModelFieldRefModelKey,
-  getSearchCompostion,
-} from "../../utils/functions";
 import _ from "lodash";
 import { CustomeInput } from "../../components/inputs";
 import { DynamicButton } from "../../components/Button";
@@ -21,6 +16,7 @@ function DynamicTableContainer({
   modelData,
   modelName,
   dynamicQueryString,
+  filters,
   viewId,
   viewFields,
   refKeyMap,
@@ -32,6 +28,7 @@ function DynamicTableContainer({
   totalDocs: number;
   modelName: string;
   dynamicQueryString: string;
+  filters: any;
   viewId: string;
   viewFields: any;
   refKeyMap: Record<string, string>;
@@ -71,7 +68,7 @@ function DynamicTableContainer({
                   }
                   className="flex items-center cursor-pointer"
                 >
-                  {_.startCase(field?.field?.label)}
+                  {_.startCase(field.label || field?.field?.label)}
                   <ChevronsUpDown className="ml-2 h-4 w-4" />
                 </Box>
               ),
@@ -96,7 +93,7 @@ function DynamicTableContainer({
                     // }
                     className="font-bold w-full flex justify-start items-center gap-1"
                   >
-                    {_.startCase(field?.field?.label)}
+                    {_.startCase(field.label || field?.field?.label)}
                     {/* ({field.ref}) */}
                     {/* <ChevronsUpDown className="ml-2 h-4 w-4" /> */}
                   </Box>
@@ -117,12 +114,14 @@ function DynamicTableContainer({
                           className="hover:underline"
                           title={JSON.stringify(item, null, 2)}
                         >
-                          {(refKeyMap[field?.field?.name] &&
-                            item?.[`${refKeyMap[field?.field?.name]}`]) ||
-                            item?.id ||
-                            "-"}
+                          {field.valueField
+                            ? item?.[
+                                `${field.field?.ref}_${field.valueField}`
+                              ]?.[field.valueField]
+                            : refKeyMap[field?.field?.name]
+                              ? item?.[`${refKeyMap[field?.field?.name]}`]
+                              : item?.id || "-"}
                         </A>
-                        // <Box>{`/dashboard/o/${field.ref}/r/${item?.id}`}</Box>
                       ))}
                     </div>
                   );
@@ -139,12 +138,16 @@ function DynamicTableContainer({
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {(refKeyMap[field.field?.name] &&
-                        row.original[field.field?.name]?.[
-                          `${refKeyMap[field.field?.name]}`
-                        ]) ||
-                        row.original[field.field?.name]?.id ||
-                        "-"}
+
+                      {field.valueField
+                        ? row.original?.[
+                            `${field.field?.ref}_${field.valueField}`
+                          ]?.[field.valueField]
+                        : refKeyMap[field.field?.name]
+                          ? row.original[field.field?.name]?.[
+                              `${refKeyMap[field.field?.name]}`
+                            ]
+                          : row.original[field.field?.name]?.id || "-"}
                     </A>
                     // <Box>
                     //   {`/dashboard/o/${field.ref}/r/${row.original[field.name]?.id}`}
@@ -156,7 +159,7 @@ function DynamicTableContainer({
           case "boolean":
             return {
               accessorKey: field.field?.name,
-              header: _.startCase(field.field?.label),
+              header: _.startCase(field.label || field?.field?.label),
               cell: ({ row }) => {
                 if (field.field?.many) {
                   return (
@@ -210,7 +213,7 @@ function DynamicTableContainer({
                     }
                     className="flex items-center cursor-pointer"
                   >
-                    {_.startCase(field.field?.label)}
+                    {_.startCase(field.label || field?.field?.label)}
                     <ChevronsUpDown className="ml-2 h-4 w-4" />
                   </Box>
                 );
@@ -239,7 +242,7 @@ function DynamicTableContainer({
                     }
                     className="flex items-center cursor-pointer"
                   >
-                    {_.startCase(field.field?.label)}
+                    {_.startCase(field.label || field?.field?.label)}
                     <ChevronsUpDown className="ml-2 h-4 w-4" />
                   </Box>
                 );
@@ -274,6 +277,7 @@ function DynamicTableContainer({
           },
           limit: pagination.pageSize,
           page: pagination.pageIndex + 1,
+          filters: filters || {},
         },
         {
           cache: "no-store",
@@ -290,12 +294,8 @@ function DynamicTableContainer({
 
   useEffect(() => {
     if (listModelDataResponse.data) {
-      setObjectDataList(
-        listModelDataResponse.data?.[apiName]?.docs || []
-      );
-      setTotalDocsCount(
-        listModelDataResponse.data?.[apiName]?.totalDocs || 0
-      );
+      setObjectDataList(listModelDataResponse.data?.[apiName]?.docs || []);
+      setTotalDocsCount(listModelDataResponse.data?.[apiName]?.totalDocs || 0);
     }
 
     if (listModelDataResponse.error) {

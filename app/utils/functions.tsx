@@ -30,14 +30,14 @@ export const getModelFieldRefModelKey = async (
   return modelName === "File" ? "name" : data?.getModel?.recordKey?.name || "";
 };
 
-export const GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS =  async (
+export const GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS = async (
   modelName: string,
   modelFields: any[],
   cookies?: string
 ) => {
   if (modelName === "File") {
-    return `query ListFiles($sort: sortFileInput, $offset: Int!, $limit: Int!, $where: whereFileInput) {
-  listFiles(sort: $sort, offset: $offset, limit: $limit, where: $where) {
+    return `query ListFiles($sort: sortFileInput, $offset: Int!, $limit: Int!, $where: whereFileInput, $filters: JSON) {
+  listFiles(sort: $sort, offset: $offset, limit: $limit, where: $where, filters: $filters) {
     docs {
       id
       mediaId
@@ -62,17 +62,27 @@ export const GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS =  async (
               `;
 
     const fieldPromises = modelFields.map(async (item: any) => {
-      if (item.type === "virtual" || item.type === "relationship") {
-        const refModelKey = await getModelFieldRefModelKey(item.ref, cookies);
-        return `
-              ${item.name} {
+      if (item.field.type === "virtual" || item.field?.type === "relationship") {
+        if (item?.valueField) {
+          return `
+          ${item.field.ref}_${item.valueField} {
+                  id
+                  ${item.valueField}
+              }`;
+        } else {
+          const refModelKey = await getModelFieldRefModelKey(item.field.ref, cookies);
+          return `
+              ${item.field?.name} {
                   id
                   ${refModelKey}
               }`;
+        }
       }
       return `
-              ${item.name}`;
+              ${item.field?.name}`;
     });
+    
+
 
     const fieldStrings = await Promise.all(fieldPromises);
     str += fieldStrings.join("");

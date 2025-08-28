@@ -122,6 +122,7 @@ export const GET_VIEW = `
     id
     description
     name
+    filters
     buttons {
       id
       icon
@@ -149,6 +150,8 @@ query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput, $limit: Int!)
     docs {
       id
       order
+      valueField
+      label
       field {
         id
         enumValues

@@ -10,11 +10,8 @@ import {
   getSearchCompostion,
   parseCookies,
 } from "../utils/functions";
-import { A, Box } from "@mercury-js/mess";
-import { ChevronsUpDown } from "lucide-react";
-import { CustomeInput } from "../components/inputs";
+import { Box } from "@mercury-js/mess";
 import _ from "lodash";
-import DynamicTable from "../components/table";
 
 export async function loader({
   params,
@@ -99,11 +96,14 @@ export async function loader({
       );
     }
   }
+
   const str = await GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS(
     params?.model as string,
-    response1?.listViewFields?.docs.map((doc: any) => doc.field),
+    response1?.listViewFields?.docs,
     request.headers.get("Cookie")
   );
+
+  console.log(str, "dynamicQueryString");
 
   const modelData = await serverFetch(
     str,
@@ -144,7 +144,7 @@ export async function loader({
         .map((item: any) => item?.id)
         .includes(profileResponse?.listProfiles?.docs[0]?.id)
     ),
-    apiName
+    apiName,
   };
 }
 
@@ -183,6 +183,9 @@ const dashboard = ({
           modelName={loaderData?.modelName}
           totalDocs={loaderData?.totalDocs}
           viewId={loaderData.view?.id}
+          filters={
+            loaderData.view?.filters ? JSON.parse(loaderData.view?.filters) : {}
+          }
           refKeyMap={loaderData?.refKeyMap}
           buttons={loaderData?.buttons}
           apiName={loaderData?.apiName}
