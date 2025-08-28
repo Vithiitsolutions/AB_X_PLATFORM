@@ -21,13 +21,12 @@ export const viewField = mercury.createModel(
       type: "boolean",
       required: true,
     },
-    // filterable: {
-    //   type: "boolean",
-    //   // values - ? 
-    // },
-    // filterValues: {
-    //   type:
-    // }
+    valueField: {
+      type: "string"
+    },
+    label: {
+      type: "string"
+    }
   },
   {
     historyTracking: false,
@@ -43,6 +42,7 @@ export const viewField = mercury.createModel(
         },
       },
     ],
+    recordOwner: false
   }
 );
 

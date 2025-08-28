@@ -26,6 +26,7 @@ export class ViewResolverEngine {
     const viewFields = view.fields.filter((f) => f.visible);
 
     const pipeline: any[] = [];
+    const viewFieldRecordKeyMapper: Record<string, string> = {};
     const project: Record<string, any> = {};
     const recordKeyMap: Record<string, any> = {};
     const fieldSearchMap: { key: string; type: "local" | "lookup"; alias: string }[] = [];
@@ -37,24 +38,35 @@ export class ViewResolverEngine {
       key: "_id",
       alias: "id"
     });
-
+    // 1. View field from same model -  valueField will be empty ( Post -> content )
+    // 2. View Field from the same model - but valueField is empty then recordKey should be pickedup ( Post -> user -> name)
+    // 3. ViewField from the same model - valueField empty and recordKey is empty then only we will show id - Handle at last
+    // 3. View field from different model - valueField will not be empty ( valueField - email (mf from User) join on basis of user field from `Post`)
 
     // 2. Handle lookups and projections
     for (const vf of viewFields) {
       const modelField = vf.field;
       let fieldName = modelField.name;
+      let valueField = vf.valueField;
       let recordKey = "";      // e.g. "name", "label"
       const fromModel = ['relationship', 'virtual'].includes(modelField.type) ? modelField.ref : modelField.modelName;  // e.g. "Product", "Status"
 
       // Use field name as alias to avoid conflicts when multiple fields reference the same model
-      const alias = _.upperFirst(_.camelCase(fieldName)); // e.g. "user" -> "User", "assignedTo" -> "AssignedTo"
+      let alias = fromModel + "_" + (valueField ?? fieldName); // e.g. "user" -> "User", "assignedTo" -> "AssignedTo
 
       // Different Model
       if (fromModel && fromModel !== baseModel) {
         // 2a. Lookup from related model
-        const mod: any = await mercury.db.Model.get({ name: fromModel }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "recordKey" }] });
         // Check if recordKey not present - we should display only id
-        recordKey = mod.recordKey.name;
+        if (!valueField) {
+          const mod: any = await mercury.db.Model.get({ name: fromModel }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "recordKey" }] });
+          alias = fieldName;
+          recordKey = mod.recordKey.name;
+          viewFieldRecordKeyMapper[vf.id] = recordKey;
+        } else {
+          // Check if recordKey not present - we should display only id
+          recordKey = valueField;
+        }
 
         // Handle pluralization edge cases
         const pluralizedCollection = this.pluralizeModelName(fromModel);
@@ -77,7 +89,7 @@ export class ViewResolverEngine {
         });
 
         // For user if we want to display email, fieldName = user, recordKey - email
-        recordKeyMap[fieldName] = recordKey;
+        recordKeyMap[recordKey] = recordKey;
 
         if (!modelField.many) {
           pipeline.push({
@@ -86,13 +98,13 @@ export class ViewResolverEngine {
               preserveNullAndEmptyArrays: true,
             },
           });
-          project[`${fieldName}`] = {
+          project[`${alias}`] = {
             id: `$${alias}._id`,
             [recordKey]: `$${alias}.${recordKey}`
           };
         } else {
           // many relationship projection (array → map)
-          project[fieldName] = {
+          project[alias] = {
             $map: {
               input: `$${alias}`,
               as: "item",
@@ -104,7 +116,7 @@ export class ViewResolverEngine {
           };
         }
 
-        fieldSearchMap.push({ type: "lookup", key: fieldName, alias: fieldName });
+        fieldSearchMap.push({ type: "lookup", key: alias, alias: alias });
       } else {
         // 2c. Base model field
         const key = `${baseModel}.${fieldName}`;
@@ -112,14 +124,15 @@ export class ViewResolverEngine {
         fieldSearchMap.push({ type: "local", key, alias: fieldName });
       }
     }
-
     // 3. Search (OR condition)
     if (search) {
       const orConditions: any[] = [];
 
-      viewFields.forEach((vf) => {
+      viewFields.forEach(async (vf) => {
         const modelField = vf.field;
-        const isFromBaseModel = modelField.type != "relationship";
+        const valueField = vf.valueField;
+        const fromModel = ['relationship', 'virtual'].includes(modelField.type) ? modelField.ref : modelField.modelName;  // e.g. "Product", "Status"
+        const isFromBaseModel = fromModel == baseModel;
         const fieldName = modelField.name;
         const fieldType = modelField.type;
 
@@ -128,12 +141,14 @@ export class ViewResolverEngine {
           const searchConditions = this.buildSearchConditions(fieldName, fieldType, search, modelField.enumValues);
           orConditions.push(...searchConditions);
         } else {
-          // Handle relationship fields
-          const recordKey = recordKeyMap[fieldName];
-          const alias = _.upperFirst(_.camelCase(fieldName)); // Use same alias pattern as lookup
-          const lookupFieldPath = `${alias}.${recordKey}`;
-
-          // For relationship fields, we assume the recordKey is typically a string
+          let lookupFieldPath;
+          if (valueField) {
+            lookupFieldPath = fromModel + "_" + valueField + "." + valueField;
+          } else {
+            // get record Key and then check using fieldName
+            const recordKey = viewFieldRecordKeyMapper[vf.id];
+            lookupFieldPath = fieldName + "." + recordKey;
+          }
           orConditions.push({ [lookupFieldPath]: { $regex: search, $options: "i" } });
         }
       });
@@ -155,6 +170,7 @@ export class ViewResolverEngine {
     }
 
 
+
     // 4. Filters
     if (Object.keys(filters).length > 0) {
       pipeline.push({ $match: filters });
@@ -174,7 +190,6 @@ export class ViewResolverEngine {
 
     // 7. Final projection
     pipeline.push({ $project: project });
-    // console.log("Aggregation Pipeline:", JSON.stringify(pipeline, null, 2));
 
     return {
       model: baseModel,
@@ -192,13 +207,14 @@ export class ViewResolverEngine {
       const result: Record<string, any> = {};
       for (const f of fieldSearchMap) {
         // Now handles both scalar and object (relationship) values correctly
-        result[f.alias] = _.get(row, f.key);
+        result[f.alias.toLowerCase()] = _.get(row, f.key);
       }
       return result;
     });
   }
 
 
+  // key - modelname + valuefield, alis also?
   // Combine everything
   async resolveViewData(options: {
     filters?: Record<string, any>;
@@ -208,9 +224,7 @@ export class ViewResolverEngine {
     search?: string;
   }) {
     const { model, pipeline, fieldSearchMap } = await this.buildAggregationPipeline(options);
-
     const rawData = await mercury.db[model].mongoModel.aggregate(pipeline);
-
     const finalData = this.flattenViewData(rawData, fieldSearchMap);
 
     return finalData;
@@ -364,3 +378,13 @@ export class ViewResolverEngine {
     return result.length > 0 ? result[0].total : 0;
   }
 }
+
+
+// Post - id, description, user ( record key - name )
+
+
+//  Post VIew - Post description, user_name, user_email
+
+
+// user: { id , name , email }
+// survey: {}
