@@ -2,7 +2,6 @@ import _ from "lodash";
 import mercury from "@mercury-js/core";
 import { ViewResolverEngine } from "./ViewResolverEngine";
 
-
 type ViewQueryArgs = {
   filters?: Record<string, any>;
   sort?: Record<string, 1 | -1>;
@@ -37,7 +36,15 @@ export class ViewComposer {
         { id: "1", profile: "SystemAdmin" },
         {
           populate: [
-            { path: "fields", populate: [{ path: "field", select: "name modelName type enumValues ref many" }] },
+            {
+              path: "fields",
+              populate: [
+                {
+                  path: "field",
+                  select: "name modelName type enumValues ref many",
+                },
+              ],
+            },
             { path: "profiles", select: "name" },
           ],
         }
@@ -137,9 +144,17 @@ async function generateViewTypeSchema(
        * Relationship field
        * Each (fieldName + valueField) combo → unique subtype
        */
-      const mod: any = await mercury.db.Model.get({ name: fromModel }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "recordKey" }] });
+      const mod: any = await mercury.db.Model.get(
+        { name: fromModel },
+        { id: "1", profile: "SystemAdmin" },
+        { populate: [{ path: "recordKey" }] }
+      );
       let recordKey = mod.recordKey.name;
-      gqlType = registerSubType(field.name, vf.valueField ?? recordKey, subTypes);
+      gqlType = registerSubType(
+        field.name,
+        vf.valueField ?? recordKey,
+        subTypes
+      );
     } else {
       /**
        * Scalar or enum field
@@ -169,7 +184,7 @@ async function generateViewTypeSchema(
       }
     }
 
-    typeMap[key.toLowerCase()] = field.many ? `[${gqlType}]` : gqlType;
+    typeMap[key] = field.many ? `[${gqlType}]` : gqlType;
   }
 
   return { typeMap, enums, subTypes };
@@ -186,9 +201,7 @@ function registerSubType(
   valueField: string,
   subTypes: Map<string, string>
 ): string {
-  const refTypeName = `${capitalize(baseField)}${capitalize(
-    valueField
-  )}Ref`;
+  const refTypeName = `${capitalize(baseField)}${capitalize(valueField)}Ref`;
 
   // SubType Dynamic\
   if (!subTypes.has(refTypeName)) {

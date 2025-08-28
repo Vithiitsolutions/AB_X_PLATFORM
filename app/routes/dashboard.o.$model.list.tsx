@@ -96,11 +96,14 @@ export async function loader({
       );
     }
   }
+
   const str = await GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS(
     params?.model as string,
-    response1?.listViewFields?.docs.map((doc: any) => doc.field),
+    response1?.listViewFields?.docs,
     request.headers.get("Cookie")
   );
+
+  console.log(str, "dynamicQueryString");
 
   const modelData = await serverFetch(
     str,

@@ -150,6 +150,8 @@ query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput, $limit: Int!)
     docs {
       id
       order
+      valueField
+      label
       field {
         id
         enumValues
