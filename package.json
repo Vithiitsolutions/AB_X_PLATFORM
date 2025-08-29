@@ -61,6 +61,7 @@
     "morgan": "^1.10.0",
     "multiselect-react-dropdown": "^2.0.25",
     "node-cron": "^3.0.3",
+    "nodemailer": "^7.0.5",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-hook-form": "^7.54.2",
