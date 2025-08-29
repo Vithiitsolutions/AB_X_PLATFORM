@@ -144,6 +144,15 @@ export const defaultPermissionSet = [
     },
   },
   {
+    modelName: "Package",
+    access: {
+      create: false,
+      read: true,
+      update: false,
+      delete: false,
+    },
+  },
+  {
     modelName: "File",
     access: {
       create: true,

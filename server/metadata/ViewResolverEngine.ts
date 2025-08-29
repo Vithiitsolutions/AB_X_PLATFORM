@@ -2,15 +2,27 @@ import mercury from "@mercury-js/core";
 import _ from "lodash";
 import { ObjectId } from "mongodb";
 
-// Search functionality - need to check - 
+// Search functionality - need to check -
 export class ViewResolverEngine {
-  constructor(private viewId: string) { }
+  constructor(private viewId: string) {}
 
   async getViewDetails() {
-    const view = await mercury.db.View.get({ _id: this.viewId }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "fields", populate: [{ path: "field", select: "_id name modelName type ref many" }] }] });
+    const view = await mercury.db.View.get(
+      { _id: this.viewId },
+      { id: "1", profile: "SystemAdmin" },
+      {
+        populate: [
+          {
+            path: "fields",
+            populate: [
+              { path: "field", select: "_id name modelName type ref many" },
+            ],
+          },
+        ],
+      }
+    );
     return view;
   }
-
 
   async buildAggregationPipeline({
     filters = {},
@@ -26,35 +38,57 @@ export class ViewResolverEngine {
     const viewFields = view.fields.filter((f) => f.visible);
 
     const pipeline: any[] = [];
+    const viewFieldRecordKeyMapper: Record<string, string> = {};
     const project: Record<string, any> = {};
     const recordKeyMap: Record<string, any> = {};
-    const fieldSearchMap: { key: string; type: "local" | "lookup"; alias: string }[] = [];
+    const fieldSearchMap: {
+      key: string;
+      type: "local" | "lookup";
+      alias: string;
+    }[] = [];
 
     project["id"] = "$_id";
 
     fieldSearchMap.push({
       type: "local",
       key: "_id",
-      alias: "id"
+      alias: "id",
     });
-
+    // 1. View field from same model -  valueField will be empty ( Post -> content )
+    // 2. View Field from the same model - but valueField is empty then recordKey should be pickedup ( Post -> user -> name)
+    // 3. ViewField from the same model - valueField empty and recordKey is empty then only we will show id - Handle at last
+    // 3. View field from different model - valueField will not be empty ( valueField - email (mf from User) join on basis of user field from `Post`)
 
     // 2. Handle lookups and projections
     for (const vf of viewFields) {
       const modelField = vf.field;
       let fieldName = modelField.name;
-      let recordKey = "";      // e.g. "name", "label"
-      const fromModel = ['relationship', 'virtual'].includes(modelField.type) ? modelField.ref : modelField.modelName;  // e.g. "Product", "Status"
+      let valueField = vf.valueField;
+      let recordKey = ""; // e.g. "name", "label"
+      const fromModel = ["relationship", "virtual"].includes(modelField.type)
+        ? modelField.ref
+        : modelField.modelName; // e.g. "Product", "Status"
 
       // Use field name as alias to avoid conflicts when multiple fields reference the same model
-      const alias = _.upperFirst(_.camelCase(fieldName)); // e.g. "user" -> "User", "assignedTo" -> "AssignedTo"
+      let alias = fromModel + "_" + (valueField ?? fieldName); // e.g. "user" -> "User", "assignedTo" -> "AssignedTo
 
       // Different Model
       if (fromModel && fromModel !== baseModel) {
         // 2a. Lookup from related model
-        const mod: any = await mercury.db.Model.get({ name: fromModel }, { id: "1", profile: "SystemAdmin" }, { populate: [{ path: "recordKey" }] });
         // Check if recordKey not present - we should display only id
-        recordKey = mod.recordKey.name;
+        if (!valueField) {
+          const mod: any = await mercury.db.Model.get(
+            { name: fromModel },
+            { id: "1", profile: "SystemAdmin" },
+            { populate: [{ path: "recordKey" }] }
+          );
+          alias = fieldName;
+          recordKey = mod.recordKey.name;
+          viewFieldRecordKeyMapper[vf.id] = recordKey;
+        } else {
+          // Check if recordKey not present - we should display only id
+          recordKey = valueField;
+        }
 
         // Handle pluralization edge cases
         const pluralizedCollection = this.pluralizeModelName(fromModel);
@@ -77,7 +111,7 @@ export class ViewResolverEngine {
         });
 
         // For user if we want to display email, fieldName = user, recordKey - email
-        recordKeyMap[fieldName] = recordKey;
+        recordKeyMap[recordKey] = recordKey;
 
         if (!modelField.many) {
           pipeline.push({
@@ -86,13 +120,13 @@ export class ViewResolverEngine {
               preserveNullAndEmptyArrays: true,
             },
           });
-          project[`${fieldName}`] = {
+          project[`${alias}`] = {
             id: `$${alias}._id`,
-            [recordKey]: `$${alias}.${recordKey}`
+            [recordKey]: `$${alias}.${recordKey}`,
           };
         } else {
           // many relationship projection (array → map)
-          project[fieldName] = {
+          project[alias] = {
             $map: {
               input: `$${alias}`,
               as: "item",
@@ -104,7 +138,7 @@ export class ViewResolverEngine {
           };
         }
 
-        fieldSearchMap.push({ type: "lookup", key: fieldName, alias: fieldName });
+        fieldSearchMap.push({ type: "lookup", key: alias, alias: alias });
       } else {
         // 2c. Base model field
         const key = `${baseModel}.${fieldName}`;
@@ -112,29 +146,41 @@ export class ViewResolverEngine {
         fieldSearchMap.push({ type: "local", key, alias: fieldName });
       }
     }
-
     // 3. Search (OR condition)
     if (search) {
       const orConditions: any[] = [];
 
-      viewFields.forEach((vf) => {
+      viewFields.forEach(async (vf) => {
         const modelField = vf.field;
-        const isFromBaseModel = modelField.type != "relationship";
+        const valueField = vf.valueField;
+        const fromModel = ["relationship", "virtual"].includes(modelField.type)
+          ? modelField.ref
+          : modelField.modelName; // e.g. "Product", "Status"
+        const isFromBaseModel = fromModel == baseModel;
         const fieldName = modelField.name;
         const fieldType = modelField.type;
 
         if (isFromBaseModel) {
           // Handle different field types for base model fields
-          const searchConditions = this.buildSearchConditions(fieldName, fieldType, search, modelField.enumValues);
+          const searchConditions = this.buildSearchConditions(
+            fieldName,
+            fieldType,
+            search,
+            modelField.enumValues
+          );
           orConditions.push(...searchConditions);
         } else {
-          // Handle relationship fields
-          const recordKey = recordKeyMap[fieldName];
-          const alias = _.upperFirst(_.camelCase(fieldName)); // Use same alias pattern as lookup
-          const lookupFieldPath = `${alias}.${recordKey}`;
-
-          // For relationship fields, we assume the recordKey is typically a string
-          orConditions.push({ [lookupFieldPath]: { $regex: search, $options: "i" } });
+          let lookupFieldPath;
+          if (valueField) {
+            lookupFieldPath = fromModel + "_" + valueField + "." + valueField;
+          } else {
+            // get record Key and then check using fieldName
+            const recordKey = viewFieldRecordKeyMapper[vf.id];
+            lookupFieldPath = fieldName + "." + recordKey;
+          }
+          orConditions.push({
+            [lookupFieldPath]: { $regex: search, $options: "i" },
+          });
         }
       });
 
@@ -149,11 +195,10 @@ export class ViewResolverEngine {
 
       if (orConditions.length > 0) {
         pipeline.push({
-          $match: { $or: orConditions }
+          $match: { $or: orConditions },
         });
       }
     }
-
 
     // 4. Filters
     if (Object.keys(filters).length > 0) {
@@ -174,7 +219,6 @@ export class ViewResolverEngine {
 
     // 7. Final projection
     pipeline.push({ $project: project });
-    // console.log("Aggregation Pipeline:", JSON.stringify(pipeline, null, 2));
 
     return {
       model: baseModel,
@@ -187,7 +231,10 @@ export class ViewResolverEngine {
   // Fields - description, user, acceptedBy - multiple users
 
   // Utility to flatten "product.name" => "product"
-  flattenViewData(data: Record<string, any>[], fieldSearchMap: { key: string; alias: string }[]) {
+  flattenViewData(
+    data: Record<string, any>[],
+    fieldSearchMap: { key: string; alias: string }[]
+  ) {
     return data.map((row) => {
       const result: Record<string, any> = {};
       for (const f of fieldSearchMap) {
@@ -198,7 +245,7 @@ export class ViewResolverEngine {
     });
   }
 
-
+  // key - modelname + valuefield, alis also?
   // Combine everything
   async resolveViewData(options: {
     filters?: Record<string, any>;
@@ -207,10 +254,9 @@ export class ViewResolverEngine {
     limit?: number;
     search?: string;
   }) {
-    const { model, pipeline, fieldSearchMap } = await this.buildAggregationPipeline(options);
-
+    const { model, pipeline, fieldSearchMap } =
+      await this.buildAggregationPipeline(options);
     const rawData = await mercury.db[model].mongoModel.aggregate(pipeline);
-
     const finalData = this.flattenViewData(rawData, fieldSearchMap);
 
     return finalData;
@@ -221,30 +267,37 @@ export class ViewResolverEngine {
     const lowerCaseModel = modelName.toLowerCase();
 
     // Handle words ending in 'y' preceded by a consonant (category -> categories)
-    if (lowerCaseModel.endsWith('y') && lowerCaseModel.length > 1) {
+    if (lowerCaseModel.endsWith("y") && lowerCaseModel.length > 1) {
       const secondLastChar = lowerCaseModel[lowerCaseModel.length - 2];
       // Check if the character before 'y' is a consonant (not a vowel)
-      if (!'aeiou'.includes(secondLastChar)) {
-        return lowerCaseModel.slice(0, -1) + 'ies';
+      if (!"aeiou".includes(secondLastChar)) {
+        return lowerCaseModel.slice(0, -1) + "ies";
       }
     }
 
     // Handle words ending in 's', 'ss', 'sh', 'ch', 'x', 'z' (class -> classes)
-    if (lowerCaseModel.endsWith('s') ||
-      lowerCaseModel.endsWith('ss') ||
-      lowerCaseModel.endsWith('sh') ||
-      lowerCaseModel.endsWith('ch') ||
-      lowerCaseModel.endsWith('x') ||
-      lowerCaseModel.endsWith('z')) {
-      return lowerCaseModel + 'es';
+    if (
+      lowerCaseModel.endsWith("s") ||
+      lowerCaseModel.endsWith("ss") ||
+      lowerCaseModel.endsWith("sh") ||
+      lowerCaseModel.endsWith("ch") ||
+      lowerCaseModel.endsWith("x") ||
+      lowerCaseModel.endsWith("z")
+    ) {
+      return lowerCaseModel + "es";
     }
 
     // Default case: just add 's'
-    return lowerCaseModel + 's';
+    return lowerCaseModel + "s";
   }
 
   // Build search conditions based on field type
-  private buildSearchConditions(fieldName: string, fieldType: string, searchValue: string, enumValues?: string[]): any[] {
+  private buildSearchConditions(
+    fieldName: string,
+    fieldType: string,
+    searchValue: string,
+    enumValues?: string[]
+  ): any[] {
     const conditions: any[] = [];
     const trimmedSearch = searchValue.trim();
 
@@ -253,50 +306,58 @@ export class ViewResolverEngine {
     }
 
     switch (fieldType) {
-      case 'string':
+      case "string":
         // String fields: case-insensitive regex search
-        conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
+        conditions.push({
+          [fieldName]: { $regex: trimmedSearch, $options: "i" },
+        });
         break;
 
-      case 'number':
-      case 'int':
+      case "number":
+      case "int":
         // Number fields: exact match and partial match for number conversion
         const numValue = parseFloat(trimmedSearch);
         if (!isNaN(numValue)) {
           conditions.push({ [fieldName]: numValue });
         }
         // Also try string representation in case numbers are stored as strings
-        conditions.push({ [fieldName]: { $regex: `^${trimmedSearch}`, $options: "i" } });
+        conditions.push({
+          [fieldName]: { $regex: `^${trimmedSearch}`, $options: "i" },
+        });
         break;
 
-      case 'float':
+      case "float":
         // Float fields: exact match and partial match
         const floatValue = parseFloat(trimmedSearch);
         if (!isNaN(floatValue)) {
           conditions.push({ [fieldName]: floatValue });
         }
         // Also try string representation
-        conditions.push({ [fieldName]: { $regex: `^${trimmedSearch}`, $options: "i" } });
+        conditions.push({
+          [fieldName]: { $regex: `^${trimmedSearch}`, $options: "i" },
+        });
         break;
 
-      case 'boolean':
+      case "boolean":
         // Boolean fields: match various boolean representations
         const lowerSearch = trimmedSearch.toLowerCase();
-        if (['true', 'yes', '1', 'on', 'enabled'].includes(lowerSearch)) {
+        if (["true", "yes", "1", "on", "enabled"].includes(lowerSearch)) {
           conditions.push({ [fieldName]: true });
-        } else if (['false', 'no', '0', 'off', 'disabled'].includes(lowerSearch)) {
+        } else if (
+          ["false", "no", "0", "off", "disabled"].includes(lowerSearch)
+        ) {
           conditions.push({ [fieldName]: false });
         }
         // Partial matches for boolean strings
-        if ('true'.includes(lowerSearch) || 'yes'.includes(lowerSearch)) {
+        if ("true".includes(lowerSearch) || "yes".includes(lowerSearch)) {
           conditions.push({ [fieldName]: true });
         }
-        if ('false'.includes(lowerSearch) || 'no'.includes(lowerSearch)) {
+        if ("false".includes(lowerSearch) || "no".includes(lowerSearch)) {
           conditions.push({ [fieldName]: false });
         }
         break;
 
-      case 'date':
+      case "date":
         // Date fields: try multiple date formats and ranges
         try {
           const dateValue = new Date(trimmedSearch);
@@ -309,31 +370,37 @@ export class ViewResolverEngine {
             conditions.push({
               [fieldName]: {
                 $gte: startOfDay,
-                $lte: endOfDay
-              }
+                $lte: endOfDay,
+              },
             });
           }
         } catch (err) {
           // If date parsing fails, try string search on date field
-          conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
+          conditions.push({
+            [fieldName]: { $regex: trimmedSearch, $options: "i" },
+          });
         }
         break;
 
-      case 'enum':
+      case "enum":
         // Enum fields: case-insensitive partial match
         if (enumValues && enumValues.length > 0) {
-          enumValues.forEach(enumValue => {
+          enumValues.forEach((enumValue) => {
             if (enumValue.toLowerCase().includes(trimmedSearch.toLowerCase())) {
               conditions.push({ [fieldName]: enumValue });
             }
           });
         }
         // Fallback to regex search if no enum matches found
-        conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
+        conditions.push({
+          [fieldName]: { $regex: trimmedSearch, $options: "i" },
+        });
         break;
       default:
         // Default to string search for unknown types
-        conditions.push({ [fieldName]: { $regex: trimmedSearch, $options: "i" } });
+        conditions.push({
+          [fieldName]: { $regex: trimmedSearch, $options: "i" },
+        });
         break;
     }
 
@@ -348,12 +415,12 @@ export class ViewResolverEngine {
     const { model, pipeline } = await this.buildAggregationPipeline({
       ...options,
       page: 1,
-      limit: 1
+      limit: 1,
     });
 
     // Remove pagination stages and projection from pipeline for count
-    const countPipeline = pipeline.filter(stage =>
-      !stage.$skip && !stage.$limit && !stage.$project
+    const countPipeline = pipeline.filter(
+      (stage) => !stage.$skip && !stage.$limit && !stage.$project
     );
 
     // Add count stage
@@ -364,3 +431,10 @@ export class ViewResolverEngine {
     return result.length > 0 ? result[0].total : 0;
   }
 }
+
+// Post - id, description, user ( record key - name )
+
+//  Post VIew - Post description, user_name, user_email
+
+// user: { id , name , email }
+// survey: {}

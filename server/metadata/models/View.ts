@@ -35,13 +35,9 @@ export const view = mercury.createModel("View", {
     ref: "Button",
     many: true
   },
-  // filters: {
-  //   type: "virtual",
-  //   ref: "ViewFilter",
-  //   many: true,
-  //   localField: "_id",
-  //   foreignField: "view",
-  // }
+  filters: {
+    type: "string"
+  }
 }, {
   historyTracking: false,
   indexes: [
