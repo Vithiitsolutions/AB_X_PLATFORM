@@ -13,7 +13,7 @@ export const typeDefs = `
         getReportedPostCount(filter: PostCountFilter): [MonthlyPostStats]
         supportTrendstats(filter: AboutPostCountFilter): [MonthlyRolePostStats]
         me: User
-        CategoryStatsCount: [CategoryStatsResult]
+        CategoryStatsCount(filter:filters): [CategoryStatsResult]
         getSurveyDetails(surveyId: String): SurveyDetailResponse
         getLeaderProfile(userId:String): LeaderProfile
         getManifestoDetails(input: GetManifestoDetailsInput!): ManifestoDetails
@@ -51,6 +51,13 @@ export const typeDefs = `
         ACCEPTED
         RESOLVED
         REJECTED
+    }
+    input filters{
+    startDate: String
+    endDate: String
+    state: String
+    district: String
+    constituency: String
     }
     type LeaderProfile {
         id: String
@@ -134,7 +141,6 @@ export const typeDefs = `
         totalPosts: Int
     }
     input PostCountFilter {
-      year: Int
       startDate: String
       endDate: String
       state: String
