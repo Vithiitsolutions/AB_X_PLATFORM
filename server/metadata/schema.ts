@@ -135,6 +135,11 @@ export const typeDefs = `
     }
     input PostCountFilter {
       year: Int
+      startDate: String
+      endDate: String
+      state: String
+      district: String
+      constituency: String
     }
     type LoginResponse {
         token: String
