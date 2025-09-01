@@ -154,7 +154,8 @@ export const typeDefs = `
     }
     input ApplicationStatsFilter {
         leaderId: ID
-        year: String
+        startDate: String
+        endDate: String
     }
     type MonthlyApplicationStat {
         month: String
@@ -257,7 +258,6 @@ export const typeDefs = `
        constituency: ID
        startDate: String
        endDate: String
-       year: Int
     }    
     type DashboardStats {
       manifestoStats: ManifestoStats
