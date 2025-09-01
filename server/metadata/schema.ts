@@ -9,7 +9,7 @@ export const typeDefs = `
         getActivityStats(filter: ActivityDashboardFilter): ActivityDashboardStats
         getLeaderStats(filter:LeaderStatsFilter): LeaderStats
         getUrgeApplicationStats(filter: ApplicationStatsFilter): MonthlyApplicationStatsResponse 
-        getNewsPostTrends(year: Int): [NewsTrend]
+        getNewsPostTrends(filter:filters): [NewsTrend]
         getReportedPostCount(filter: PostCountFilter): [MonthlyPostStats]
         supportTrendstats(filter: AboutPostCountFilter): [MonthlyRolePostStats]
         me: User
