@@ -53,11 +53,11 @@ export const typeDefs = `
         REJECTED
     }
     input filters{
-    startDate: String
-    endDate: String
-    state: String
-    district: String
-    constituency: String
+        startDate: String
+        endDate: String
+        state: String
+        district: String
+        constituency: String
     }
     type LeaderProfile {
         id: String
@@ -124,7 +124,8 @@ export const typeDefs = `
         name: String
     }
     input AboutPostCountFilter {
-         year: Int  
+        startDate: String
+        endDate: String
     }
     type CategoryStatsResult {
         name: String
