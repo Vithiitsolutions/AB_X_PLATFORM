@@ -209,9 +209,9 @@ export default {
         );
       }
     },
-    CategoryStatsCount: async () => {
+    CategoryStatsCount: async (root:any,args:{filter?:any},ctx:any) => {
       try {
-        const stats = await CategoryStatsCount();
+        const stats = await CategoryStatsCount(args.filter || {});
         return stats;
       } catch (error: any) {
         console.error("Error in CategoryStatsCount resolver:", error);

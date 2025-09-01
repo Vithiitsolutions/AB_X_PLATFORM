@@ -1,13 +1,55 @@
+import mongoose from "mongoose";
 import mercury from "@mercury-js/core";
-export const CategoryStatsCount = async () => {
+export interface CategoryStatsFilter {
+  startDate?: string;
+  endDate?: string;
+  state?: string;
+  district?: string;
+  constituency?: string;
+}
+export interface CategoryStatsResult {
+  name: string;
+  postReportCount: number;
+  newsReportCount: number;
+}
+export const CategoryStatsCount = async (
+  filter: CategoryStatsFilter = {}
+): Promise<CategoryStatsResult[]> => {
   try {
-    const pipeline = [   
+    const selectedYear = new Date().getUTCFullYear();
+    const yearStart = new Date(Date.UTC(selectedYear, 0, 1, 0, 0, 0, 0));
+    const yearEnd = new Date(Date.UTC(selectedYear, 11, 31, 23, 59, 59, 999));
+    const dateRange: any = {};
+    if (filter.startDate) {
+      dateRange.$gte = new Date(`${filter.startDate}T00:00:00.000Z`);
+    }
+    if (filter.endDate) {
+      dateRange.$lte = new Date(`${filter.endDate}T23:59:59.999Z`);
+    }
+    const locationFilters: any = {};
+    if (filter.state) {
+      locationFilters['state'] = new mongoose.Types.ObjectId(filter.state);
+    }
+    if (filter.district) {
+      locationFilters['district'] = new mongoose.Types.ObjectId(filter.district);
+    }
+    if (filter.constituency) {
+      locationFilters['constituency'] = new mongoose.Types.ObjectId(filter.constituency);
+    }
+    const pipeline = [
       {
         $lookup: {
           from: "postactions",
           let: { categoryId: "$_id" },
           pipeline: [
-            { $match: { $expr: { $eq: ["$action", "Report"] } } },
+            {
+              $match: {
+                action: "Report",
+                createdOn: Object.keys(dateRange).length > 0
+                  ? dateRange
+                  : { $gte: yearStart, $lte: yearEnd },
+              },
+            },
             {
               $lookup: {
                 from: "posts",
@@ -20,20 +62,38 @@ export const CategoryStatsCount = async () => {
             {
               $match: {
                 $expr: {
-                  $eq: ["$postInfo.category", "$$categoryId"]
+                  $and: [
+                    { $eq: ["$postInfo.category", "$$categoryId"] },
+                    Object.keys(locationFilters).length > 0
+                      ? { $eq: ["$postInfo.state", locationFilters.state] }
+                      : true,
+                    Object.keys(locationFilters).length > 0
+                      ? { $eq: ["$postInfo.district", locationFilters.district] }
+                      : true,
+                    Object.keys(locationFilters).length > 0
+                      ? { $eq: ["$postInfo.constituency", locationFilters.constituency] }
+                      : true,
+                  ]
                 }
               }
             }
           ],
           as: "postReports"
         }
-      },  
+      },
       {
         $lookup: {
           from: "newsactions",
           let: { categoryId: "$_id" },
           pipeline: [
-            { $match: { $expr: { $eq: ["$action", "Report"] } } },
+            {
+              $match: {
+                action: "Report",
+                createdOn: Object.keys(dateRange).length > 0
+                  ? dateRange
+                  : { $gte: yearStart, $lte: yearEnd },
+              }
+            },
             {
               $lookup: {
                 from: "news",
@@ -46,20 +106,31 @@ export const CategoryStatsCount = async () => {
             {
               $match: {
                 $expr: {
-                  $eq: ["$newsInfo.category", "$$categoryId"]
+                  $and: [
+                    { $eq: ["$newsInfo.category", "$$categoryId"] },
+                    Object.keys(locationFilters).length > 0
+                      ? { $eq: ["$newsInfo.state", locationFilters.state] }
+                      : true,
+                    Object.keys(locationFilters).length > 0
+                      ? { $eq: ["$newsInfo.district", locationFilters.district] }
+                      : true,
+                    Object.keys(locationFilters).length > 0
+                      ? { $eq: ["$newsInfo.constituency", locationFilters.constituency] }
+                      : true,
+                  ]
                 }
               }
             }
           ],
           as: "newsReports"
         }
-      },   
+      },
       {
         $addFields: {
           postReportCount: { $size: "$postReports" },
           newsReportCount: { $size: "$newsReports" }
         }
-      },  
+      },
       {
         $project: {
           _id: 0,
