@@ -46,23 +46,28 @@ export async function getUserAnalytics({
     if (stateId) filters.state = new mongoose.Types.ObjectId(stateId);
     if (districtId) filters.district = new mongoose.Types.ObjectId(districtId);
     if (constituencyId) filters.constituency = new mongoose.Types.ObjectId(constituencyId);
+
     const currentStart = startDate ? new Date(startDate) : undefined;
     const currentEnd = endDate ? new Date(endDate) : undefined;
     if (currentStart) currentStart.setUTCHours(0, 0, 0, 0);
     if (currentEnd) currentEnd.setUTCHours(23, 59, 59, 999);
+
     const { start: prevStart, end: prevEnd } = currentStart
         ? getPreviousMonthRange(currentStart)
         : { start: undefined, end: undefined };
+
     const currentFilters = { ...filters };
     const previousFilters = { ...filters };
+    
     if (currentStart && currentEnd) {
         currentFilters.createdOn = { $gte: currentStart, $lte: currentEnd };
     }
     if (prevStart && prevEnd) {
         previousFilters.createdOn = { $gte: prevStart, $lte: prevEnd };
     }
-    console.log(currentFilters, "kjhgcx");
+
     const UserData = mercury.db.User;
+    
     const [totalCount, commonCount, leaderCount, maleCount, femaleCount] = await Promise.all([
         UserData.mongoModel.countDocuments(currentFilters),
         UserData.mongoModel.countDocuments({ ...currentFilters, role: "PUBLIC" }),
@@ -70,6 +75,7 @@ export async function getUserAnalytics({
         UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Male" }),
         UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Female" }),
     ]);
+    
     const [prevTotal, prevCommon, prevLeader, prevMale, prevFemale] = await Promise.all([
         UserData.mongoModel.countDocuments(previousFilters),
         UserData.mongoModel.countDocuments({ ...previousFilters, role: "PUBLIC" }),
@@ -78,7 +84,6 @@ export async function getUserAnalytics({
         UserData.mongoModel.countDocuments({ ...previousFilters, gender: "Female" }),
     ]);
 
-    // New queries to get counts by gender and role
     const [maleCommonCount, maleLeaderCount, femaleCommonCount, femaleLeaderCount] = await Promise.all([
         UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Male", role: "PUBLIC" }),
         UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Male", role: "LEADER" }),
@@ -88,6 +93,7 @@ export async function getUserAnalytics({
     const selectedYear = year || new Date().getUTCFullYear();
     const yearStart = new Date(Date.UTC(selectedYear, 0, 1, 0, 0, 0, 0));
     const yearEnd = new Date(Date.UTC(selectedYear, 11, 31, 23, 59, 59, 999));
+
     const monthlyPipeline = [
         {
             $match: {
@@ -115,7 +121,7 @@ export async function getUserAnalytics({
         },
     ];
     const monthlyRaw = await UserData.mongoModel.aggregate(monthlyPipeline);
-    const monthlyMap: Record<number, { commonMan: number; leaders: number; total: number }> = {};
+        const monthlyMap: Record<number, { commonMan: number; leaders: number; total: number }> = {};
     for (let i = 1; i <= 12; i++) {
         monthlyMap[i] = { commonMan: 0, leaders: 0, total: 0 };
     }
@@ -130,18 +136,21 @@ export async function getUserAnalytics({
         }
         monthlyMap[month].total += count;
     }
-    const monthlySignupTrend = Object.entries(monthlyMap).map(([monthNum, data]) => {
-        const month = new Date(Date.UTC(2024, parseInt(monthNum) - 1)).toLocaleString("default", {
-            month: "short",
+    const monthlySignupTrend = Object.keys(monthlyMap)
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .map(monthNum => {
+            const data = monthlyMap[parseInt(monthNum)];
+            const month = new Date(Date.UTC(selectedYear, parseInt(monthNum) - 1)).toLocaleString("default", {
+                month: "short",
+            });
+            return {
+                month,
+                commonMan: data.commonMan,
+                leaders: data.leaders,
+                total: data.total,
+            };
         });
 
-        return {
-            month,
-            commonMan: data.commonMan,
-            leaders: data.leaders,
-            total: data.total,
-        };
-    });
     const now = new Date();
     const currentMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
     const currentMonthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
@@ -149,14 +158,17 @@ export async function getUserAnalytics({
     previous30DaysStart.setUTCDate(previous30DaysStart.getUTCDate() - 30);
     const previous30DaysEnd = new Date(currentMonthStart);
     previous30DaysEnd.setUTCHours(23, 59, 59, 999);
+    
     const newUserCount = await UserData.mongoModel.countDocuments({
         ...filters,
         createdOn: { $gte: currentMonthStart, $lte: currentMonthEnd },
     });
+    
     const previousNewUserCount = await UserData.mongoModel.countDocuments({
         ...filters,
         createdOn: { $gte: previous30DaysStart, $lte: previous30DaysEnd },
     });
+    
     const newUserGrowth = calculateGrowth(newUserCount, previousNewUserCount);
 
     return {
@@ -170,7 +182,6 @@ export async function getUserAnalytics({
         maleGrowth: totalCount > 0 ? Math.round((maleCount / totalCount) * 100) : 0,
         femaleCount,
         femaleGrowth: totalCount > 0 ? Math.round((femaleCount / totalCount) * 100) : 0,
-        // Add the new specific counts
         maleCommonCount,
         maleCommonGrowth: totalCount > 0 ? Math.round((maleCommonCount / totalCount) * 100) : 0,
         maleLeaderCount,
@@ -252,7 +263,6 @@ export async function getUserLoginDurationByDate(userId: string, date: string) {
     ];
     const UserScreenTime = mercury.db.UserScreenTime;
     const result = await UserScreenTime.mongoModel.aggregate(pipeline).exec();
-    console.log(result, "result");
     return result[0] || { totalDurationHours: 0, logins: [] };
 }
 
@@ -267,7 +277,6 @@ export async function getActiveUserCountWithRoles({
 }) {
     const UserScreenTime = mercury.db.UserScreenTime;
 
-    // ---------- SUMMARY COUNTS (based on startDate/endDate only) ----------
     const summaryMatch: any = {};
     if (startDate || endDate) {
         const start = startDate ? new Date(startDate) : new Date("1970-01-01");
@@ -327,7 +336,6 @@ export async function getActiveUserCountWithRoles({
             leaderCount: 0,
         };
 
-    // ---------- MONTHLY TREND (based on year only) ----------
     const selectedYear = year ?? new Date().getUTCFullYear();
     const yearStart = new Date(Date.UTC(selectedYear, 0, 1));
     const yearEnd = new Date(Date.UTC(selectedYear, 11, 31, 23, 59, 59, 999));
