@@ -16,10 +16,8 @@ interface CombinedFilter {
 export const getPostStats = async (filter: CombinedFilter = {}) => {
     const toObjectId = (id?: string) =>
         id ? new mongoose.Types.ObjectId(id) : undefined;
-
     const baseMatch: any = {};
     const postMatch: Record<string, any> = {};
-
     if (filter.state) baseMatch.state = toObjectId(filter.state);
     if (filter.district) baseMatch.district = toObjectId(filter.district);
     if (filter.constituency) baseMatch.constituency = toObjectId(filter.constituency);
@@ -37,24 +35,19 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         ];
     }
     if (filter.postId) postMatch._id = toObjectId(filter.postId);
-
     const dateRange: any = {};
     if (filter.startDate) {
-        const start = new Date(filter.startDate);
-        start.setHours(0, 0, 0, 0);
+        const start = new Date(`${filter.startDate}T00:00:00.000Z`);
         dateRange.$gte = start;
     }
     if (filter.endDate) {
-        const end = new Date(filter.endDate);
-        end.setHours(23, 59, 59, 999);
+        const end = new Date(`${filter.endDate}T23:59:59.999Z`);
         dateRange.$lte = end;
     }
-
     if (Object.keys(dateRange).length) {
         baseMatch.createdOn = dateRange;
         postMatch.createdOn = dateRange;
     }
-
     let postDetails = null;
     if (filter.postId) {
         postDetails = await mercury.db.Post.mongoModel
@@ -80,18 +73,19 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             .populate('resolvedBy')
             .exec();
     }
-
-    const now = new Date();
-    const year = filter.year || now.getFullYear();
-
     const monthlyMatch: any = {
-        ...baseMatch,
-        createdOn: {
+        ...baseMatch
+    };
+    if (Object.keys(dateRange).length) {
+        monthlyMatch.createdOn = dateRange;
+    } else {
+        const now = new Date();
+        const year = filter.year || now.getFullYear();
+        monthlyMatch.createdOn = {
             $gte: new Date(year, 0, 1),
             $lt: new Date(year + 1, 0, 1),
-        },
-    };
-
+        };
+    }
     const monthlyPipeline = [
         { $match: monthlyMatch },
         {
@@ -134,14 +128,12 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             },
         },
         { $sort: { _id: 1 } },
-    ];
-
+    ];    
     const resolvedMatch = {
         ...baseMatch,
         status: "Resolved",
         isDeleted: false,
-    };
-
+    };    
     const postPipeline = [
         { $match: baseMatch },
         {
@@ -253,7 +245,6 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             },
         },
     ];
-
     const supportSufferPipeline = [
         {
             $match: {
@@ -295,20 +286,16 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             },
         },
     ];
-
     const [postStatsResult, supportStats, monthlyStatsResult] = await Promise.all([
         mercury.db.Post.mongoModel.aggregate(postPipeline),
         mercury.db.PostAction.mongoModel.aggregate(supportSufferPipeline),
         mercury.db.Post.mongoModel.aggregate(monthlyPipeline),
     ]);
-
     const getValue = (arr: any[], key: string) => arr?.[0]?.[key] || 0;
-
     const monthNames = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
-
     const monthlyStats = monthNames.map((month, index) => {
         const monthData = monthlyStatsResult.find(item => item._id === index + 1);
         return {
@@ -319,7 +306,6 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             privateResolved: monthData?.privateResolved || 0,
         };
     });
-
     const publicResolvedCount = getValue(
         postStatsResult[0]?.publicPrivateResolved,
         "publicResolvedCount"
@@ -329,7 +315,6 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         "privateResolvedCount"
     );
     const totalResolved = getValue(postStatsResult[0]?.totalResolved, "count");
-
     const commonManIssuesPostedPublic = getValue(
         postStatsResult[0]?.commonManStats,
         "commonManIssuesPostedPublic"
@@ -346,10 +331,8 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         postStatsResult[0]?.leaderStats,
         "leaderIssuesPostedPrivate"
     );
-
     const totalPosts = getValue(postStatsResult[0]?.totalPosts, "count");
-
-    const totalCategory = getValue(postStatsResult[0]?.totalCategory, "count");
+    const totalCategory = getValue(postStatsResult[0]?.totalCategory, "count");    
     const categoryPublic = getValue(
         postStatsResult[0]?.categoryStats,
         "categoryPublic"
@@ -358,11 +341,9 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         postStatsResult[0]?.categoryStats,
         "categoryPrivate"
     );
-
     const supportCount = supportStats?.[0]?.supportCount || 0;
     const sufferCount = supportStats?.[0]?.sufferCount || 0;
     const totalSupportSuffer = supportCount + sufferCount;
-
     const result: any = {
         postStats: {
             totalResolved,
@@ -392,12 +373,10 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         },
         monthlyStats: monthlyStats,
     };
-
-    // Add post details if postId was provided
     if (filter.postId && postDetails) {
         result.postDetails = {
             _id: postDetails._id,
-            id: postDetails._id.toString(), // 👈 ensure GraphQL `id`
+            id: postDetails._id.toString(), 
             access: postDetails.access,
             description: postDetails.description,
             category: postDetails.category,
@@ -418,18 +397,18 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
                 if (user.userAttributes) {
                     attrs = [user.userAttributes];
                 }
-                const politicalParty = user.userAttributes?.politicalParty?.name || 
-                                     user.userAttributes?.politicalParty?.value || 
-                                     null;
-                const positionName = user.userAttributes?.positionName?.name || 
-                                   user.userAttributes?.positionName?.value || 
-                                   null;
-                const positionStatus = user.userAttributes?.positionStatus?.name || 
-                                     user.userAttributes?.positionStatus?.value || 
-                                     null;
+                const politicalParty = user.userAttributes?.politicalParty?.name ||
+                    user.userAttributes?.politicalParty?.value ||
+                    null;
+                const positionName = user.userAttributes?.positionName?.name ||
+                    user.userAttributes?.positionName?.value ||
+                    null;
+                const positionStatus = user.userAttributes?.positionStatus?.name ||
+                    user.userAttributes?.positionStatus?.value ||
+                    null;
 
                 return {
-                    id: user._id.toString(), 
+                    id: user._id.toString(),
                     _id: user._id,
                     name: user.name,
                     email: user.email,
@@ -440,7 +419,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
                         id: user.userAttributes._id.toString(),
                         _id: user.userAttributes._id,
                         politicalParty: user.userAttributes.politicalParty ? {
-                            id: typeof user.userAttributes.politicalParty === 'object' 
+                            id: typeof user.userAttributes.politicalParty === 'object'
                                 ? user.userAttributes.politicalParty._id?.toString() || user.userAttributes.politicalParty.id?.toString()
                                 : user.userAttributes.politicalParty.toString(),
                             name: typeof user.userAttributes.politicalParty === 'object'
@@ -448,7 +427,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
                                 : null
                         } : null,
                         positionStatus: user.userAttributes.positionStatus ? {
-                            id: typeof user.userAttributes.positionStatus === 'object' 
+                            id: typeof user.userAttributes.positionStatus === 'object'
                                 ? user.userAttributes.positionStatus._id?.toString() || user.userAttributes.positionStatus.id?.toString()
                                 : user.userAttributes.positionStatus.toString(),
                             value: typeof user.userAttributes.positionStatus === 'object'
@@ -457,7 +436,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
                         } : null,
                         ...(user.userAttributes.positionName && {
                             positionName: {
-                                id: typeof user.userAttributes.positionName === 'object' 
+                                id: typeof user.userAttributes.positionName === 'object'
                                     ? user.userAttributes.positionName._id?.toString() || user.userAttributes.positionName.id?.toString()
                                     : user.userAttributes.positionName.toString(),
                                 name: typeof user.userAttributes.positionName === 'object'
@@ -489,6 +468,5 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             updatedOn: postDetails.updatedOn ? postDetails.updatedOn.toISOString() : null,
         };
     }
-
     return result;
 };

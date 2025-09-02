@@ -1,19 +1,45 @@
+import mongoose from "mongoose";
 import mercury from "@mercury-js/core";
 
-export const getNewsPostTrends = async (year?: number) => {
-  const selectedYear = year || new Date().getFullYear();
+interface NewsTrendsFilter {
+  startDate?: string;
+  endDate?: string;
+  state?: string;
+  district?: string;
+  constituency?: string;
+}
 
-  const startOfYear = new Date(`${selectedYear}-01-01T00:00:00Z`);
-  const endOfYear = new Date(`${selectedYear}-12-31T23:59:59Z`);
+const toObjectId = (id?: string): mongoose.Types.ObjectId | undefined =>
+  id ? new mongoose.Types.ObjectId(id) : undefined;
 
+export const getNewsPostTrends = async (filter: NewsTrendsFilter = {}) => {
+  const { startDate, endDate, state, district, constituency } = filter;
+
+  const now = new Date();
+  const selectedYear = now.getFullYear();
+
+  let startOfPeriod: Date;
+  let endOfPeriod: Date;
+
+  if (startDate && endDate) {
+    startOfPeriod = new Date(`${startDate}T00:00:00Z`);
+    endOfPeriod = new Date(`${endDate}T23:59:59Z`);
+  } else {
+    startOfPeriod = new Date(`${selectedYear}-01-01T00:00:00Z`);
+    endOfPeriod = new Date(`${selectedYear}-12-31T23:59:59Z`);
+  }
+  const initialMatch: Record<string, any> = {
+    createdOn: {
+      $gte: startOfPeriod,
+      $lte: endOfPeriod,
+    },
+  };
+  if (state) initialMatch.state = toObjectId(state);
+  if (district) initialMatch.district = toObjectId(district);
+  if (constituency) initialMatch.constituency = toObjectId(constituency);
   const pipeline = [
     {
-      $match: {
-        createdOn: {
-          $gte: startOfYear,
-          $lte: endOfYear,
-        },
-      },
+      $match: initialMatch,
     },
     {
       $lookup: {
@@ -69,6 +95,5 @@ export const getNewsPostTrends = async (year?: number) => {
       record.commonMan = entry.count;
     }
   }
-
   return Object.values(monthMap);
 };

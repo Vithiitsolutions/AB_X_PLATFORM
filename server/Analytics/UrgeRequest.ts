@@ -2,18 +2,27 @@ import mongoose from "mongoose";
 import mercury from "@mercury-js/core";
 
 export const getMonthlyApplicationStats = async (
-  filter: { leaderId?: string; year?: string } = {}
+  filter: { leaderId?: string; startDate?: string; endDate?: string } = {}
 ) => {
   const toObjectId = (id?: string) =>
     id ? new mongoose.Types.ObjectId(id) : undefined;
   const now = new Date();
-  const selectedYear = filter.year ? parseInt(filter.year) : now.getFullYear();
-  const startOfYear = new Date(`${selectedYear}-01-01T00:00:00.000Z`);
-  const endOfYear = new Date(`${selectedYear}-12-31T23:59:59.999Z`);
+  const selectedYear =now.getFullYear();
+  const yearStart = new Date(`${selectedYear}-01-01T00:00:00.000Z`);
+  const yearEnd = new Date(`${selectedYear}-12-31T23:59:59.999Z`);
+  const dateRange: any = {};
+  if (filter.startDate) {
+    dateRange.$gte = new Date(`${filter.startDate}T00:00:00.000Z`);
+  }
+  if (filter.endDate) {
+    dateRange.$lte = new Date(`${filter.endDate}T23:59:59.999Z`);
+  }
+
   const matchFilter: Record<string, any> = {
-    createdOn: { $gte: startOfYear, $lte: endOfYear },
+    createdOn: Object.keys(dateRange).length > 0 ? dateRange : { $gte: yearStart, $lte: yearEnd },
     ...(filter.leaderId && { leader: toObjectId(filter.leaderId) }),
   };
+
   const pipeline = [
     { $match: matchFilter },
     {
@@ -52,7 +61,7 @@ export const getMonthlyApplicationStats = async (
       .aggregate(pipeline)
       .exec();
     const monthlyCounts = Array.from({ length: 12 }, (_, i) => {
-      const monthData = result.find((r) => r.month === i + 1);
+      const monthData = result.find((r: { month: number; }) => r.month === i + 1);
       return {
         month: monthNames[i],
         count: monthData?.count || 0,
