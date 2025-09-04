@@ -99,7 +99,9 @@ const CreateDynamicRecord = ({
   }, []);
 
   const formSchema = generateSchema(
-    formData?.id ? formFields : data?.listModelFields?.docs
+    formData?.id
+      ? formFields.map((item) => item.field)
+      : data?.listModelFields?.docs
   );
   type FormSchema = z.infer<typeof formSchema>;
   const form = useForm<FormSchema>({
@@ -209,6 +211,7 @@ const CreateDynamicRecord = ({
                 is: formId,
               },
               visible: true,
+              isCreatable: true,
             },
             sort: {
               order: "asc",

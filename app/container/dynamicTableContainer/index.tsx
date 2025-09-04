@@ -105,11 +105,15 @@ function DynamicTableContainer({
                     <div className="flex justify-center items-center flex-wrap gap-2">
                       {row.original[field?.field?.name]?.map((item: any) => (
                         <A
-                          href={`${
-                            item?.id
-                              ? `/dashboard/o/${field?.field?.ref}/r/${item?.id}`
+                          href={
+                            field?.isNavigatable
+                              ? `${
+                                  item?.id
+                                    ? `/dashboard/o/${field?.field?.ref}/r/${item?.id}`
+                                    : "#"
+                                }`
                               : "#"
-                          }`}
+                          }
                           onClick={(e) => e.stopPropagation()}
                           className="hover:underline"
                           title={JSON.stringify(item, null, 2)}
@@ -126,19 +130,23 @@ function DynamicTableContainer({
                     </div>
                   );
                 } else {
+                  
                   return (
                     <A
-                      href={`${
-                        row.original[field.field?.name]?.id
-                          ? `/dashboard/o/${field.field?.ref}/r/${
+                      href={
+                        field?.isNavigatable
+                          ? `${
                               row.original[field.field?.name]?.id
+                                ? `/dashboard/o/${field.field?.ref}/r/${
+                                    row.original[field.field?.name]?.id
+                                  }`
+                                : "#"
                             }`
                           : "#"
-                      }`}
+                      }
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
-
                       {field.valueField
                         ? row.original?.[
                             `${field.field?.ref}_${field.valueField}`
@@ -149,9 +157,6 @@ function DynamicTableContainer({
                             ]
                           : row.original[field.field?.name]?.id || "-"}
                     </A>
-                    // <Box>
-                    //   {`/dashboard/o/${field.ref}/r/${row.original[field.name]?.id}`}
-                    // </Box>
                   );
                 }
               },

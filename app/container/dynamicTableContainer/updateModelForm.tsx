@@ -35,7 +35,9 @@ const UpdateDynamicRecord = ({ profiles }: { profiles?: string[] }) => {
   }, []);
 
   const formSchema = generateSchema(
-    formData?.id ? formFields : data?.listModelFields?.docs
+    formData?.id
+      ? formFields.map((item) => item.field)
+      : data?.listModelFields?.docs
   );
   type FormSchema = z.infer<typeof formSchema>;
   const form = useForm<FormSchema>({
@@ -257,6 +259,7 @@ const UpdateDynamicRecord = ({ profiles }: { profiles?: string[] }) => {
                 is: formId,
               },
               visible: true,
+              isEditable: true
             },
             sort: {
               order: "asc",
@@ -359,7 +362,8 @@ const UpdateDynamicRecord = ({ profiles }: { profiles?: string[] }) => {
           loading={updateRecordResponse?.loading}
           modelName={model!}
         />
-      ) : formData !== null && (getFormFieldsResponse?.data || getFormFieldsResponse?.error) ? (
+      ) : formData !== null &&
+        (getFormFieldsResponse?.data || getFormFieldsResponse?.error) ? (
         <DynamicForm
           handleSubmit={onSubmit}
           modelFields={data?.listModelFields?.docs || []}

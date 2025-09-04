@@ -32,5 +32,13 @@ export const formField = mercury.createModel("FormField", {
   createAllowed: {
     type: "boolean",
     default: true
+  },
+  isEditable: {
+    type: "boolean",
+    default: true
+  },
+  isCreatable: {
+    type: "boolean",
+    default: true
   }
 });
