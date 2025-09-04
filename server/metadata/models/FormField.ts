@@ -11,12 +11,7 @@ export const formField = mercury.createModel("FormField", {
   placeholder: {
     type: "string",
   },
-  refModel: {
-    type: "relationship",
-    ref: "Model",
-    required: true,
-  },
-  refField: {
+  field: {
     type: "relationship",
     ref: "ModelField",
     required: true,
@@ -26,5 +21,16 @@ export const formField = mercury.createModel("FormField", {
   },
   regExpError: {
     type: "string"
+  },
+  visible: {
+    type: "boolean",
+    default: true
+  },
+  order: {
+    type: "number"
+  },
+  createAllowed: {
+    type: "boolean",
+    default: true
   }
 });

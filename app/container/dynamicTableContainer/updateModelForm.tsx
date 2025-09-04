@@ -6,21 +6,26 @@ import { serverFetch } from "../../utils/action";
 import { useEffect, useMemo } from "react";
 import { generateSchema } from "../../containers/createDynamicForm";
 import { z } from "zod";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { set, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import DynamicForm from "../../components/dynamicForm/modelForm";
 import React from "react";
+import DynamicFormWithConfig from "../../components/dynamicForm/DynamicFormWithConfig";
 
-const UpdateDynamicRecord = () => {
+const UpdateDynamicRecord = ({ profiles }: { profiles?: string[] }) => {
   // const router = useRouter()
 
   const { model } = useParams();
   const navigate = useNavigate();
   const { recordId } = useParams();
-  console.log(model, recordId, "enter");
+
   const [getAllModelFields, { data, loading, error }] =
     useLazyQuery(serverFetch);
   const [dynamicGetQuary, DynamicGetQuaryResponse] = useLazyQuery(serverFetch);
+  const [getForm, getFormResponse] = useLazyQuery(serverFetch);
+  const [formFields, setFormFields] = React.useState<any[]>([]);
+  const [formData, setFormData] = React.useState<any>(null);
+  const [getFormFields, getFormFieldsResponse] = useLazyQuery(serverFetch);
   const Update_Query = useMemo(() => {
     return `mutation Update${model}($input: update${model}Input!) {
             update${model}(input: $input) {
@@ -29,21 +34,38 @@ const UpdateDynamicRecord = () => {
           }`;
   }, []);
 
-  const formSchema = generateSchema(data?.listModelFields?.docs);
+  const formSchema = generateSchema(
+    formData?.id ? formFields : data?.listModelFields?.docs
+  );
   type FormSchema = z.infer<typeof formSchema>;
-
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
-    defaultValues: data?.listModelFields?.docs.reduce(
-      (acc: any, field: any) => {
-        acc[field.fieldName] =
-          field.type === "boolean" ? false : field.type == "number" ? 0 : "";
-        return acc;
-      },
-      {} as Record<string, any>
-    ),
+    defaultValues: formData?.id
+      ? formFields.reduce(
+          (acc: any, field: any) => {
+            acc[field.field.name] =
+              field.field.type === "boolean"
+                ? false
+                : field.field.type == "number"
+                  ? 0
+                  : "";
+            return acc;
+          },
+          {} as Record<string, any>
+        )
+      : data?.listModelFields?.docs.reduce(
+          (acc: any, field: any) => {
+            acc[field.name] =
+              field.type === "boolean"
+                ? false
+                : field.type == "number"
+                  ? 0
+                  : "";
+            return acc;
+          },
+          {} as Record<string, any>
+        ),
   });
-
   useEffect(() => {
     getAllModelFields(
       `query ListModelFields($where: whereModelFieldInput, $limit: Int!) {
@@ -156,6 +178,111 @@ const UpdateDynamicRecord = () => {
     updateRecordResponse?.error,
   ]);
 
+  useEffect(() => {
+    getForm(
+      `query Docs($where: whereFormInput) {
+    listForms(where: $where) {
+      docs {
+        id
+        createLabel
+        updateLabel
+        model {
+          id
+          label
+          name
+        }
+        modelName
+        profiles {
+          id
+          label
+          name
+        }
+      }
+    }
+  }`,
+      {
+        where: {
+          modelName: {
+            is: model,
+          },
+          profiles: {
+            in: profiles,
+          },
+        },
+      },
+      {
+        cache: "no-store",
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (getFormResponse?.data) {
+      setFormData(getFormResponse?.data?.listForms?.docs[0]);
+      const formId = getFormResponse?.data?.listForms?.docs[0]?.id;
+
+      if (formId) {
+        getFormFields(
+          `query Docs($where: whereFormFieldInput, $sort: sortFormFieldInput) {
+    listFormFields(where: $where, sort: $sort) {
+      docs {
+        id
+        label
+        placeholder
+        regExpError
+        regexp
+        visible
+        order
+        createAllowed
+        field {
+          ref
+          type
+          required
+          name
+          unique
+          label
+          id
+          enumType
+          enumValues
+          many
+          modelName
+          default
+        }
+      }
+    }
+  }`,
+          {
+            where: {
+              form: {
+                is: formId,
+              },
+              visible: true,
+            },
+            sort: {
+              order: "asc",
+            },
+          },
+          { cache: "no-store" }
+        );
+      } else {
+        setFormData([]);
+        setFormFields([]);
+      }
+    }
+  }, [getFormResponse?.data, getFormResponse?.loading, getFormResponse?.error]);
+  useEffect(() => {
+    if (getFormFieldsResponse?.data) {
+      setFormFields(getFormFieldsResponse?.data?.listFormFields?.docs || []);
+    }
+    if (getFormFieldsResponse?.error) {
+      setFormFields([]);
+    }
+  }, [
+    getFormFieldsResponse?.data,
+    getFormFieldsResponse?.loading,
+    getFormFieldsResponse?.error,
+  ]);
+
   const onSubmit: SubmitHandler<FormSchema> = (values) => {
     values.id = recordId;
     console.log(values);
@@ -170,7 +297,6 @@ const UpdateDynamicRecord = () => {
 
   useEffect(() => {
     if (DynamicGetQuaryResponse?.data) {
-      console.log(DynamicGetQuaryResponse?.data, "DynamicGetQuaryResponse");
       data.listModelFields?.docs.forEach((item: any) => {
         if (item.type === "relationship") {
           if (item.many == true) {
@@ -180,8 +306,7 @@ const UpdateDynamicRecord = () => {
                 (item: any) => item?.id
               )
             );
-          } else{
-
+          } else {
             form.setValue(
               item.name,
               DynamicGetQuaryResponse?.data?.[`get${model}`]?.[item.name]?.id,
@@ -225,13 +350,26 @@ const UpdateDynamicRecord = () => {
   ]);
   return (
     <div>
-      <DynamicForm
-        handleSubmit={onSubmit}
-        modelFields={data?.listModelFields?.docs || []}
-        form={form}
-        loading={updateRecordResponse?.loading}
-        modelName={model!}
-      />
+      {formData && formFields && formFields.length > 0 ? (
+        <DynamicFormWithConfig
+          formFields={formFields || []}
+          formConfig={formData}
+          handleSubmit={onSubmit}
+          form={form}
+          loading={updateRecordResponse?.loading}
+          modelName={model!}
+        />
+      ) : formData !== null && (getFormFieldsResponse?.data || getFormFieldsResponse?.error) ? (
+        <DynamicForm
+          handleSubmit={onSubmit}
+          modelFields={data?.listModelFields?.docs || []}
+          form={form}
+          loading={updateRecordResponse?.loading}
+          modelName={model!}
+        />
+      ) : (
+        <div></div>
+      )}
     </div>
   );
 };
