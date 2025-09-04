@@ -2,18 +2,51 @@ import React from "react";
 import UpdateDynamicRecord from "../container/dynamicTableContainer/updateModelForm";
 import File from "../container/File";
 import { Box } from "@mercury-js/mess";
+import { parseCookies } from "../utils/functions";
+import { serverFetch } from "../utils/action";
 
-export async function loader({ params }: { params: { model: string } }) {
+export async function loader({ params, request }: { params: { model: string }, request: any }) {
+
+  const cookies = request.headers.get("Cookie");
+    const cookieObject = parseCookies(cookies);
+    const profileResponse = await serverFetch(
+      `query Docs($where: whereProfileInput) {
+    listProfiles(where: $where) {
+      docs {
+        id
+        name
+      }
+    }
+  }`,
+      {
+        where: {
+          name: {
+            is: cookieObject.role,
+          },
+        },
+      },
+      {
+        cache: "no-store",
+        ssr: true,
+        cookies: request.headers.get("Cookie"),
+      }
+    );
+    if (profileResponse.error) {
+      return profileResponse.error;
+    }
   return {
     modelName: params.model,
+    profiles: profileResponse?.listProfiles?.docs[0]?.id || []
   };
 }
+
 
 function dashboad({
   loaderData,
 }: {
   loaderData: {
     modelName: string;
+    profiles: string[];
   };
 }) {
   return (
@@ -30,7 +63,7 @@ function dashboad({
       {loaderData?.modelName === "File" ? (
         <File edit={true} />
       ) : (
-        <UpdateDynamicRecord />
+        <UpdateDynamicRecord profiles={loaderData.profiles} />
       )}
     </Box>
   );

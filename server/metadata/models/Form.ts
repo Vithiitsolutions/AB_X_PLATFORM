@@ -1,13 +1,10 @@
 import mercury from "@mercury-js/core";
 
 export const form = mercury.createModel("Form", {
-    name: {
+    createLabel: {
         type: "string"
     },
-    label: {
-        type: "string"
-    },
-    description: {
+    updateLabel: {
         type: "string"
     },
     fields: {
@@ -16,5 +13,17 @@ export const form = mercury.createModel("Form", {
         localField: "_id",
         foreignField: "form",
         many: true
+    },
+    profiles: {
+        type: "relationship",
+        ref: "Profile",
+        many: true
+    },
+    model: {
+        type: "relationship",
+        ref: "Model"
+    },
+    modelName: {
+        type: "string"
     }
 })
