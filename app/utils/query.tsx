@@ -153,6 +153,7 @@ query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput, $limit: Int!)
       order
       valueField
       label
+      isNavigatable
       field {
         id
         enumValues

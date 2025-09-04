@@ -26,6 +26,10 @@ export const viewField = mercury.createModel(
     },
     label: {
       type: "string"
+    },
+    isNavigatable: {
+      type: "boolean",
+      default: true
     }
   },
   {

@@ -1,12 +1,14 @@
 "use client";
-import React, { useEffect, useMemo } from "react";
+import React, { cache, useEffect, useMemo } from "react";
 import { z } from "zod";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { set, SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router";
 import { useLazyQuery } from "../utils/hook";
 import { serverFetch } from "../utils/action";
 import { zodResolver } from "@hookform/resolvers/zod";
 import DynamicForm from "../components/dynamicForm/modelForm";
+import { get } from "http";
+import DynamicFormWithConfig from "../components/dynamicForm/DynamicFormWithConfig";
 
 export const generateSchema = (metadata: any[]) => {
   const schemaObj: Record<string, any> = {};
@@ -75,13 +77,19 @@ export const generateSchema = (metadata: any[]) => {
 const CreateDynamicRecord = ({
   model,
   handleClose,
+  profiles,
 }: {
   model: string;
   handleClose?: (value: string) => void;
+  profiles?: string[];
 }) => {
   let navigate = useNavigate();
   const [getAllModelFields, { data, loading, error }] =
     useLazyQuery(serverFetch);
+  const [getForm, getFormResponse] = useLazyQuery(serverFetch);
+  const [formFields, setFormFields] = React.useState<any[]>([]);
+  const [formData, setFormData] = React.useState<any>(null);
+  const [getFormFields, getFormFieldsResponse] = useLazyQuery(serverFetch);
   const Create_Query = useMemo(() => {
     return `mutation Create${model}($input: ${model}Input!) {
             create${model}(input: $input) {
@@ -90,22 +98,130 @@ const CreateDynamicRecord = ({
           }`;
   }, []);
 
-  const formSchema = generateSchema(data?.listModelFields?.docs);
+  const formSchema = generateSchema(
+    formData?.id
+      ? formFields.map((item) => item.field)
+      : data?.listModelFields?.docs
+  );
   type FormSchema = z.infer<typeof formSchema>;
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
-    defaultValues: data?.listModelFields?.docs.reduce(
-      (acc: any, field: any) => {
-        acc[field.name] =
-          field.type === "boolean" ? false : field.type == "number" ? 0 : "";
-        return acc;
-      },
-      {} as Record<string, any>
-    ),
+    defaultValues: formData?.id
+      ? formFields.reduce(
+          (acc: any, field: any) => {
+            acc[field.field.name] =
+              field.field.type === "boolean"
+                ? false
+                : field.field.type == "number"
+                  ? 0
+                  : "";
+            return acc;
+          },
+          {} as Record<string, any>
+        )
+      : data?.listModelFields?.docs.reduce(
+          (acc: any, field: any) => {
+            acc[field.name] =
+              field.type === "boolean"
+                ? false
+                : field.type == "number"
+                  ? 0
+                  : "";
+            return acc;
+          },
+          {} as Record<string, any>
+        ),
   });
   useEffect(() => {
-    getAllModelFields(
-      ` query ListModelFields($where: whereModelFieldInput, $limit: Int!) {
+    getForm(
+      `query Docs($where: whereFormInput) {
+  listForms(where: $where) {
+    docs {
+      id
+      createLabel
+      updateLabel
+      model {
+        id
+        label
+        name
+      }
+      modelName
+      profiles {
+        id
+        label
+        name
+      }
+    }
+  }
+}`,
+      {
+        where: {
+          modelName: {
+            is: model,
+          },
+          profiles: {
+            in: profiles,
+          },
+        },
+      },
+      {
+        cache: "no-store",
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (getFormResponse?.data) {
+      setFormData(getFormResponse?.data?.listForms?.docs[0]);
+      const formId = getFormResponse?.data?.listForms?.docs[0]?.id;
+
+      if (formId) {
+        getFormFields(
+          `query Docs($where: whereFormFieldInput, $sort: sortFormFieldInput) {
+  listFormFields(where: $where, sort: $sort) {
+    docs {
+      id
+      label
+      placeholder
+      regExpError
+      regexp
+      visible
+      order
+      createAllowed
+      field {
+        ref
+        type
+        required
+        name
+        unique
+        label
+        id
+        enumType
+        enumValues
+        many
+        modelName
+        default
+      }
+    }
+  }
+}`,
+          {
+            where: {
+              form: {
+                is: formId,
+              },
+              visible: true,
+              isCreatable: true,
+            },
+            sort: {
+              order: "asc",
+            },
+          },
+          { cache: "no-store" }
+        );
+      } else {
+        getAllModelFields(
+          ` query ListModelFields($where: whereModelFieldInput, $limit: Int!) {
     listModelFields(where: $where, limit: $limit) {
       docs {
         id
@@ -133,22 +249,33 @@ const CreateDynamicRecord = ({
       limit
     }
   }`,
-      {
-        where: {
-          modelName: {
-            is: model,
+          {
+            where: {
+              modelName: {
+                is: model,
+              },
+              name: {
+                notContains: "password",
+              },
+            },
+            limit: 200,
           },
-          name: {
-            notContains: "password",
-          },
-        },
-        limit: 200,
-      },
-      {
-        cache: "no-store",
+          {
+            cache: "no-store",
+          }
+        );
       }
-    );
-  }, []);
+    }
+  }, [getFormResponse?.data, getFormResponse?.loading, getFormResponse?.error]);
+  useEffect(() => {
+    if (getFormFieldsResponse?.data) {
+      setFormFields(getFormFieldsResponse?.data?.listFormFields?.docs || []);
+    }
+  }, [
+    getFormFieldsResponse?.data,
+    getFormFieldsResponse?.loading,
+    getFormFieldsResponse?.error,
+  ]);
   useEffect(() => {
     if (data) {
       console.log(data?.listModelFields?.docs, "data");
@@ -174,11 +301,6 @@ const CreateDynamicRecord = ({
     }
     if (createRecordResponse?.error) {
       console.log(createRecordResponse?.error);
-      //   toast({
-      //     variant: "destructive",
-      //     title: "Uh oh! Something went wrong.",
-      //     description: createRecordResponse.error?.message,
-      //   });
     }
   }, [
     createRecordResponse?.data,
@@ -199,19 +321,17 @@ const CreateDynamicRecord = ({
   };
   return (
     <div>
-      {/* {modelName == "File" ? (
-        <FileRecordContainer />
-      ) : modelName == "Order" ? (
-        <CreateOrderContainer />
-      ) : (
-        <DynamicForm
+      {formData && formFields && formFields.length > 0 ? (
+        <DynamicFormWithConfig
           handleSubmit={onSubmit}
-          modelFields={data?.listModelFields?.docs || []}
+          formFields={formFields || []}
+          formConfig={formData}
           form={form}
           loading={createRecordResponse?.loading}
+          modelName={model}
+          handleClose={handleClose}
         />
-      )} */}
-      {data?.listModelFields?.docs.length > 0 && (
+      ) : (
         <DynamicForm
           handleSubmit={onSubmit}
           modelFields={data?.listModelFields?.docs || []}
