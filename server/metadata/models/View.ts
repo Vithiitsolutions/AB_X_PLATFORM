@@ -5,6 +5,9 @@ export const view = mercury.createModel("View", {
     type: "string",
     required: true,
   },
+  label: {
+    type: "string",
+  },
   modelName: {
     type: "string",
     required: true
