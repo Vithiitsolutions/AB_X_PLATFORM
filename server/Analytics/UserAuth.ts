@@ -46,23 +46,29 @@ export async function getUserAnalytics({
     if (stateId) filters.state = new mongoose.Types.ObjectId(stateId);
     if (districtId) filters.district = new mongoose.Types.ObjectId(districtId);
     if (constituencyId) filters.constituency = new mongoose.Types.ObjectId(constituencyId);
+    
     const currentStart = startDate ? new Date(startDate) : undefined;
     const currentEnd = endDate ? new Date(endDate) : undefined;
     if (currentStart) currentStart.setUTCHours(0, 0, 0, 0);
     if (currentEnd) currentEnd.setUTCHours(23, 59, 59, 999);
+    
     const { start: prevStart, end: prevEnd } = currentStart
         ? getPreviousMonthRange(currentStart)
         : { start: undefined, end: undefined };
+    
     const currentFilters = { ...filters };
     const previousFilters = { ...filters };
+    
     if (currentStart && currentEnd) {
         currentFilters.createdOn = { $gte: currentStart, $lte: currentEnd };
     }
     if (prevStart && prevEnd) {
         previousFilters.createdOn = { $gte: prevStart, $lte: prevEnd };
     }
+    
     console.log(currentFilters, "kjhgcx");
     const UserData = mercury.db.User;
+    
     const [totalCount, commonCount, leaderCount, maleCount, femaleCount] = await Promise.all([
         UserData.mongoModel.countDocuments(currentFilters),
         UserData.mongoModel.countDocuments({ ...currentFilters, role: "PUBLIC" }),
@@ -70,6 +76,7 @@ export async function getUserAnalytics({
         UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Male" }),
         UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Female" }),
     ]);
+    
     const [prevTotal, prevCommon, prevLeader, prevMale, prevFemale] = await Promise.all([
         UserData.mongoModel.countDocuments(previousFilters),
         UserData.mongoModel.countDocuments({ ...previousFilters, role: "PUBLIC" }),
@@ -85,16 +92,34 @@ export async function getUserAnalytics({
         UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Female", role: "PUBLIC" }),
         UserData.mongoModel.countDocuments({ ...currentFilters, gender: "Female", role: "LEADER" }),
     ]);
+    
+    // FIXED: Monthly signup trend with proper date range and location filtering
     const selectedYear = year || new Date().getUTCFullYear();
-    const yearStart = new Date(Date.UTC(selectedYear, 0, 1, 0, 0, 0, 0));
-    const yearEnd = new Date(Date.UTC(selectedYear, 11, 31, 23, 59, 59, 999));
+    
+    // Determine the date range for monthly trend
+    let monthlyTrendStart: Date;
+    let monthlyTrendEnd: Date;
+    
+    if (startDate && endDate) {
+        // If specific date range is provided, use it
+        monthlyTrendStart = new Date(startDate);
+        monthlyTrendEnd = new Date(endDate);
+    } else {
+        // Default to current year
+        monthlyTrendStart = new Date(Date.UTC(selectedYear, 0, 1, 0, 0, 0, 0));
+        monthlyTrendEnd = new Date(Date.UTC(selectedYear, 11, 31, 23, 59, 59, 999));
+    }
+    
+    monthlyTrendStart.setUTCHours(0, 0, 0, 0);
+    monthlyTrendEnd.setUTCHours(23, 59, 59, 999);
+    
     const monthlyPipeline = [
         {
             $match: {
-                ...filters,
+                ...filters, // Include state/district/constituency filters
                 createdOn: {
-                    $gte: yearStart,
-                    $lte: yearEnd,
+                    $gte: monthlyTrendStart,
+                    $lte: monthlyTrendEnd,
                 },
             },
         },
@@ -102,11 +127,13 @@ export async function getUserAnalytics({
             $project: {
                 role: 1,
                 month: { $month: "$createdOn" },
+                year: { $year: "$createdOn" },
             },
         },
         {
             $group: {
                 _id: {
+                    year: "$year",
                     month: "$month",
                     role: "$role",
                 },
@@ -114,34 +141,56 @@ export async function getUserAnalytics({
             },
         },
     ];
+    
     const monthlyRaw = await UserData.mongoModel.aggregate(monthlyPipeline);
-    const monthlyMap: Record<number, { commonMan: number; leaders: number; total: number }> = {};
-    for (let i = 1; i <= 12; i++) {
-        monthlyMap[i] = { commonMan: 0, leaders: 0, total: 0 };
+    
+    // Create a map to handle multiple years if date range spans across years
+    const monthlyMap: Record<string, { commonMan: number; leaders: number; total: number }> = {};
+    
+    // Always initialize all 12 months for the selected year
+    // even if the date range is smaller
+    for (let month = 1; month <= 12; month++) {
+        const key = `${selectedYear}-${month}`;
+        monthlyMap[key] = { commonMan: 0, leaders: 0, total: 0 };
     }
+    
+    // Populate the map with actual data
     for (const entry of monthlyRaw) {
+        const year = entry._id.year;
         const month = entry._id.month;
         const role = entry._id.role;
         const count = entry.count;
-        if (role === "PUBLIC") {
-            monthlyMap[month].commonMan += count;
-        } else if (role === "LEADER") {
-            monthlyMap[month].leaders += count;
+        const key = `${year}-${month}`;
+        
+        if (monthlyMap[key]) {
+            if (role === "PUBLIC") {
+                monthlyMap[key].commonMan += count;
+            } else if (role === "LEADER") {
+                monthlyMap[key].leaders += count;
+            }
+            monthlyMap[key].total += count;
         }
-        monthlyMap[month].total += count;
     }
-    const monthlySignupTrend = Object.entries(monthlyMap).map(([monthNum, data]) => {
-        const month = new Date(Date.UTC(2024, parseInt(monthNum) - 1)).toLocaleString("default", {
+    
+    // Convert to array format with proper month names - always show all 12 months
+    const monthlySignupTrend = [];
+    for (let month = 1; month <= 12; month++) {
+        const key = `${selectedYear}-${month}`;
+        const data = monthlyMap[key] || { commonMan: 0, leaders: 0, total: 0 };
+        const monthName = new Date(Date.UTC(selectedYear, month - 1)).toLocaleString("default", {
             month: "short",
         });
-
-        return {
-            month,
+        
+        monthlySignupTrend.push({
+            month: monthName,
+            year: selectedYear,
+            monthYear: `${monthName} ${selectedYear}`,
             commonMan: data.commonMan,
             leaders: data.leaders,
             total: data.total,
-        };
-    });
+        });
+    }
+    
     const now = new Date();
     const currentMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
     const currentMonthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
@@ -149,6 +198,7 @@ export async function getUserAnalytics({
     previous30DaysStart.setUTCDate(previous30DaysStart.getUTCDate() - 30);
     const previous30DaysEnd = new Date(currentMonthStart);
     previous30DaysEnd.setUTCHours(23, 59, 59, 999);
+    
     const newUserCount = await UserData.mongoModel.countDocuments({
         ...filters,
         createdOn: { $gte: currentMonthStart, $lte: currentMonthEnd },
@@ -182,6 +232,17 @@ export async function getUserAnalytics({
         monthlySignupTrend,
         newUserCount,
         newUserGrowth,
+        // Additional metadata for debugging
+        dateRange: {
+            start: monthlyTrendStart.toISOString(),
+            end: monthlyTrendEnd.toISOString(),
+        },
+        appliedFilters: {
+            stateId,
+            districtId,
+            constituencyId,
+            year: selectedYear,
+        },
     };
 }
 

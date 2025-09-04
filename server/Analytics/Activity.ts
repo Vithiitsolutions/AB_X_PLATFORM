@@ -56,33 +56,29 @@ export const getActivityStats = async (filter: ActivityDashboardFilter = {}) => 
       }
     }
   ]);
-  const attendMatch: Record<string, any> = {
-    action: "Attend",
-    ...(filteredMatch.createdOn && { createdOn: filteredMatch.createdOn }),
-  };
   const attendAgg = await mercury.db.ActivityAction.mongoModel.aggregate([
-    { $match: attendMatch },
     {
       $lookup: {
         from: "activities",
         localField: "activity",
         foreignField: "_id",
-        as: "activity",
+        as: "activityData",
       },
     },
-    { $unwind: "$activity" },
+    { $unwind: "$activityData" },
     {
       $match: {
-        $expr: {
-          $and: Object.entries(filteredMatch).map(([key, val]) => ({
-            $eq: [`$activity.${key}`, val],
-          })),
-        },
+        action: "Attend",
+        ...filteredMatch,
+        ...(filteredMatch.state && { "activityData.state": filteredMatch.state }),
+        ...(filteredMatch.district && { "activityData.district": filteredMatch.district }),
+        ...(filteredMatch.constituency && { "activityData.constituency": filteredMatch.constituency }),
+        ...(filteredMatch.createdOn && { "activityData.createdOn": filteredMatch.createdOn })
       },
     },
     {
       $group: {
-        _id: "$activity.type",
+        _id: "$activityData.type",
         count: { $sum: 1 },
       },
     },

@@ -1,7 +1,12 @@
 import mongoose from "mongoose";
 import mercury from "@mercury-js/core";
 export interface PostCountFilter {
-  year: number;
+  year?: number;
+  startDate?: string;
+  endDate?: string;
+  state?: string;
+  district?: string;
+  constituency?: string;
 }
 export interface MonthlyPostStats {
   month: string;
@@ -12,19 +17,36 @@ export const getReportedPostCount = async (
   filter: PostCountFilter
 ): Promise<PostCountResult> => {
   try {
-    const toObjectId = (val?: string) =>
-      val ? new mongoose.Types.ObjectId(val) : undefined;
     const selectedYear = filter.year || new Date().getUTCFullYear();
     const yearStart = new Date(Date.UTC(selectedYear, 0, 1, 0, 0, 0, 0));
     const yearEnd = new Date(Date.UTC(selectedYear, 11, 31, 23, 59, 59, 999));
+    const dateRange: any = {};
+    if (filter.startDate) {
+      dateRange.$gte = new Date(`${filter.startDate}T00:00:00.000Z`);
+    }
+    if (filter.endDate) {
+      dateRange.$lte = new Date(`${filter.endDate}T23:59:59.999Z`);
+    }
+    const postFilters: any = {};
+    if (filter.state) {
+      postFilters['postInfo.state'] = new mongoose.Types.ObjectId(filter.state);
+    }
+    if (filter.district) {
+      postFilters['postInfo.district'] = new mongoose.Types.ObjectId(filter.district);
+    }
+    if (filter.constituency) {
+      postFilters['postInfo.constituency'] = new mongoose.Types.ObjectId(filter.constituency);
+    }
     const pipeline: any[] = [
       {
         $match: {
           action: "Report",
-          createdOn: {
-            $gte: yearStart,
-            $lte: yearEnd,
-          },
+          createdOn: Object.keys(dateRange).length > 0
+            ? dateRange
+            : {
+                $gte: yearStart,
+                $lte: yearEnd,
+              },
         },
       },
       {
@@ -37,9 +59,10 @@ export const getReportedPostCount = async (
       },
       { $unwind: "$postInfo" },
     ];
-    const postFilters: any = {};
     if (Object.keys(postFilters).length > 0) {
-      pipeline.push({ $match: postFilters });
+      pipeline.push({
+        $match: postFilters,
+      });
     }
     pipeline.push(
       {
@@ -54,7 +77,8 @@ export const getReportedPostCount = async (
           totalPosts: 1,
           _id: 0,
         },
-      }
+      },
+      { $sort: { month: 1 } }
     );
     const results = await mercury.db.PostAction.mongoModel.aggregate(pipeline);
     const monthlyStats: MonthlyPostStats[] = Array.from(

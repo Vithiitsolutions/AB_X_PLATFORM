@@ -7,7 +7,6 @@ interface DashboardFilter {
   constituency?: string;
   startDate?: string;
   endDate?: string;
-  year?: string;
 }
 
 const toObjectId = (id?: string): mongoose.Types.ObjectId | undefined =>
@@ -51,17 +50,20 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
   const hasDateFilter = !!(currentStart && currentEnd);
   const combinedFilter = { ...locationFilters, ...(hasDateFilter ? { createdOn } : {}) };
 
-  const yearForMonthlyStats = filter.year ? parseInt(filter.year) : now.getFullYear();
+  let monthlyStatsMatchFilter: Record<string, any> = { ...locationFilters };
+
+  if (hasDateFilter) {
+    monthlyStatsMatchFilter.createdOn = createdOn;
+  } else {
+    const yearForMonthlyStats = now.getFullYear();
+    monthlyStatsMatchFilter.createdOn = {
+      $gte: new Date(yearForMonthlyStats, 0, 1),
+      $lte: new Date(yearForMonthlyStats, 11, 31, 23, 59, 59, 999),
+    };
+  }
+
   const monthlyManifestoAggregationPipeline = [
-    {
-      $match: {
-        ...locationFilters,
-        createdOn: {
-          $gte: new Date(yearForMonthlyStats, 0, 1),
-          $lte: new Date(yearForMonthlyStats, 11, 31, 23, 59, 59, 999),
-        },
-      },
-    },
+    { $match: monthlyStatsMatchFilter },
     {
       $group: {
         _id: { $month: "$createdOn" },
@@ -70,16 +72,9 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
     },
     { $sort: { _id: 1 } },
   ];
+
   const monthlySurveyAggregationPipeline = [
-    {
-      $match: {
-        ...locationFilters,
-        createdOn: {
-          $gte: new Date(yearForMonthlyStats, 0, 1),
-          $lte: new Date(yearForMonthlyStats, 11, 31, 23, 59, 59, 999),
-        },
-      },
-    },
+    { $match: monthlyStatsMatchFilter },
     {
       $lookup: {
         from: "surveyresponses",
@@ -90,7 +85,7 @@ export const getManifestoSurveyStats = async (filter: DashboardFilter = {}) => {
     },
     {
       $addFields: {
-        responses: { $ifNull: ["$responses", []] }, // ✅ ensure array
+        responses: { $ifNull: ["$responses", []] },
       },
     },
     {

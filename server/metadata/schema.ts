@@ -9,11 +9,11 @@ export const typeDefs = `
         getActivityStats(filter: ActivityDashboardFilter): ActivityDashboardStats
         getLeaderStats(filter:LeaderStatsFilter): LeaderStats
         getUrgeApplicationStats(filter: ApplicationStatsFilter): MonthlyApplicationStatsResponse 
-        getNewsPostTrends(year: Int): [NewsTrend]
+        getNewsPostTrends(filter:filters): [NewsTrend]
         getReportedPostCount(filter: PostCountFilter): [MonthlyPostStats]
         supportTrendstats(filter: AboutPostCountFilter): [MonthlyRolePostStats]
         me: User
-        CategoryStatsCount: [CategoryStatsResult]
+        CategoryStatsCount(filter:filters): [CategoryStatsResult]
         getSurveyDetails(surveyId: String): SurveyDetailResponse
         getLeaderProfile(userId:String): LeaderProfile
         getManifestoDetails(input: GetManifestoDetailsInput!): ManifestoDetails
@@ -51,6 +51,13 @@ export const typeDefs = `
         ACCEPTED
         RESOLVED
         REJECTED
+    }
+    input filters{
+        startDate: String
+        endDate: String
+        state: String
+        district: String
+        constituency: String
     }
     type LeaderProfile {
         id: String
@@ -117,7 +124,8 @@ export const typeDefs = `
         name: String
     }
     input AboutPostCountFilter {
-         year: Int  
+        startDate: String
+        endDate: String
     }
     type CategoryStatsResult {
         name: String
@@ -134,7 +142,11 @@ export const typeDefs = `
         totalPosts: Int
     }
     input PostCountFilter {
-      year: Int
+      startDate: String
+      endDate: String
+      state: String
+      district: String
+      constituency: String
     }
     type LoginResponse {
         token: String
@@ -142,7 +154,8 @@ export const typeDefs = `
     }
     input ApplicationStatsFilter {
         leaderId: ID
-        year: String
+        startDate: String
+        endDate: String
     }
     type MonthlyApplicationStat {
         month: String
@@ -200,7 +213,6 @@ export const typeDefs = `
          leaderId: ID
          startDate: String
          endDate: String
-         year:Int
     }
     type PostStats {
         totalResolved: Int
@@ -246,7 +258,6 @@ export const typeDefs = `
        constituency: ID
        startDate: String
        endDate: String
-       year: Int
     }    
     type DashboardStats {
       manifestoStats: ManifestoStats

@@ -1,33 +1,43 @@
 import mongoose from "mongoose";
 import mercury from "@mercury-js/core";
 interface AboutPostCountFilter {
-  year: number;  
+  year?: number;
+  startDate?: string;
+  endDate?: string;
 }
+
 export interface MonthlyRolePostStats {
   month: string;
   totalPosts: number;
   leaderPosts: number;
   publicPosts: number;
 }
+
 export type AboutPostCountResult = MonthlyRolePostStats[];
+
 export const supportTrendstats = async (
-  filter: AboutPostCountFilter
+  filter: AboutPostCountFilter = {} // Set a default empty object
 ): Promise<AboutPostCountResult> => {
   try {
-    const toObjectId = (val?: string) =>
-      val ? new mongoose.Types.ObjectId(val) : undefined;
-
     const selectedYear = filter.year || new Date().getUTCFullYear();
     const yearStart = new Date(Date.UTC(selectedYear, 0, 1, 0, 0, 0, 0));
     const yearEnd = new Date(Date.UTC(selectedYear, 11, 31, 23, 59, 59, 999));
-
+    const dateRange: any = {};
+    if (filter.startDate) {
+      dateRange.$gte = new Date(`${filter.startDate}T00:00:00.000Z`);
+    }
+    if (filter.endDate) {
+      dateRange.$lte = new Date(`${filter.endDate}T23:59:59.999Z`);
+    }
     const pipeline: any[] = [
       {
         $match: {
-          createdOn: {
-            $gte: yearStart,
-            $lte: yearEnd,
-          },
+          createdOn: Object.keys(dateRange).length > 0
+            ? dateRange
+            : {
+              $gte: yearStart,
+              $lte: yearEnd,
+            },
         },
       },
       {
@@ -40,10 +50,6 @@ export const supportTrendstats = async (
       },
       { $unwind: "$userDetails" },
     ];
-    const userFilters: any = {};  
-    if (Object.keys(userFilters).length > 0) {
-      pipeline.push({ $match: userFilters });
-    }
     pipeline.push(
       {
         $addFields: {
@@ -114,6 +120,7 @@ export const supportTrendstats = async (
       { $sort: { month: 1 } }
     );
     const results = await mercury.db.About.mongoModel.aggregate(pipeline);
+
     const monthlyStats: AboutPostCountResult = Array.from({ length: 12 }, (_, i) => ({
       month: new Date(Date.UTC(selectedYear, i)).toLocaleString("default", {
         month: "short",
