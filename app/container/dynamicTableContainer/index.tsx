@@ -22,6 +22,7 @@ function DynamicTableContainer({
   refKeyMap,
   buttons,
   apiName,
+  viewLabel
   // searchVaraiables,
 }: {
   modelData: any;
@@ -34,6 +35,7 @@ function DynamicTableContainer({
   refKeyMap: Record<string, string>;
   buttons: any;
   apiName: string;
+  viewLabel?: string;
   // searchVaraiables: any;
 }) {
   const [listModelData, listModelDataResponse] = useLazyQuery(serverFetch);
@@ -336,9 +338,10 @@ function DynamicTableContainer({
             },
           }}
         >
-          {/(s|x|z|ch|sh)$/i.test(_.startCase(modelName))
-            ? _.startCase(modelName) + "es"
-            : _.startCase(modelName) + "s"}
+          {/* {/(s|x|z|ch|sh)$/i.test(_.startCase(viewLabel))
+            ? _.startCase(viewLabel) + "es"
+            : _.startCase(viewLabel) + "s"} */}
+            {_.startCase(viewLabel)}
         </Text>
         <Box
           styles={{

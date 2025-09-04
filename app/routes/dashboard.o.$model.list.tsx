@@ -189,6 +189,7 @@ const dashboard = ({
           refKeyMap={loaderData?.refKeyMap}
           buttons={loaderData?.buttons}
           apiName={loaderData?.apiName}
+          viewLabel={loaderData?.view?.label || loaderData?.view?.name}
           // searchVaraiables={loaderData?.searchVaraiables}
         />
       )}
