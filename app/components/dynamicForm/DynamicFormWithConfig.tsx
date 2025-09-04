@@ -762,7 +762,7 @@ const DynamicFormWithConfig = ({
                               Select{" "}
                               {item?.label || _.startCase(item.field?.label)}
                             </Option>
-                            {item?.enumValues.map((option) => (
+                            {item?.enumValues?.map((option) => (
                               <Option key={option} value={option}>
                                 {_.startCase(option)}
                               </Option>
