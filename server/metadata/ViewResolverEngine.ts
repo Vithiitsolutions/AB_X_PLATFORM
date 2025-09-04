@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 
 // Search functionality - need to check -
 export class ViewResolverEngine {
-  constructor(private viewId: string) {}
+  constructor(private viewId: string) { }
 
   async getViewDetails() {
     const view = await mercury.db.View.get(
@@ -34,6 +34,8 @@ export class ViewResolverEngine {
     // 1. Fetch view and viewFields with their modelFields
     const view: any = await this.getViewDetails();
 
+    filters = view.filters ? JSON.parse(view.filters) : filters;
+
     const baseModel = view.modelName;
     const viewFields = view.fields.filter((f) => f.visible);
 
@@ -54,6 +56,11 @@ export class ViewResolverEngine {
       key: "_id",
       alias: "id",
     });
+
+    // 4. Filters
+    if (Object.keys(filters).length > 0) {
+      pipeline.push({ $match: filters });
+    }
     // 1. View field from same model -  valueField will be empty ( Post -> content )
     // 2. View Field from the same model - but valueField is empty then recordKey should be pickedup ( Post -> user -> name)
     // 3. ViewField from the same model - valueField empty and recordKey is empty then only we will show id - Handle at last
@@ -198,11 +205,6 @@ export class ViewResolverEngine {
           $match: { $or: orConditions },
         });
       }
-    }
-
-    // 4. Filters
-    if (Object.keys(filters).length > 0) {
-      pipeline.push({ $match: filters });
     }
 
     // 5. Sort
