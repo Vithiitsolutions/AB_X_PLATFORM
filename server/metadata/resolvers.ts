@@ -184,8 +184,8 @@ export default {
       const data = await getActiveUserCountWithRoles({ startDate, endDate, year })
       return data;
     },
-    getNewsPostTrends: async (_: any, args: { year?: number }, ctx: any) => {
-      return await getNewsPostTrends(args.year);
+    getNewsPostTrends: async (_: any, args: { filter?:any }, ctx: any) => {
+      return await getNewsPostTrends(args.filter||{});
     },
     getReportedPostCount: async (root: any, args: { filter?: any }, ctx: any) => {
       try {
