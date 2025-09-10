@@ -1,25 +1,30 @@
 import mercury from "@mercury-js/core";
-import { sendEmail, generateEmailHtml } from '../../services/emailService';
-mercury.hook.before("CREATE_ABOUT_RECORD", async function (this: any) {
-  if (this.user?.id) {
-    this.data.user = this.user.id; 
-  } else {
-    console.warn("User is missing in session, skipping user assignment.");
+import { sendNotification } from "../../services/notification";
+mercury.hook.after("UPDATE_ABOUT_RECORD", async function (this: any) {
+  const recordId = this.record?.id;
+  const ctxUser = this.user;
+  const about: any = await mercury.db.About.get({ _id: recordId }, { id: ctxUser?.id, profile: ctxUser?.profile });
+  if (!about?.isResolved) {
+    console.log("About record is not resolved, skipping notification.");
+    return;
   }
-});
-mercury.hook.after("CREATE_ABOUT_RECORD", async function (this: any) {
-  try {
-    const fromEmail = this.options?.args?.input?.from;
-    const toEmail = "shashanksonwane305@gmail.com";
-    const subject = this.record?.subject || "No Subject Provided";
-    const description = this.record?.description || "No Description Provided";
-    if (!fromEmail || !toEmail) {
-      console.warn("Email or recipient missing. Skipping email sending.");
-      return;
-    }
-    const emailHtml = generateEmailHtml(this.user?.name, fromEmail, subject, description);
-    await sendEmail(fromEmail, toEmail, subject, description, emailHtml);
-  } catch (error) {
-    console.error("Error processing:", error);
+  const userId = about.user;
+  const user: any = await mercury.db.User.get({ _id: userId }, { id: ctxUser?.id, profile: ctxUser?.profile });
+  if (!user) {
+    console.log("User not found, skipping notification.");
+    return;
   }
+  console.log(about, user, "about");
+  const userToken = user.token;
+  if (!userToken) {
+    console.log("User token not found, skipping notification.");
+    return;
+  }
+  console.log(userToken, "token");
+  await sendNotification(
+    userToken,
+    "Abhinav Bharath",
+    `Your Request has been resolved`,
+    { userId: userId }
+  );
 });
