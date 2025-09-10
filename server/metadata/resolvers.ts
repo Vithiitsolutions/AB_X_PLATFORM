@@ -17,6 +17,7 @@ import { listLeaders } from "../Analytics/ListLeaders";
 import { SurveyQuery } from "../masterApis/Survey";
 import mongoose, { Types } from "mongoose";
 import { getManifestoDetails } from "../Analytics/Manifesto";
+import { getUserPoliticalPartyHistory } from "../masterApis/trackPartyPositionChanges";
 export default {
   Query: {
     signIn: async (
@@ -411,6 +412,9 @@ export default {
       ctx: any
     ) => {
       return await listLeaders(filter);
+    },
+    trackPoliticalPartyChanges:async(root:any,{userId}:{userId:string},ctx:any)=>{
+      return await getUserPoliticalPartyHistory(userId);
     },
 
     ...SurveyQuery

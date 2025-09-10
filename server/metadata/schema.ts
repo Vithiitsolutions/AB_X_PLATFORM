@@ -20,9 +20,16 @@ export const typeDefs = `
         getApplicationDetails(applicationId: ID!): ApplicationDetails
         getSurveyCounts: [SurveyMonthlyData]
         listLeaders(filter: LocationFilter): [Leader]
+        trackPoliticalPartyChanges(userId:String):[ChangeStep!]!
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
+    }  
+    type ChangeStep {
+        changedOn: DateTime!
+        politicalParty: String
+        positionStatus: String
+        partyLogo:String
     }
     type SurveyMonthlyData {
         month: String
