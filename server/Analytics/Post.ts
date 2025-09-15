@@ -466,7 +466,8 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             saved: postDetails.saved,
             createdOn: postDetails.createdOn ? postDetails.createdOn.toISOString() : null,
             updatedOn: postDetails.updatedOn ? postDetails.updatedOn.toISOString() : null,
-        };
+            comment: postDetails.comment 
+         };
     }
     return result;
 };
