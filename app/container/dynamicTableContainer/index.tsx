@@ -22,7 +22,7 @@ function DynamicTableContainer({
   refKeyMap,
   buttons,
   apiName,
-  viewLabel
+  viewLabel,
   // searchVaraiables,
 }: {
   modelData: any;
@@ -109,11 +109,23 @@ function DynamicTableContainer({
                         <A
                           href={
                             field?.isNavigatable
-                              ? `${
-                                  item?.id
-                                    ? `/dashboard/o/${field?.field?.ref}/r/${item?.id}`
-                                    : "#"
-                                }`
+                              ? field.valueField
+                                ? `${
+                                    item?.[
+                                      `${field.field?.ref}_${field.valueField}`
+                                    ]?.id
+                                      ? `/dashboard/o/${field?.field?.ref}/r/${
+                                          item?.[
+                                            `${field.field?.ref}_${field.valueField}`
+                                          ]?.id
+                                        }`
+                                      : "#"
+                                  }`
+                                : `${
+                                    item?.id
+                                      ? `/dashboard/o/${field?.field?.ref}/r/${item?.id}`
+                                      : "#"
+                                  }`
                               : "#"
                           }
                           onClick={(e) => e.stopPropagation()}
@@ -132,17 +144,22 @@ function DynamicTableContainer({
                     </div>
                   );
                 } else {
-                  
                   return (
                     <A
                       href={
                         field?.isNavigatable
                           ? `${
-                              row.original[field.field?.name]?.id
+                              field.valueField
                                 ? `/dashboard/o/${field.field?.ref}/r/${
-                                    row.original[field.field?.name]?.id
+                                    row.original?.[
+                                      `${field.field?.ref}_${field.valueField}`
+                                    ]?.id
                                   }`
-                                : "#"
+                                : row.original[field.field?.name]?.id
+                                  ? `/dashboard/o/${field.field?.ref}/r/${
+                                      row.original[field.field?.name]?.id
+                                    }`
+                                  : "#"
                             }`
                           : "#"
                       }
@@ -346,7 +363,7 @@ function DynamicTableContainer({
           {/* {/(s|x|z|ch|sh)$/i.test(_.startCase(viewLabel))
             ? _.startCase(viewLabel) + "es"
             : _.startCase(viewLabel) + "s"} */}
-            {_.startCase(viewLabel)}
+          {_.startCase(viewLabel)}
         </Text>
         <Box
           styles={{

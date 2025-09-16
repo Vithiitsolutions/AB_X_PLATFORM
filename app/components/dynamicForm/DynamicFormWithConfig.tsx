@@ -705,98 +705,101 @@ const DynamicFormWithConfig = ({
                     )}
                   />
                 )}
-                {item.field?.type === "enum" && (
-                  <Controller
-                    control={form.control}
-                    name={item.field?.name}
-                    render={({ field }) => (
-                      <Box
-                        styles={{
-                          base: {
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 5,
-                          },
-                        }}
-                      >
-                        <Text
-                          styles={{
-                            base: { fontWeight: 500, fontSize: "13px" },
-                          }}
-                        >
-                          {item?.label || _.startCase(item.field?.label)}
-                        </Text>
+              {item.field?.type === "enum" && (
+  <>
+    <Controller
+      control={form.control}
+      name={item.field?.name}
+      render={({ field }) => (
+        <Box
+          styles={{
+            base: {
+              display: "flex",
+              flexDirection: "column",
+              gap: 5,
+            },
+          }}
+        >
+          <Text
+            styles={{
+              base: { fontWeight: 500, fontSize: "13px" },
+            }}
+          >
+            {item?.label || _.startCase(item.field?.label)}
+          </Text>
 
-                        <Box
-                          styles={{
-                            base: {
-                              position: "relative", // Make parent relative for absolute positioning
-                              display: "inline-block", // Adjust width based on content
-                              width: "100%", // Ensure it remains dynamic
-                            },
-                          }}
-                        >
-                          <Select
-                            {...field}
-                            onValueChange={(value) => {
-                              console.log(value, "enum value");
-                              form.setValue(item.field?.name, value);
-                            }}
-                            value={form.watch(item.field?.name)}
-                            styles={Clx({
-                              base: {
-                                height: 40,
-                                width: "100%", // Inherit width from parent
-                                border: "1.05px solid #E5E5E5",
-                                borderRadius: "10.51px",
-                                paddingLeft: 10,
-                                paddingRight: 35, // Leave space for the icon
-                                backgroundColor: "#F8F8F8",
-                                cursor: "pointer",
-                                appearance: "none",
-                                fontSize: "14px",
-                              },
-                            })}
-                          >
-                            <Option>
-                              Select{" "}
-                              {item?.label || _.startCase(item.field?.label)}
-                            </Option>
-                            {item?.enumValues?.map((option) => (
-                              <Option key={option} value={option}>
-                                {_.startCase(option)}
-                              </Option>
-                            ))}
-                          </Select>
+          <Box
+            styles={{
+              base: {
+                position: "relative",
+                display: "inline-block",
+                width: "100%",
+              },
+            }}
+          >
+            <Select
+              {...field}
+              onValueChange={(value) => {
+                console.log(value, "enum value");
+                form.setValue(item.field?.name, value);
+              }}
+              value={form.watch(item.field?.name)}
+              styles={Clx({
+                base: {
+                  height: 40,
+                  width: "100%",
+                  border: "1.05px solid #E5E5E5",
+                  borderRadius: "10.51px",
+                  paddingLeft: 10,
+                  paddingRight: 35,
+                  backgroundColor: "#F8F8F8",
+                  cursor: "pointer",
+                  appearance: "none",
+                  fontSize: "14px",
+                },
+              })}
+            >
+              <Option>
+                Select {item?.label || _.startCase(item.field?.label)}
+              </Option>
+              {item?.field?.enumValues?.map((option) => (
+                <Option key={option} value={option}>
+                  {_.startCase(option)}
+                </Option>
+              ))}
+            </Select>
 
-                          {/* Dropdown Icon (absolute inside Box) */}
-                          <Box
-                            styles={{
-                              base: {
-                                position: "absolute",
-                                right: 10,
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                pointerEvents: "none",
-                              },
-                            }}
-                          >
-                            <ChevronDown size={20} color="#555" />
-                          </Box>
-                        </Box>
-                        {form.formState.errors[item.field?.name] && (
-                          <Text
-                            styles={{
-                              base: { color: "red", fontSize: "12px" },
-                            }}
-                          >
-                            {form.formState.errors[item.field?.name]?.message}
-                          </Text>
-                        )}
-                      </Box>
-                    )}
-                  />
-                )}
+            {/* Dropdown Icon */}
+            <Box
+              styles={{
+                base: {
+                  position: "absolute",
+                  right: 10,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  pointerEvents: "none",
+                },
+              }}
+            >
+              <ChevronDown size={20} color="#555" />
+            </Box>
+          </Box>
+
+          {form.formState.errors[item.field?.name] && (
+            <Text
+              styles={{
+                base: { color: "red", fontSize: "12px" },
+              }}
+            >
+              {form.formState.errors[item.field?.name]?.message}
+            </Text>
+          )}
+        </Box>
+      )}
+    />
+  </>
+)}
+
                 {item.field?.type === "textarea" && (
                   <Controller
                     control={form.control}
