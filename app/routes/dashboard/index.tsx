@@ -339,8 +339,43 @@ export async function loader({ request }: any) {
   "lineHeight": "12px",
   "fontWeight": 600,
   "borderLeft": "1px solid #FF671F"
+},
+"table": {
+  "border": "1px solid #ffb799",
+  "borderRadius": "8px",
+  "minWidth": "calc(100vw - 283px)",
+  "header-backgroundColor": "#FF671F",
+  "header-textColor": "white",
+  "header-fontSize": "14px",
+  "header-fontWeight": "700",
+  "header-padding": "12px 18px",
+  "header-borderBottom": "1px solid #ffb799",
+"row-backgroundColor": "#FFFFFF",
+"row-textColor": "black",
+"row-fontSize": "13px",
+"row-fontWeight": "400",
+"row-padding": "10px 18px",
+"row-hoverBg": "#fff3ed",
+"row-borderTop": "1px solid #ffb799"
+  // Customizable layout props
+  // "header": {
+  //   "padding": "12px 18px",
+  //   "fontSize": "14px",
+  //   "fontWeight": "700",
+  //   "backgroundColor": "#FF671F",
+  //   "textColor": "white",
+  //   "borderBottom": "1px solid #FF671F"
+  // },
+  // "row": {
+  //   "padding": "10px 18px",
+  //   "fontSize": "13px",
+  //   "fontWeight": "400",
+  //   "backgroundColor": "#FFFFFF",
+  //   "textColor": "black",
+  //   "hoverBg": "#fff3ed",
+  //   "borderTop": "1px solid #FF671F"
+  // }
 }
-
 
     }
   };
