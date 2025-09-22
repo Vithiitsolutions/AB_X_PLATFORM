@@ -216,10 +216,10 @@ const UpdateDynamicRecord = ({ profiles }: { profiles?: string[] }) => {
 
   useEffect(() => {
     if (getFormResponse?.data) {
-      setFormData(getFormResponse?.data?.listForms?.docs[0]);
       const formId = getFormResponse?.data?.listForms?.docs[0]?.id;
-
+      
       if (formId) {
+        setFormData(getFormResponse?.data?.listForms?.docs[0]);
         getFormFields(
           `query Docs($where: whereFormFieldInput, $sort: sortFormFieldInput, $limit: Int!) {
   listFormFields(where: $where, sort: $sort, limit: $limit) {
@@ -265,7 +265,7 @@ const UpdateDynamicRecord = ({ profiles }: { profiles?: string[] }) => {
           { cache: "no-store" }
         );
       } else {
-        setFormData([]);
+        setFormData(null);
         setFormFields([]);
       }
     }
@@ -359,8 +359,7 @@ const UpdateDynamicRecord = ({ profiles }: { profiles?: string[] }) => {
           loading={updateRecordResponse?.loading}
           modelName={model!}
         />
-      ) : formData !== null &&
-        (getFormFieldsResponse?.data || getFormFieldsResponse?.error) ? (
+      ) : formData == null ? (
         <DynamicForm
           handleSubmit={onSubmit}
           modelFields={data?.listModelFields?.docs || []}
