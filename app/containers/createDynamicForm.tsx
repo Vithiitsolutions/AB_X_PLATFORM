@@ -177,8 +177,8 @@ const CreateDynamicRecord = ({
 
       if (formId) {
         getFormFields(
-          `query Docs($where: whereFormFieldInput, $sort: sortFormFieldInput) {
-  listFormFields(where: $where, sort: $sort) {
+          `query Docs($where: whereFormFieldInput, $sort: sortFormFieldInput, $limit: Int!) {
+  listFormFields(where: $where, sort: $sort, limit: $limit) {
     docs {
       id
       label
@@ -216,6 +216,7 @@ const CreateDynamicRecord = ({
             sort: {
               order: "asc",
             },
+            limit: 1000
           },
           { cache: "no-store" }
         );
@@ -299,8 +300,9 @@ const CreateDynamicRecord = ({
         handleClose(createRecordResponse?.data[`create${model}`]?.id);
       } else navigate(`/dashboard/o/${model}/list`);
     }
-    if (createRecordResponse?.error) {
+  if (createRecordResponse?.error) {
       console.log(createRecordResponse?.error);
+      alert(createRecordResponse?.error?.message);
     }
   }, [
     createRecordResponse?.data,

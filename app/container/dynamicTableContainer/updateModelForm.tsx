@@ -168,11 +168,7 @@ const UpdateDynamicRecord = ({ profiles }: { profiles?: string[] }) => {
     }
     if (updateRecordResponse?.error) {
       console.log(updateRecordResponse?.error);
-      // toast({
-      //     variant: "destructive",
-      //     title: "Uh oh! Something went wrong.",
-      //     description: updateRecordResponse.error?.message,
-      // });
+      alert(updateRecordResponse?.error?.message);
     }
   }, [
     updateRecordResponse?.data,
@@ -225,45 +221,46 @@ const UpdateDynamicRecord = ({ profiles }: { profiles?: string[] }) => {
 
       if (formId) {
         getFormFields(
-          `query Docs($where: whereFormFieldInput, $sort: sortFormFieldInput) {
-    listFormFields(where: $where, sort: $sort) {
-      docs {
-        id
+          `query Docs($where: whereFormFieldInput, $sort: sortFormFieldInput, $limit: Int!) {
+  listFormFields(where: $where, sort: $sort, limit: $limit) {
+    docs {
+      id
+      label
+      placeholder
+      regExpError
+      regexp
+      visible
+      order
+      createAllowed
+      field {
+        ref
+        type
+        required
+        name
+        unique
         label
-        placeholder
-        regExpError
-        regexp
-        visible
-        order
-        createAllowed
-        field {
-          ref
-          type
-          required
-          name
-          unique
-          label
-          id
-          enumType
-          enumValues
-          many
-          modelName
-          default
-        }
+        id
+        enumType
+        enumValues
+        many
+        modelName
+        default
       }
     }
-  }`,
+  }
+}`,
           {
             where: {
               form: {
                 is: formId,
               },
               visible: true,
-              isEditable: true
+              isEditable: true,
             },
             sort: {
               order: "asc",
             },
+            limit: 1000,
           },
           { cache: "no-store" }
         );
