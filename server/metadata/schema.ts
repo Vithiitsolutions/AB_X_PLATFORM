@@ -247,6 +247,9 @@ export const typeDefs = `
        monthlyStats: [MonthlyPostStats!]!
        postDetails: Post 
     }  
+    type Post{
+        reportCount:Int
+    }
     type MonthlyPostStats {
         month: String! 
         totalPosts: Int!

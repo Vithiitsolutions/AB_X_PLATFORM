@@ -48,6 +48,20 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         baseMatch.createdOn = dateRange;
         postMatch.createdOn = dateRange;
     }
+    let reportCount = 0;
+    if (filter.postId) {
+        const reportCountResult = await mercury.db.PostAction.mongoModel.aggregate([
+            {
+                $match: {
+                    post: toObjectId(filter.postId),
+                    action: "Report",
+                },
+            },
+            { $count: "count" },
+        ]);
+        reportCount = reportCountResult[0]?.count || 0;
+    }
+
     let postDetails = null;
     if (filter.postId) {
         postDetails = await mercury.db.Post.mongoModel
@@ -466,7 +480,8 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             saved: postDetails.saved,
             createdOn: postDetails.createdOn ? postDetails.createdOn.toISOString() : null,
             updatedOn: postDetails.updatedOn ? postDetails.updatedOn.toISOString() : null,
-            comment: postDetails.comment 
+            comment: postDetails.comment ,
+            reportCount: reportCount
          };
     }
     return result;
