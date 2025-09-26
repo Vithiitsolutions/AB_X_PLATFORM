@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { createCookie, Outlet, redirect } from "react-router";
 import { Box } from "@mercury-js/mess";
 import SideBar from "../../components/sidebar";
-import { ThemeProvider } from "../../utils/theme";
+import { ThemeProvider } from "../../utils/theme-context";
 import { serverFetch } from "../../utils/action";
 import Navbar from "../../components/navbar";
 import { parseCookies } from "../../utils/functions";
@@ -206,24 +206,126 @@ export async function loader({ request }: any) {
       cookies: request.headers.get("Cookie"),
     }
   );
+  const theme = await serverFetch(
+    `query ListThemes($where: whereThemeInput, $sort: sortThemeInput) {
+  listThemes(where: $where, sort: $sort) {
+    docs {
+      id
+      label
+      isActive
+      config
+      createdOn
+      updatedOn
+    }
+  }
+}`,
+{
+  "where": {
+    "isActive": true
+  },
+  "sort": {
+    "createdOn": "desc"
+  }
+},
+    {
+      cache: "no-store",
+      ssr: true,
+      cookies: request.headers.get("Cookie"),
+    }
+  );
+  if (theme.error) {
+    return theme.error; //TODO: handle error
+  }
 
+  const defaultTheme = {
+    "button": {
+      "backgroundColor": "#000000",
+      "hoverBgColor": "#333333"
+    },
+    "tab": {
+          "iconColor": "#1a1a1a",
+          "hoverIconColor": "black",
+          "bgColor": "#ffffff",
+          "textColor": "black",
+          "hoverColor": "black",
+          "selectedTextColor": "#000000",
+          "selectedBgColor": "#ffffff",
+          "selectedIconColor": "#000000",
+    
+          "sidebarWidth": "240px",
+          "sidebarPadding": "10px 10px",
+          "tabPadding": "8px 12px",
+          "tabRadius": "6px",
+          "tabGap": "5px",
+          "fontSize": "12px",
+          "lineHeight": "12px",
+          "fontWeight": 600,
+          "borderLeft": "1px solid #1a1a1a"
+        },
+        "table": {
+          "border": "1px solid #cccccc",
+          "borderRadius": "8px",
+          "minWidth": "calc(100vw - 283px)",
+          "header-backgroundColor": "#F2F2F2",
+          "header-textColor": "black",
+          "header-fontSize": "14px",
+          "header-fontWeight": "700",
+          "header-padding": "12px 18px",
+          "header-borderBottom": "1px solid #cccccc",
+    
+          "row-backgroundColor": "#FFFFFF",
+          "row-textColor": "black",
+          "row-fontSize": "13px",
+          "row-fontWeight": "400",
+          "row-padding": "10px 18px",
+          "row-hoverBg": "#f2f2f2",
+          "row-borderTop": "1px solid #cccccc"
+        }
+     }
   return {
     tabs: sortedTabs,
     siteName: setting?.listSettings?.docs?.[0]?.siteName || "",
     logo: setting?.listSettings?.docs?.[0]?.logo || "/assets/logo.png",
+    theme: theme?.listThemes?.docs?.[0]?.config || JSON.stringify(defaultTheme)
+
   };
 }
 const dashboard = ({
   loaderData,
 }: {
-  loaderData: { tabs: any; logo: string; siteName: string };
+  loaderData: { tabs: any; logo: string; siteName: string,theme:any };
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+console.log(loaderData.theme, JSON.parse(loaderData.theme) ,"loaderData.theme");
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+  function injectTheme(theme: any) {
+    if (!theme) return "";
+  
+    const cssVars:any = [];
+  
+    // Loop through all top-level keys (colors, tab, radius, etc.)
+    Object.entries(theme).forEach(([groupKey, groupValue]) => {
+      if (typeof groupValue === "object" && groupValue !== null) {
+        Object.entries(groupValue).forEach(([key, value]) => {
+          cssVars.push(`--${groupKey}-${key}: ${value};`);
+        });
+      } else {
+        // For direct values (if any)
+        cssVars.push(`--${groupKey}: ${groupValue};`);
+      }
+    });
+  
+    return `:root { ${cssVars.join("\n")} }`;
+  }
+  
+  
   return (
+    
     <div>
-      {/* <ThemeProvider> */}
+    {/* <ThemeProvider initialTheme={loaderData?.theme}> */}
+    {loaderData.theme && (
+        <style>{injectTheme(JSON?.parse(loaderData.theme))}</style>
+      )}
       <Navbar
         siteName={loaderData.siteName}
         logo={loaderData.logo}
@@ -241,7 +343,7 @@ const dashboard = ({
               position: "fixed",
               top: 56,
               left: sidebarOpen ? 0 : -240,
-              width: 240,
+              width: "var(--tab-sidebarWidth)" ,
               height: "calc(100vh - 56px)",
               background: "#fff",
               boxShadow: "2px 0 6px rgba(0,0,0,0.1)",
@@ -278,8 +380,9 @@ const dashboard = ({
           <Outlet />
         </Box>
       </Box>
-      {/* </ThemeProvider> */}
-    </div>
+    {/* </ThemeProvider> */}
+  </div>
+  
   );
 };
 

@@ -271,6 +271,15 @@ export const SystemAdminRules = [
       delete: true,
     },
   },
+  {
+    modelName: "Theme",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
 ];
 
 
