@@ -63,63 +63,63 @@ const DynamicTable = forwardRef<HTMLDivElement, TableProps<any>>(
 
     let navigate = useNavigate();
     let params = useParams();
-const renderPagination = () => {
-  const totalPages = table.getPageCount();
-  const pageIndex = table.getState().pagination.pageIndex;
-  const visiblePages = 3;
-  let displayedPages: any[] = [];
+    const renderPagination = () => {
+      const totalPages = table.getPageCount();
+      const pageIndex = table.getState().pagination.pageIndex;
+      const visiblePages = 3;
+      let displayedPages: any[] = [];
 
-  if (totalPages <= visiblePages + 1) {
-    displayedPages = Array.from({ length: totalPages }, (_, i) => i);
-  } else if (pageIndex < visiblePages) {
-    displayedPages = [
-      ...Array.from({ length: visiblePages }, (_, i) => i),
-      "...",
-      totalPages - 1,
-    ];
-  } else if (pageIndex >= totalPages - visiblePages) {
-    displayedPages = [
-      0,
-      "...",
-      ...Array.from(
-        { length: visiblePages },
-        (_, i) => totalPages - visiblePages + i
-      ),
-    ];
-  } else {
-    displayedPages = [
-      0,
-      "...",
-      pageIndex - 1,
-      pageIndex,
-      pageIndex + 1,
-      "...",
-      totalPages - 1,
-    ];
-  } 
-
-  return displayedPages.map((number, index) => (
-    <A
-      key={index}
-      styles={{
-        base: {
-          color: "#000",
-          padding: "2px 8px",
-          border: pageIndex === number ? "1px solid #DDDDDD" : "none",
-          borderRadius: "4px",
-          fontSize: 12,
-          cursor: "pointer",
-          opacity: number === "..." ? 0.5 : 1,
-        },
-      }}
-      onClick={() =>
-        typeof number === "number" && table.setPageIndex(number)
+      if (totalPages <= visiblePages + 1) {
+        displayedPages = Array.from({ length: totalPages }, (_, i) => i);
+      } else if (pageIndex < visiblePages) {
+        displayedPages = [
+          ...Array.from({ length: visiblePages }, (_, i) => i),
+          "...",
+          totalPages - 1,
+        ];
+      } else if (pageIndex >= totalPages - visiblePages) {
+        displayedPages = [
+          0,
+          "...",
+          ...Array.from(
+            { length: visiblePages },
+            (_, i) => totalPages - visiblePages + i
+          ),
+        ];
+      } else {
+        displayedPages = [
+          0,
+          "...",
+          pageIndex - 1,
+          pageIndex,
+          pageIndex + 1,
+          "...",
+          totalPages - 1,
+        ];
       }
-    >
-      {number === "..." ? "..." : (number as number) + 1}
-    </A>
-  ));
-};
+
+      return displayedPages.map((number, index) => (
+        <A
+          key={index}
+          styles={{
+            base: {
+              color: "#000",
+              padding: "2px 8px",
+              border: pageIndex === number ? "1px solid #DDDDDD" : "none",
+              borderRadius: "4px",
+              fontSize: 12,
+              cursor: "pointer",
+              opacity: number === "..." ? 0.5 : 1,
+            },
+          }}
+          onClick={() =>
+            typeof number === "number" && table.setPageIndex(number)
+          }
+        >
+          {number === "..." ? "..." : (number as number) + 1}
+        </A>
+      ));
+    };
 
     useEffect(() => {
       console.log(columns, "columns ----- ");
@@ -131,8 +131,8 @@ const renderPagination = () => {
           styles={{
             base: {
               overflow: "auto",
-              border:  "var(--table-border)",
-              borderRadius: "var(--table-borderRadius)",
+              border: "1px solid #D1D5DB",
+              borderRadius: "8px",
               width: "100%",
             },
           }}
@@ -140,8 +140,8 @@ const renderPagination = () => {
           <Table
             styles={{
               base: {
-                minWidth: "var(--table-minWidth)",
-      borderCollapse: "collapse",
+                minWidth: "calc(100vw - 283px)",
+                borderCollapse: "collapse",
               },
             }}
           >
@@ -149,10 +149,10 @@ const renderPagination = () => {
               as="thead"
               styles={{
                 base: {
-                  backgroundColor: "var(--table-header-backgroundColor)",
-                  color: "var(--table-header-textColor)",
-                  fontSize: "var(--table-header-fontSize)",
-                  fontWeight: "var(--table-header-fontWeight)",
+                  backgroundColor: "#F2F2F2",
+                  color: "#656565",
+                  fontSize: "12px",
+                  fontWeight: "600",
                 },
               }}
             >
@@ -163,9 +163,9 @@ const renderPagination = () => {
                       key={header.id}
                       styles={{
                         base: {
-                          padding: "var(--table-header-padding)",
+                          padding: "8px 16px",
                           textAlign: "left",
-                          borderBottom: "var(--table-header-borderBottom)",
+                          borderBottom: "1px solid #E5E7EB",
                         },
                       }}
                     >
@@ -178,8 +178,7 @@ const renderPagination = () => {
                 </Tr>
               ))}
             </Tbody>
-            <Tbody styles={{ base: { backgroundColor: "var(--table-row-backgroundColor)",
-        color: "var(--table-row-textColor)", } }}>
+            <Tbody styles={{ base: { backgroundColor: "#FFFFFF" } }}>
               {table.getRowModel().rows.map((row) => (
                 <Tr
                   key={row.id}
@@ -190,8 +189,8 @@ const renderPagination = () => {
                   }}
                   styles={{
                     base: {
-                      borderTop: "var(--table-row-borderTop)",
-                      ":hover": { backgroundColor: "var(--table-row-hoverBg)" },
+                      borderTop: "1px solid #E5E7EB",
+                      ":hover": { backgroundColor: "#F9FAFB" },
                     },
                   }}
                 >
@@ -201,11 +200,9 @@ const renderPagination = () => {
                       as="td"
                       styles={{
                         base: {
-                           padding: "var(--table-row-padding)",
-                fontSize: "var(--table-row-fontSize)",
-                fontWeight: "var(--table-row-fontWeight)",
-                color: "var(--table-row-textColor)",
-                cursor: "pointer",
+                          padding: "8px 16px",
+                          fontSize: "12px",
+                          cursor: "pointer",
                         },
                       }}
                     >

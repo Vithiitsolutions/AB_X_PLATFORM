@@ -2,7 +2,6 @@ import { A, Box, Text } from "@mercury-js/mess";
 import React, { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router";
 import { serverFetch } from "../../utils/action";
-// import { useTheme } from "../../utils/theme-context";
 // import type {Route} from "../../../../mercuryx-platform/.react-router/types/app/+types/root"
 // export async function clientLoader() {
 //   console.log("njkvakjdj");
@@ -10,8 +9,7 @@ import { serverFetch } from "../../utils/action";
 //   return { message: "Hello, world!" };
 // }
 
-export function DynamicIcon({ iconName, color,hoveredColor }: { iconName: string; color?: string ; hoveredColor?: string | null }) {
-  console.log(iconName,color, "iconName");
+export function DynamicIcon({ iconName }) {
   const [IconComponent, setIconComponent] =
     useState<React.ComponentType | null>(null);
   useEffect(() => {
@@ -31,16 +29,14 @@ export function DynamicIcon({ iconName, color,hoveredColor }: { iconName: string
   console.log(IconComponent, "IconComponent");
 
   if (!IconComponent) return <div style={{ width: "10px" }}>⌛</div>;
-  return <IconComponent style={{ width: "15px" }} color={hoveredColor??color}/>;
+  return <IconComponent style={{ width: "15px" }} />;
 }
 
 const STORAGE_KEY = "sidebar-open-items";
 function SideBar({ tabs }: { tabs: any[] }) {
-    // const { theme } = useTheme();
-  // console.log(theme,"themess");
   const [openItems, setOpenItems] = useState<string[]>([]);
   const location = useLocation();
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -70,214 +66,162 @@ function SideBar({ tabs }: { tabs: any[] }) {
     return (
       <Box
         styles={{
-          base: { display: "flex", flexDirection: "column", gap:"var(--tab-tabGap)"},
+          base: { display: "flex", flexDirection: "column", gap: "15px" },
         }}
       >
         {items?.length
-          ? items?.map((item) => {
-              const isActive =
-                location.pathname.includes(item?.model?.name) ||
-                (item?.model?.name === "Dashboard" &&
-                  location.pathname.endsWith("dashboard")) ||
-                location.pathname.includes(item?.page?.slug) ||
-                location.pathname.includes(item?.recordId);
-  
-              return (
+          ? items?.map((item) => (
+              <Box
+                key={item.id}
+                styles={{
+                  base: {
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                  },
+                }}
+              >
                 <Box
-                  key={item.id}
+                  onClick={() => toggleItem(item.id)}
                   styles={{
                     base: {
+                      fontSize: "12px",
+                      lineHeight: "12.12px",
+                      color: "#4A4A50",
+                      fontWeight: 600,
                       display: "flex",
-                      flexDirection: "column",
-                      gap: "var(--tab-tabGap)",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "10px",
                     },
                   }}
                 >
-                  <Box
-                    onClick={() => toggleItem(item.id)}
-                    onMouseEnter={() => setHoveredItem(item.id)}
-  onMouseLeave={() => setHoveredItem(null)}
+                  <A
+                    href={
+                      item.model?.name === "Dashboard"
+                        ? "/dashboard"
+                        : item?.model?.name || item.page?.slug || item.recordId
+                        ? item?.type === "LIST"
+                          ? `/dashboard/o/${item?.model?.name}/list`
+                          : item?.type === "RECORD"
+                          ? `/dashboard/o/${item?.model?.name}/r/${item?.recordId}`
+                          : item?.type === "PAGE"
+                          ? `/dashboard/page/${item?.page?.slug}`
+                          : "#"
+                        : "#"
+                    }
                     styles={{
                       base: {
-                        fontSize: "var(--tab-fontSize)",
-                        lineHeight: "var(--tab-lineHeight)",
-                        fontWeight: "var(--tab-fontWeight)",
+                        cursor: "pointer",
                         display: "flex",
                         flexDirection: "row",
                         alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: "10px",
-                        cursor: "pointer",
-                        padding: "var(--tab-tabPadding)",
-                        borderRadius: "var(--tab-tabRadius)",
-                        background: isActive
-                          ? "var(--tab-selectedBgColor)"
-                          : "var(--tab-tabBgColor)",
-                        color: isActive
-                          ? "var(--tab-selectedTextColor)"
-                          : "var(--tab-textColor)",
-                        transition: "all 0.2s ease-in-out",
-                        ":hover":{
-                          background: isActive
-                            ? "var(--tab-selectedBgColor)"
-                            : "var(--tab-tabHoverBgColor)",
-                          color: isActive
-                            ? "var(--tab-selectedTextColor)"
-                            : "var(--tab-hoverColor)",
-                        },
-
+                        gap: 5,
                       },
                     }}
-                    className="menu-item"
-                    data-active={isActive} // 👈 optional, helps debugging
                   >
-                    <A
-                      href={
-                        item.model?.name === "Dashboard"
-                          ? "/dashboard"
-                          : item?.model?.name || item.page?.slug || item.recordId
-                          ? item?.type === "LIST"
-                            ? `/dashboard/o/${item?.model?.name}/list`
-                            : item?.type === "RECORD"
-                            ? `/dashboard/o/${item?.model?.name}/r/${item?.recordId}`
-                            : item?.type === "PAGE"
-                            ? `/dashboard/page/${item?.page?.slug}`
-                            : "#"
-                          : "#"
-                      }
+                    <DynamicIcon iconName={item.icon} />
+                    <Text
+                      className={`${
+                        (location.pathname.includes(item?.model?.name) ||
+                          (item?.model?.name == "Dashboard" &&
+                            location.pathname.endsWith("dashboard")) ||
+                          location.pathname.includes(item?.page?.slug) ||
+                          location.pathname.includes(item?.recordId)) &&
+                        "text-black"
+                      }`}
+                    >
+                      {item.label}
+                    </Text>
+                  </A>
+
+                  {/* Dropdown Toggle Icon */}
+                  {item.childTabs?.length > 0 && (
+                    <Box
                       styles={{
                         base: {
                           display: "flex",
                           flexDirection: "row",
                           alignItems: "center",
-                          gap: 5,
-                          textDecoration: "none",
-                          // color: isActive
-                          //   ? "var(--tab-selectedTextColor)"
-                          //   : "var(--tab-textColor)",
-                           
+                          justifyContent: "center",
+                          alignSelf: "center",
                         },
                       }}
                     >
-                      <DynamicIcon
-                        iconName={item.icon}
-                        color={
-                          isActive
-                            ? "var(--tab-selectedIconColor)"
-                            : "var(--tab-iconColor)"
-                        }
-                        hoveredColor={hoveredItem === item.id ? "var(--tab-hoverIconColor)":null }
-                      />
-                      <Text >{item.label}</Text>
-                    </A>
-  
-                    {/* Dropdown Toggle Icon */}
-                    {item.childTabs?.length > 0 && (
-                      <Box
-                        styles={{
-                          base: {
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            alignSelf: "center",
-                            // color:isActive
-                            // ? "var(--tab-selectedIconColor)"
-                            // : "var(--tab-iconColor)",
-                            // ":hover":{
-                            //   color: hoveredItem === item.id
-                            //     ? "var(--tab-hoverIconColor)"
-                            //     : "var(--tab-iconColor)",
-                            // },
-                          },
-                        }}
-                      >
-                        {openItems.includes(item.id) ? (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            style={{
-                              color: isActive
-                                ? "var(--tab-selectedIconColor)"
-                                : hoveredItem === item.id
-                                ? "var(--tab-hoverIconColor)"
-                                : "var(--tab-iconColor)",
-                              transition: "color 0.2s ease-in-out",
-                            }}
-                          >
-                            <path d="m18 15-6-6-6 6" />
-                          </svg>
-                        ) : (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            style={{
-                              color: isActive
-                                ? "var(--tab-selectedIconColor)"
-                                : hoveredItem === item.id
-                                ? "var(--tab-hoverIconColor)"
-                                : "var(--tab-iconColor)",
-                              transition: "color 0.2s ease-in-out",
-                            }}
-                          >
-                            <path d="m6 9 6 6 6-6" />
-                          </svg>
-                        )}
-                      </Box>
-                    )}
-                  </Box>
-  
-                  {openItems.includes(item.id) &&
-                    item.childTabs &&
-                    item.childTabs.length > 0 && (
-                      <Box
-                        styles={{
-                          base: {
-                            paddingLeft: "20px",
-                            borderLeft: "var(--tab-borderLeft)",
-                          },
-                        }}
-                      >
-                        {renderMenu(item.childTabs)}
-                      </Box>
-                    )}
+                      {openItems.includes(item.id) ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-chevron-up"
+                        >
+                          <path d="m18 15-6-6-6 6" />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-chevron-down"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      )}
+                    </Box>
+                  )}
                 </Box>
-              );
-            })
+
+                {openItems.includes(item.id) &&
+                  item.childTabs &&
+                  item.childTabs.length > 0 && (
+                    <Box
+                      styles={{
+                        base: {
+                          paddingLeft: "20px",
+                          borderLeft: "1px solid #BCBCBC",
+                        },
+                      }}
+                    >
+                      {renderMenu(item.childTabs)}
+                    </Box>
+                  )}
+              </Box>
+            ))
           : null}
       </Box>
     );
   };
-  
+
   return (
     <Box
       styles={{
         base: {
           height: "calc(100vh - 56px)",
-          background: "var(--tab-bgColor)",
-          // width: "240px",
-          padding: "var(--tab-sidebarPadding)",
+          background: "#EEEEEE",
+          width: "240px",
+          paddingTop: "15px",
+          paddingBottom: "15px",
+          paddingLeft: "30px",
+          paddingRight: "30px",
         },
       }}
     >
       {renderMenu(tabs)}
     </Box>
   );
-  
-  
 }
 
 export default SideBar;
