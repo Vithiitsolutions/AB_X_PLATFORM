@@ -30,6 +30,14 @@ export const viewField = mercury.createModel(
     isNavigatable: {
       type: "boolean",
       default: true
+    },
+    title: {
+      type: "string"
+    },
+    type: {
+      type: "enum",
+      enumType: "string",
+      enum: ["date", "string", "file", "img", "number", "mp4"],
     }
   },
   {
@@ -40,6 +48,7 @@ export const viewField = mercury.createModel(
           view: 1,
           order: 1,
           field: 1,
+          valueField: 1
         },
         options: {
           unique: true,

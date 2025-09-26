@@ -104,7 +104,11 @@ export class ViewComposer {
     }
     if (views.length > 0) {
       typeDefs += `\ntype Query {\n  ${queryFields.join("\n  ")}\n}`;
-      mercury.addGraphqlSchema(typeDefs, resolvers);
+      try {
+        mercury.addGraphqlSchema(typeDefs, resolvers);
+      } catch (error) {
+        console.log("is this the error", error);
+      }
     }
   }
 }
@@ -123,6 +127,7 @@ async function generateViewTypeSchema(
   const subTypes: Map<string, string> = new Map();
 
   typeMap["id"] = "ID";
+  // typeMap["createdOn"] = "DateTime";
 
   for (const vf of viewFields) {
     const field = vf.field;
@@ -135,7 +140,11 @@ async function generateViewTypeSchema(
     const isFromBaseModel = fromModel === baseModel;
     let key = vf.valueField ?? field.name;
     if (!isFromBaseModel && vf.valueField) {
-      key = fromModel + "_" + vf.valueField;
+      if (vf.valueField?.includes(".")) {
+        key = vf.title;
+      } else {
+        key = fromModel + "_" + vf.valueField;
+      }
     }
     let gqlType = "String";
 
@@ -152,8 +161,8 @@ async function generateViewTypeSchema(
       let recordKey = mod.recordKey.name;
       gqlType = registerSubType(
         field.name,
-        vf.valueField ?? recordKey,
-        subTypes
+        vf.valueField?.split(".")?.at(-1) ?? recordKey,
+        subTypes,
       );
     } else {
       /**
