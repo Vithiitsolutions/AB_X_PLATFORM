@@ -59,6 +59,9 @@ function SideBar({ tabs }: { tabs: any[] }) {
   }, []);
 
   useEffect(() => {
+    if(openItems.length === 0) {
+      return;
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(openItems));
   }, [openItems]);
 
