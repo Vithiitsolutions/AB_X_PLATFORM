@@ -24,4 +24,5 @@ export { hook } from "./Hook";
 export { cronJob } from "./CronJob";
 export { page } from "./Page";
 export { setting } from "./Setting";
+export { theme } from "./Theme";
 export * from "./Queue";
