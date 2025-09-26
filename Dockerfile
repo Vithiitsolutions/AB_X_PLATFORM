@@ -4,6 +4,22 @@ FROM node:22-alpine
 # Set working directory
 WORKDIR /app
 
+# Install Chromium and required dependencies for Puppeteer
+RUN apk update && apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    bash \
+    udev \
+    curl \
+    chromium-chromedriver
+
+# Set environment variable for Puppeteer to find Chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
 # Copy package files
 COPY package*.json ./
 
