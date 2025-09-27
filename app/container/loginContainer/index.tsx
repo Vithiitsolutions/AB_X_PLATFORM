@@ -145,7 +145,7 @@ function LogInContainer({
               Sign In
             </H1>
             <Text styles={{ base: { color: "#6b7280" } }}>
-              Enter your email and password below to login
+            Enter your E-mail and Password to Log In 
             </Text>
 
             <Form
@@ -174,7 +174,7 @@ function LogInContainer({
                       borderRadius: "5px",
                     },
                   }}
-                  placeholder="Enter your Email"
+                  placeholder="Enter your E-mail"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
