@@ -192,8 +192,11 @@ function DynamicTableContainer({
                       {field?.type == "img" ? (
                         <img
                           src={value}
-                          alt={valueId}
-                          onClick={() => window.open(value, "_blank")}
+                          alt={"No Image"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(value, "_blank");
+                          }}
                           className="max-h-10 w-auto object-contain"
                         />
                       ) : (
