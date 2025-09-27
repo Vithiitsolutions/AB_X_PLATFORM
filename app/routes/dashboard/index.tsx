@@ -280,7 +280,25 @@ export async function loader({ request }: any) {
           "row-padding": "10px 18px",
           "row-hoverBg": "#f2f2f2",
           "row-borderTop": "1px solid #cccccc"
-        }
+        },
+        "buttons": {
+          "primaryButton": {
+            "type": "object",
+            "base": {
+            "backgroundColor": "black",
+            "color": "white",
+           
+            }
+          },
+          "secondaryButton":{
+            "type": "object",
+            "base": {
+            "backgroundColor": "#CBCBCB",
+            "color": "black",
+           
+            }
+          }
+        },
      }
   return {
     tabs: sortedTabs,
@@ -301,22 +319,36 @@ console.log(loaderData.theme, JSON.parse(loaderData.theme) ,"loaderData.theme");
   function injectTheme(theme: any) {
     if (!theme) return "";
   
-    const cssVars:any = [];
+    const cssVars: string[] = [];
   
-    // Loop through all top-level keys (colors, tab, radius, etc.)
     Object.entries(theme).forEach(([groupKey, groupValue]) => {
       if (typeof groupValue === "object" && groupValue !== null) {
         Object.entries(groupValue).forEach(([key, value]) => {
-          cssVars.push(`--${groupKey}-${key}: ${value};`);
+          // ✅ if explicitly marked type:"object"
+          if (
+            typeof value === "object" &&
+            value !== null &&
+            (value as any).type === "object"
+          ) {
+            const { type, ...rest } = value;
+            cssVars.push(`--${groupKey}-${key}: ${JSON.stringify(rest)};`);
+          } else if (typeof value === "object" && value !== null) {
+            // expand normally
+            Object.entries(value).forEach(([innerKey, innerValue]) => {
+              cssVars.push(`--${groupKey}-${key}-${innerKey}: ${innerValue};`);
+            });
+          } else {
+            cssVars.push(`--${groupKey}-${key}: ${value};`);
+          }
         });
       } else {
-        // For direct values (if any)
         cssVars.push(`--${groupKey}: ${groupValue};`);
       }
     });
   
     return `:root { ${cssVars.join("\n")} }`;
   }
+  
   
   
   return (

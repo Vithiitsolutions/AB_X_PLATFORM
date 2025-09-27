@@ -60,6 +60,9 @@ export const button = mercury.createModel(
       type: "relationship",
       ref: "Function",
     },
+    className: {
+      type: "string",
+    },
     createdBy: {
       type: "relationship",
       ref: "User",
