@@ -12,16 +12,39 @@ interface CombinedFilter {
     leaderId?: string;
     year?: number;
 }
+const types = [
+  "Spam",
+  "Nudity",
+  "Scam",
+  "Illegal",
+  "SuicideOrSelfInjury",
+  "Violence",
+  "HateSpeech",
+  "SomethingElse",
+];
+const typeMap: Record<string, string> = {
+  "Spam": "Spam",
+  "Nudity": "Nudity",
+  "Scam": "Scam",
+  "Illegal": "Illegal",
+  "Suicide or self-injury": "SuicideOrSelfInjury",
+  "Violence": "Violence",
+  "Hate Speech": "HateSpeech",
+  "Something else": "SomethingElse",
+};
 
 export const getPostStats = async (filter: CombinedFilter = {}) => {
     const toObjectId = (id?: string) =>
         id ? new mongoose.Types.ObjectId(id) : undefined;
+
     const baseMatch: any = {};
     const postMatch: Record<string, any> = {};
+
     if (filter.state) baseMatch.state = toObjectId(filter.state);
     if (filter.district) baseMatch.district = toObjectId(filter.district);
     if (filter.constituency) baseMatch.constituency = toObjectId(filter.constituency);
     if (filter.category) baseMatch.category = toObjectId(filter.category);
+
     if (filter.leaderId) {
         baseMatch.$or = [
             {
@@ -34,7 +57,9 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             },
         ];
     }
+
     if (filter.postId) postMatch._id = toObjectId(filter.postId);
+
     const dateRange: any = {};
     if (filter.startDate) {
         const start = new Date(`${filter.startDate}T00:00:00.000Z`);
@@ -48,19 +73,40 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         baseMatch.createdOn = dateRange;
         postMatch.createdOn = dateRange;
     }
-    let reportCount = 0;
-    if (filter.postId) {
-        const reportCountResult = await mercury.db.PostAction.mongoModel.aggregate([
-            {
-                $match: {
-                    post: toObjectId(filter.postId),
-                    action: "Report",
-                },
-            },
-            { $count: "count" },
-        ]);
-        reportCount = reportCountResult[0]?.count || 0;
+
+    // ---------- REPORT COUNTS ENHANCEMENT ----------
+  let reportTypeCounts: Record<string, number> = Object.fromEntries(
+    types.map((t) => [t, 0])
+  );
+
+  // Run aggregation
+  const reportCountResult = await mercury.db.PostAction.mongoModel.aggregate([
+    {
+      $match: {
+        post: toObjectId(filter.postId),
+        action: "Report",
+      },
+    },
+    {
+      $group: {
+        _id: "$type",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  for (const item of reportCountResult) {
+    const key = typeMap[item._id]; 
+    if (key && reportTypeCounts.hasOwnProperty(key)) {
+      reportTypeCounts[key] = item.count;
     }
+  }
+
+  const reportCount = Object.values(reportTypeCounts).reduce(
+    (sum, c) => sum + c,
+    0
+  );
+    // ---------- END REPORT COUNTS ENHANCEMENT ----------
 
     let postDetails = null;
     if (filter.postId) {
@@ -87,6 +133,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             .populate('resolvedBy')
             .exec();
     }
+
     const monthlyMatch: any = {
         ...baseMatch
     };
@@ -100,6 +147,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             $lt: new Date(year + 1, 0, 1),
         };
     }
+
     const monthlyPipeline = [
         { $match: monthlyMatch },
         {
@@ -142,12 +190,14 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             },
         },
         { $sort: { _id: 1 } },
-    ];    
+    ];
+
     const resolvedMatch = {
         ...baseMatch,
         status: "Resolved",
         isDeleted: false,
-    };    
+    };
+
     const postPipeline = [
         { $match: baseMatch },
         {
@@ -259,6 +309,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             },
         },
     ];
+
     const supportSufferPipeline = [
         {
             $match: {
@@ -300,16 +351,20 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             },
         },
     ];
+
     const [postStatsResult, supportStats, monthlyStatsResult] = await Promise.all([
         mercury.db.Post.mongoModel.aggregate(postPipeline),
         mercury.db.PostAction.mongoModel.aggregate(supportSufferPipeline),
         mercury.db.Post.mongoModel.aggregate(monthlyPipeline),
     ]);
+
     const getValue = (arr: any[], key: string) => arr?.[0]?.[key] || 0;
+
     const monthNames = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
+
     const monthlyStats = monthNames.map((month, index) => {
         const monthData = monthlyStatsResult.find(item => item._id === index + 1);
         return {
@@ -320,6 +375,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             privateResolved: monthData?.privateResolved || 0,
         };
     });
+
     const publicResolvedCount = getValue(
         postStatsResult[0]?.publicPrivateResolved,
         "publicResolvedCount"
@@ -346,7 +402,7 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         "leaderIssuesPostedPrivate"
     );
     const totalPosts = getValue(postStatsResult[0]?.totalPosts, "count");
-    const totalCategory = getValue(postStatsResult[0]?.totalCategory, "count");    
+    const totalCategory = getValue(postStatsResult[0]?.totalCategory, "count");
     const categoryPublic = getValue(
         postStatsResult[0]?.categoryStats,
         "categoryPublic"
@@ -355,9 +411,11 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         postStatsResult[0]?.categoryStats,
         "categoryPrivate"
     );
+
     const supportCount = supportStats?.[0]?.supportCount || 0;
     const sufferCount = supportStats?.[0]?.sufferCount || 0;
     const totalSupportSuffer = supportCount + sufferCount;
+
     const result: any = {
         postStats: {
             totalResolved,
@@ -387,10 +445,11 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
         },
         monthlyStats: monthlyStats,
     };
+
     if (filter.postId && postDetails) {
         result.postDetails = {
             _id: postDetails._id,
-            id: postDetails._id.toString(), 
+            id: postDetails._id.toString(),
             access: postDetails.access,
             description: postDetails.description,
             category: postDetails.category,
@@ -480,9 +539,11 @@ export const getPostStats = async (filter: CombinedFilter = {}) => {
             saved: postDetails.saved,
             createdOn: postDetails.createdOn ? postDetails.createdOn.toISOString() : null,
             updatedOn: postDetails.updatedOn ? postDetails.updatedOn.toISOString() : null,
-            comment: postDetails.comment ,
-            reportCount: reportCount
-         };
+            comment: postDetails.comment,
+            reportCount: reportCount,
+            reportTypeCounts: reportTypeCounts, 
+        };
     }
+
     return result;
 };

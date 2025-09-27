@@ -248,7 +248,18 @@ export const typeDefs = `
        postDetails: Post 
     }  
     type Post{
-        reportCount:Int
+        reportCount: Int
+        reportTypeCounts: ReportTypeCounts
+    }
+    type ReportTypeCounts {
+        Spam: Int
+        Nudity: Int
+        Scam: Int
+        Illegal: Int
+        SuicideOrSelfInjury: Int
+        Violence: Int
+        HateSpeech: Int
+        SomethingElse: Int
     }
     type MonthlyPostStats {
         month: String! 
