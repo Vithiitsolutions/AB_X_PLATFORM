@@ -188,17 +188,28 @@ function DynamicTableContainer({
                     valueId = row.original[field.field?.name]?.id || "";
                   }
                   return (
-                    <A
-                      href={
-                        field?.isNavigatable
-                          ? `/dashboard/o/${field.field?.ref}/r/${valueId}`
-                          : "#"
-                      }
-                      className="hover:underline"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {value}
-                    </A>
+                    <>
+                      {field?.type == "img" ? (
+                        <img
+                          src={value}
+                          alt={valueId}
+                          onClick={() => window.open(value, "_blank")}
+                          className="max-h-10 w-auto object-contain"
+                        />
+                      ) : (
+                        <A
+                          href={
+                            field?.isNavigatable
+                              ? `/dashboard/o/${field.field?.ref}/r/${valueId}`
+                              : "#"
+                          }
+                          className="hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {value}
+                        </A>
+                      )}
+                    </>
                   );
                 }
               },
