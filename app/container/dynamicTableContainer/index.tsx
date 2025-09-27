@@ -66,21 +66,27 @@ function DynamicTableContainer({
               header: ({ column }: any) => (
                 <Box
                   onClick={() =>
-                    column.toggleSorting(column.getIsSorted() === "asc")
+                    field?.sortable
+                      ? column.toggleSorting(column.getIsSorted() === "asc")
+                      : null
                   }
                   className="flex items-center cursor-pointer"
                 >
                   {_.startCase(field.label || field?.field?.label)}
-                  <ChevronsUpDown className="ml-2 h-4 w-4" />
+                  {field?.sortable && (
+                    <ChevronsUpDown className="ml-2 h-4 w-4" />
+                  )}
                 </Box>
               ),
-              Cell: ({ row }: any) => (
-                <div className="text-wrap break-words max-w-40 line-clamp-6">
-                  {field?.field?.many
-                    ? row.getValue(field?.field?.name).join(", ")
-                    : row.getValue(field?.field?.name)}
-                </div>
-              ),
+              Cell: ({ row }: any) => {
+                return (
+                  <div className="text-wrap break-words max-w-40 line-clamp-6">
+                    {field?.field?.many
+                      ? row.getValue(field?.field?.name).join(", ")
+                      : row.getValue(field?.field?.name)}
+                  </div>
+                );
+              },
             };
 
           case "relationship":
@@ -90,18 +96,23 @@ function DynamicTableContainer({
               header: ({ column }) => {
                 return (
                   <Box
-                    // onClick={() =>
-                    //   column.toggleSorting(column.getIsSorted() === "asc")
-                    // }
+                    onClick={() =>
+                      field?.sortable
+                        ? column.toggleSorting(column.getIsSorted() === "asc")
+                        : null
+                    }
                     className="font-bold w-full flex justify-start items-center gap-1"
                   >
                     {_.startCase(field.label || field?.field?.label)}
                     {/* ({field.ref}) */}
-                    {/* <ChevronsUpDown className="ml-2 h-4 w-4" /> */}
+                    {field?.sortable && (
+                      <ChevronsUpDown className="ml-2 h-4 w-4" />
+                    )}
                   </Box>
                 );
               },
               cell: ({ row }) => {
+                // TODO: have to handle nested relationship case also
                 if (field?.field?.many) {
                   return (
                     <div className="flex justify-center items-center flex-wrap gap-2">
@@ -144,37 +155,49 @@ function DynamicTableContainer({
                     </div>
                   );
                 } else {
+                  let value = "-";
+                  let valueId = "";
+
+                  if (field?.valueField) {
+                    if (field.valueField.includes(".") && field.title) {
+                      value =
+                        row.original?.[field.title]?.[
+                          field.valueField.split(".").pop()
+                        ] || "-";
+
+                      valueId = row.original?.[field.title]?.id || "";
+                    } else {
+                      value =
+                        row.original?.[
+                          `${field.field?.ref}_${field.valueField}`
+                        ]?.[field.valueField] || "-";
+
+                      valueId =
+                        row.original?.[
+                          `${field.field?.ref}_${field.valueField}`
+                        ]?.id || "";
+                    }
+                  } else if (refKeyMap[field.field?.name]) {
+                    value =
+                      row.original[field.field?.name]?.[
+                        `${refKeyMap[field.field?.name]}`
+                      ] || "-";
+                    valueId = row.original[field.field?.name]?.id || "";
+                  } else {
+                    value = row.original[field.field?.name]?.id || "-";
+                    valueId = row.original[field.field?.name]?.id || "";
+                  }
                   return (
                     <A
                       href={
                         field?.isNavigatable
-                          ? `${
-                              field.valueField
-                                ? `/dashboard/o/${field.field?.ref}/r/${
-                                    row.original?.[
-                                      `${field.field?.ref}_${field.valueField}`
-                                    ]?.id
-                                  }`
-                                : row.original[field.field?.name]?.id
-                                  ? `/dashboard/o/${field.field?.ref}/r/${
-                                      row.original[field.field?.name]?.id
-                                    }`
-                                  : "#"
-                            }`
+                          ? `/dashboard/o/${field.field?.ref}/r/${valueId}`
                           : "#"
                       }
                       className="hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {field.valueField
-                        ? row.original?.[
-                            `${field.field?.ref}_${field.valueField}`
-                          ]?.[field.valueField]
-                        : refKeyMap[field.field?.name]
-                          ? row.original[field.field?.name]?.[
-                              `${refKeyMap[field.field?.name]}`
-                            ]
-                          : row.original[field.field?.name]?.id || "-"}
+                      {value}
                     </A>
                   );
                 }
@@ -233,27 +256,73 @@ function DynamicTableContainer({
                 return (
                   <Box
                     onClick={() =>
-                      column.toggleSorting(column.getIsSorted() === "asc")
+                      field?.sortable
+                        ? column.toggleSorting(column.getIsSorted() === "asc")
+                        : null
                     }
                     className="flex items-center cursor-pointer"
                   >
                     {_.startCase(field.label || field?.field?.label)}
-                    <ChevronsUpDown className="ml-2 h-4 w-4" />
+                    {field?.sortable && (
+                      <ChevronsUpDown className="ml-2 h-4 w-4" />
+                    )}
                   </Box>
                 );
               },
-              cell: ({ row }) => (
-                <div className="">
-                  {field.field?.many
-                    ? row
-                        .getValue(field.field?.name)
-                        ?.map((item: string) => new Date(item).toLocaleString())
-                        ?.join(", ")
-                    : new Date(
-                        row.getValue(field.field?.name)
-                      ).toLocaleString()}
-                </div>
-              ),
+              cell: ({ row }) => {
+                let value = "";
+
+                switch (field?.type) {
+                  case "date":
+                    value = field.field?.many
+                      ? row
+                          .getValue(field.field?.name)
+                          ?.map((item: string) =>
+                            new Date(item).toLocaleDateString()
+                          )
+                          ?.join(", ")
+                      : new Date(
+                          row.getValue(field.field?.name)
+                        ).toLocaleDateString();
+                    break;
+                  case "datetime":
+                    field.field?.many
+                      ? row
+                          .getValue(field.field?.name)
+                          ?.map((item: string) =>
+                            new Date(item).toLocaleString()
+                          )
+                          ?.join(", ")
+                      : new Date(
+                          row.getValue(field.field?.name)
+                        ).toLocaleString();
+                    break;
+                  case "time":
+                    value = field.field?.many
+                      ? row
+                          .getValue(field.field?.name)
+                          ?.map((item: string) =>
+                            new Date(item).toLocaleTimeString()
+                          )
+                          ?.join(", ")
+                      : new Date(
+                          row.getValue(field.field?.name)
+                        ).toLocaleTimeString();
+                    break;
+                  default:
+                    field.field?.many
+                      ? row
+                          .getValue(field.field?.name)
+                          ?.map((item: string) =>
+                            new Date(item).toLocaleString()
+                          )
+                          ?.join(", ")
+                      : new Date(
+                          row.getValue(field.field?.name)
+                        ).toLocaleString();
+                }
+                return <div className="">{value}</div>;
+              },
             };
           default:
             return {
@@ -262,12 +331,16 @@ function DynamicTableContainer({
                 return (
                   <Box
                     onClick={() =>
-                      column.toggleSorting(column.getIsSorted() === "asc")
+                      field?.sortable
+                        ? column.toggleSorting(column.getIsSorted() === "asc")
+                        : null
                     }
                     className="flex items-center cursor-pointer"
                   >
                     {_.startCase(field.label || field?.field?.label)}
-                    <ChevronsUpDown className="ml-2 h-4 w-4" />
+                    {field?.sortable && (
+                      <ChevronsUpDown className="ml-2 h-4 w-4" />
+                    )}
                   </Box>
                 );
               },

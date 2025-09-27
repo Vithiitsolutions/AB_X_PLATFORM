@@ -22,23 +22,36 @@ export const viewField = mercury.createModel(
       required: true,
     },
     valueField: {
-      type: "string"
+      type: "string",
     },
     label: {
-      type: "string"
+      type: "string",
     },
     isNavigatable: {
       type: "boolean",
-      default: true
+      default: true,
     },
     title: {
-      type: "string"
+      type: "string",
     },
     type: {
       type: "enum",
       enumType: "string",
-      enum: ["date", "string", "file", "img", "number", "mp4"],
-    }
+      enum: [
+        "date",
+        "string",
+        "file",
+        "img",
+        "number",
+        "mp4",
+        "time",
+        "datetime",
+      ],
+    },
+    sortable: {
+      type: "boolean",
+      default: false,
+    },
   },
   {
     historyTracking: false,
@@ -48,17 +61,16 @@ export const viewField = mercury.createModel(
           view: 1,
           order: 1,
           field: 1,
-          valueField: 1
+          valueField: 1,
         },
         options: {
           unique: true,
         },
       },
     ],
-    recordOwner: false
+    recordOwner: false,
   }
 );
-
 
 // Platform Views
 
@@ -70,18 +82,15 @@ export const viewField = mercury.createModel(
 //     - Boolean(need a checkbox)
 //     - string, number, float - can be handled by free search
 
-
 // System Filter based on user context: View Query
 
-
 // For enumvalues, need to figure out a way to store labels also for enumValues.
-
 
 // View Filter:
 
 // viewId:
-// label:  
-// description: 
+// label:
+// description:
 // fieldName: '',
 // modelName: '
 // fieldValues: '',

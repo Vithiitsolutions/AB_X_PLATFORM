@@ -152,7 +152,10 @@ query Docs($sort: sortViewFieldInput, $where: whereViewFieldInput, $limit: Int!)
       id
       order
       valueField
+      sortable
       label
+      title
+      type
       isNavigatable
       field {
         id
@@ -243,7 +246,6 @@ query Query($formId: String) {
   getFormMetadataRecordCreate(formId: $formId)
 }`;
 
-
 export const GET_FILE = `query GetFile($where: whereFileInput!) {
   getFile(where: $where) {
     id
@@ -251,9 +253,9 @@ export const GET_FILE = `query GetFile($where: whereFileInput!) {
     description
     extension
   }
-}`
+}`;
 
-export const GET_TAB=`query Docs($where: whereTabInput) {
+export const GET_TAB = `query Docs($where: whereTabInput) {
   listTabs(where: $where) {
     docs {
       id
@@ -265,24 +267,21 @@ export const GET_TAB=`query Docs($where: whereTabInput) {
       recordId
     }
   }
-}`
-
+}`;
 
 export const CREATE_FILE = `mutation CreateFile($input: FileInput!) {
   createFile(input: $input) {
     id
   }
-}`
+}`;
 
-
-export const UPDATE_FILE=`mutation UpdateFile($input: updateFileInput!) {
+export const UPDATE_FILE = `mutation UpdateFile($input: updateFileInput!) {
   updateFile(input: $input) {
     id
   }
-}`
+}`;
 
-
-export const GET_PAGES =`
+export const GET_PAGES = `
 query GetPage($where: wherePageInput!) {
   getPage(where: $where) {
     id
@@ -301,4 +300,4 @@ query GetPage($where: wherePageInput!) {
     name
     slug
   }
-}`
+}`;

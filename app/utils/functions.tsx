@@ -62,15 +62,29 @@ export const GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS = async (
               `;
 
     const fieldPromises = modelFields.map(async (item: any) => {
-      if (item.field.type === "virtual" || item.field?.type === "relationship") {
+      if (
+        item.field.type === "virtual" ||
+        item.field?.type === "relationship"
+      ) {
         if (item?.valueField) {
-          return `
+          if (item?.valueField.includes(".") && item?.title) {
+            return `
+            ${item.title} {
+                    id
+                    ${item.valueField.split(".").pop() || ""} 
+            }
+            `;
+          } else
+            return `
           ${item.field.ref}_${item.valueField} {
                   id
                   ${item.valueField}
               }`;
         } else {
-          const refModelKey = await getModelFieldRefModelKey(item.field.ref, cookies);
+          const refModelKey = await getModelFieldRefModelKey(
+            item.field.ref,
+            cookies
+          );
           return `
               ${item.field?.name} {
                   id
@@ -81,8 +95,6 @@ export const GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS = async (
       return `
               ${item.field?.name}`;
     });
-    
-
 
     const fieldStrings = await Promise.all(fieldPromises);
     str += fieldStrings.join("");
