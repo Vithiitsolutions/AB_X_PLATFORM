@@ -24,6 +24,16 @@ export class ViewResolverEngine {
     return view;
   }
 
+  private parseBracketValueField(v: string) {
+    const parts = (v || "").split(".").filter(Boolean);
+    const tokens = parts.map((p) => {
+      const m = p.match(/^([^\[]+)(?:\[(.+)\])?$/);
+      if (!m) return { field: p, model: undefined };
+      return { field: m[1], model: m[2] }; // model may be undefined
+    });
+    return tokens;
+  }
+
   async buildAggregationPipeline({
     filters = {},
     sort = {},
@@ -33,8 +43,6 @@ export class ViewResolverEngine {
   }) {
     // 1. Fetch view and viewFields with their modelFields
     const view: any = await this.getViewDetails();
-
-    filters = view.filters ? JSON.parse(view.filters) : filters;
 
     const baseModel = view.modelName;
     const viewFields = view.fields.filter((f) => f.visible);
@@ -50,6 +58,7 @@ export class ViewResolverEngine {
     }[] = [];
 
     project["id"] = "$_id";
+    // project["createdOn"] = "$createdOn";
 
     fieldSearchMap.push({
       type: "local",
@@ -57,107 +66,218 @@ export class ViewResolverEngine {
       alias: "id",
     });
 
-    // 4. Filters
-    if (Object.keys(filters).length > 0) {
-      pipeline.push({ $match: filters });
-    }
-    // 1. View field from same model -  valueField will be empty ( Post -> content )
-    // 2. View Field from the same model - but valueField is empty then recordKey should be pickedup ( Post -> user -> name)
-    // 3. ViewField from the same model - valueField empty and recordKey is empty then only we will show id - Handle at last
-    // 3. View field from different model - valueField will not be empty ( valueField - email (mf from User) join on basis of user field from `Post`)
+    // fieldSearchMap.push({
+    //   type: "local",
+    //   key: "createdOn",
+    //   alias: "createdOn",
+    // });
 
+    // ----------------------------
     // 2. Handle lookups and projections
+    // ----------------------------
     for (const vf of viewFields) {
       const modelField = vf.field;
       let fieldName = modelField.name;
       let valueField = vf.valueField;
       let recordKey = ""; // e.g. "name", "label"
+      const isVirtualField = modelField.type == "virtual";
       const fromModel = ["relationship", "virtual"].includes(modelField.type)
         ? modelField.ref
         : modelField.modelName; // e.g. "Product", "Status"
 
       // Use field name as alias to avoid conflicts when multiple fields reference the same model
-      let alias = fromModel + "_" + (valueField ?? fieldName); // e.g. "user" -> "User", "assignedTo" -> "AssignedTo
+      let alias = fromModel + "_" + (valueField ?? fieldName); // default alias (may be overridden)
 
-      // Different Model
+      // Different Model (lookup required)
       if (fromModel && fromModel !== baseModel) {
-        // 2a. Lookup from related model
-        // Check if recordKey not present - we should display only id
-        if (!valueField) {
-          const mod: any = await mercury.db.Model.get(
-            { name: fromModel },
-            { id: "1", profile: "SystemAdmin" },
-            { populate: [{ path: "recordKey" }] }
-          );
-          alias = fieldName;
-          recordKey = mod.recordKey.name;
-          viewFieldRecordKeyMapper[vf.id] = recordKey;
-        } else {
-          // Check if recordKey not present - we should display only id
-          recordKey = valueField;
-        }
+        // --- NEW: support bracket-syntax nested lookups like politicalParty[Party].name
+        const isBracketNested = typeof valueField === "string" && valueField.includes("[");
 
-        // Handle pluralization edge cases
-        const pluralizedCollection = this.pluralizeModelName(fromModel);
+        if (isBracketNested) {
+          // parse tokens
+          const tokens = this.parseBracketValueField(valueField!); // array of {field, model?}
+          // final token should be the leaf attribute (user will ensure this)
+          const leafToken = tokens[tokens.length - 1];
+          const leafName = leafToken.field; // e.g. 'name'
 
-        pipeline.push({
-          $lookup: {
-            from: pluralizedCollection,
-            localField: fieldName, // check here model name to small case
-            foreignField: "_id",
-            as: alias,
-            pipeline: [
-              {
+          // build inner pipeline that will be executed inside the main lookup (on fromModel docs)
+          const innerPipeline: any[] = [];
+
+          // we'll create sequential lookups inside this inner pipeline for every token that has a 'model'
+          // prevAlias refers to the alias we created inside this inner pipeline (for the looked up sub-doc)
+          let prevAlias: string | null = null;
+
+          for (let i = 0; i < tokens.length; i++) {
+            const tk = tokens[i];
+            const hasModel = !!tk.model;
+            if (hasModel) {
+              // lookup this model from the current doc
+              // localField: if prevAlias exists => `${prevAlias}.${tk.field}` else `${tk.field}`
+              const localFieldInDoc = prevAlias ? `${prevAlias}.${tk.field}` : tk.field;
+              const subAlias = `${tk.field}_${tk.model}`; // e.g. politicalParty_Party
+
+              // push a lookup stage inside the inner pipeline
+              innerPipeline.push({
+                $lookup: {
+                  from: this.pluralizeModelName(tk.model!),
+                  localField: localFieldInDoc,
+                  foreignField: "_id",
+                  as: subAlias,
+                },
+              });
+
+              // unwind the subAlias so we can reference its fields directly
+              innerPipeline.push({
+                $unwind: {
+                  path: `$${subAlias}`,
+                  preserveNullAndEmptyArrays: true,
+                },
+              });
+
+              // update prevAlias to point to this new looked-up object
+              prevAlias = subAlias;
+
+              // continue loop - if next token is a plain field, we'll reference it off prevAlias
+            } else {
+              // token has no model: it's a direct field on the current doc or on the last looked-up doc
+              // final projection: if prevAlias exists, pick from `$${prevAlias}.${tk.field}` else `$${tk.field}`
+              const finalPath = prevAlias ? `$${prevAlias}.${tk.field}` : `$${tk.field}`;
+              innerPipeline.push({
                 $project: {
                   _id: 1,
-                  [recordKey]: 1,
+                  [leafName]: finalPath,
                 },
-              },
-            ],
-          },
-        });
+              });
+              break; // leaf reached -> stop building deeper lookups
+            }
+          } // end tokens loop
 
-        // For user if we want to display email, fieldName = user, recordKey - email
-        recordKeyMap[recordKey] = recordKey;
+          // set alias for main lookup (deterministic)
+          const tokenPath = tokens.map((t) => t.field).join("_");
+          alias = `${fromModel}_${tokenPath}`; // e.g. UserAttribute_politicalParty_name
 
-        if (!modelField.many) {
+          // perform the main lookup from base doc into fromModel collection, using innerPipeline
+          const pluralizedCollection = this.pluralizeModelName(fromModel);
           pipeline.push({
-            $unwind: {
-              path: `$${alias}`,
-              preserveNullAndEmptyArrays: true,
+            $lookup: {
+              from: pluralizedCollection,
+              localField: isVirtualField ? "_id" : fieldName,
+              foreignField: isVirtualField ? baseModel.toLowerCase() : "_id",
+              as: alias,
+              pipeline: innerPipeline,
             },
           });
-          project[`${alias}`] = {
-            id: `$${alias}._id`,
-            [recordKey]: `$${alias}.${recordKey}`,
-          };
-        } else {
-          // many relationship projection (array → map)
-          project[alias] = {
-            $map: {
-              input: `$${alias}`,
-              as: "item",
-              in: {
-                id: `$$item._id`,
-                [recordKey]: `$$item.${recordKey}`,
-              },
-            },
-          };
-        }
 
-        fieldSearchMap.push({ type: "lookup", key: alias, alias: alias });
+          // map recordKey & projection
+          recordKeyMap[leafName] = leafName;
+
+          if (!modelField.many) {
+            pipeline.push({
+              $unwind: {
+                path: `$${alias}`,
+                preserveNullAndEmptyArrays: true,
+              },
+            });
+            // project final flat fields
+            project[alias] = {
+              id: `$${alias}._id`,
+              [leafName]: `$${alias}.${leafName}`,
+            };
+          } else {
+            project[alias] = {
+              $map: {
+                input: `$${alias}`,
+                as: "item",
+                in: {
+                  id: `$$item._id`,
+                  [leafName]: `$$item.${leafName}`,
+                },
+              },
+            };
+          }
+
+          fieldSearchMap.push({ type: "lookup", key: alias, alias: vf.title ?? alias });
+        } else {
+          // --- SIMPLE (existing) behavior for non-bracket valueFields (keep unchanged)
+          // Check if valueField not present - fallback to referenced model.recordKey
+          if (!valueField) {
+            const mod: any = await mercury.db.Model.get(
+              { name: fromModel },
+              { id: "1", profile: "SystemAdmin" },
+              { populate: [{ path: "recordKey" }] }
+            );
+            alias = fieldName;
+            recordKey = mod.recordKey.name;
+            viewFieldRecordKeyMapper[vf.id] = recordKey;
+          } else {
+            recordKey = valueField;
+          }
+
+          // Handle pluralization edge cases
+          const pluralizedCollection = this.pluralizeModelName(fromModel);
+
+          pipeline.push({
+            $lookup: {
+              from: pluralizedCollection,
+              localField: fieldName, // check here model name to small case
+              foreignField: "_id",
+              as: alias,
+              pipeline: [
+                {
+                  $project: {
+                    _id: 1,
+                    [recordKey]: 1,
+                  },
+                },
+              ],
+            },
+          });
+
+          // For user if we want to display email, fieldName = user, recordKey - email
+          recordKeyMap[recordKey] = recordKey;
+
+          if (!modelField.many) {
+            pipeline.push({
+              $unwind: {
+                path: `$${alias}`,
+                preserveNullAndEmptyArrays: true,
+              },
+            });
+            project[`${alias}`] = {
+              id: `$${alias}._id`,
+              [recordKey]: `$${alias}.${recordKey}`,
+            };
+          } else {
+            // many relationship projection (array → map)
+            project[alias] = {
+              $map: {
+                input: `$${alias}`,
+                as: "item",
+                in: {
+                  id: `$$item._id`,
+                  [recordKey]: `$$item.${recordKey}`,
+                },
+              },
+            };
+          }
+
+          fieldSearchMap.push({ type: "lookup", key: alias, alias: alias });
+        } // end simple vs bracket nested
       } else {
         // 2c. Base model field
         const key = `${baseModel}.${fieldName}`;
         project[key] = `$${fieldName}`;
         fieldSearchMap.push({ type: "local", key, alias: fieldName });
       }
-    }
+    } // end for viewFields
+
+    // ----------------------------
     // 3. Search (OR condition)
+    // ----------------------------
     if (search) {
       const orConditions: any[] = [];
 
-      viewFields.forEach(async (vf) => {
+      for (const vf of viewFields) {
         const modelField = vf.field;
         const valueField = vf.valueField;
         const fromModel = ["relationship", "virtual"].includes(modelField.type)
@@ -177,19 +297,29 @@ export class ViewResolverEngine {
           );
           orConditions.push(...searchConditions);
         } else {
-          let lookupFieldPath;
-          if (valueField) {
-            lookupFieldPath = fromModel + "_" + valueField + "." + valueField;
+          // relationship fields
+          let lookupFieldPath: string | undefined;
+
+          // if bracket nested pattern, compute alias and leaf name
+          if (typeof valueField === "string" && valueField.includes("[")) {
+            const tokens = this.parseBracketValueField(valueField);
+            const tokenPath = tokens.map((t) => t.field).join("_");
+            const aliasName = `${fromModel}_${tokenPath}`;
+            const leaf = tokens[tokens.length - 1].field;
+            lookupFieldPath = `${aliasName}.${leaf}`;
+          } else if (valueField) {
+            lookupFieldPath = `${fromModel}_${valueField}.${valueField}`;
           } else {
             // get record Key and then check using fieldName
             const recordKey = viewFieldRecordKeyMapper[vf.id];
             lookupFieldPath = fieldName + "." + recordKey;
           }
-          orConditions.push({
-            [lookupFieldPath]: { $regex: search, $options: "i" },
-          });
+
+          if (lookupFieldPath) {
+            orConditions.push({ [lookupFieldPath]: { $regex: search, $options: "i" } });
+          }
         }
-      });
+      }
 
       // Try to match ObjectId
       try {
@@ -207,6 +337,11 @@ export class ViewResolverEngine {
       }
     }
 
+    // 4. Filters
+    if (Object.keys(filters).length > 0) {
+      pipeline.push({ $match: filters });
+    }
+
     // 5. Sort
     if (Object.keys(sort).length > 0) {
       pipeline.push({ $sort: sort });
@@ -221,6 +356,7 @@ export class ViewResolverEngine {
 
     // 7. Final projection
     pipeline.push({ $project: project });
+    // console.log("Aggregation Pipeline:", JSON.stringify(pipeline, null, 2));
 
     return {
       model: baseModel,

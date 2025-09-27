@@ -324,7 +324,7 @@ export class Platform {
       "__v",
     ]);
 
-    return fields.reduce((schema: Record<string, any>, field: any) => {
+    const schema = fields.reduce((schema: Record<string, any>, field: any) => {
       const fieldName = field["name"];
       const fieldObj: TField = { type: field["type"] };
       // Handle for relationship and virutal types
@@ -349,6 +349,9 @@ export class Platform {
       schema[fieldName] = fieldObj;
       return schema;
     }, {});
+    delete schema['createdOn'];
+    delete schema['updatedOn'];
+    return schema;
   }
 
   composeOptions(
