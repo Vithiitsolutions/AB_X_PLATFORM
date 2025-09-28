@@ -98,7 +98,8 @@ export async function loader({
   const str = await GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS(
     modelName as string,
     response1?.listViewFields?.docs,
-    request.headers.get("Cookie")
+    request.headers.get("Cookie"),
+    response?.getView?.name
   );
 
   const modelData = await serverFetch(
@@ -125,7 +126,7 @@ export async function loader({
 
   const apiName = `${modelName?.charAt(0).toLowerCase()}${modelName?.slice(
     1
-  )}ViewFor${cookieObject.role}`;
+  )}ViewFor${cookieObject.role}${response?.getView?.name}`;
   return {
     view: response?.getView,
     dynamicQueryString: str,

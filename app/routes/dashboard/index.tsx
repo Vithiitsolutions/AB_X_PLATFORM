@@ -93,6 +93,11 @@ export async function loader({ request }: any) {
           label
           name
         }
+          view {
+        id
+        label
+        name
+      }
         icon
         label
         order
@@ -116,6 +121,11 @@ export async function loader({ request }: any) {
         childTabs {
           id
           icon
+          view {
+        id
+        label
+        name
+      }
           profiles {
             id
             label
@@ -316,11 +326,6 @@ const dashboard = ({
   loaderData: { tabs: any; logo: string; siteName: string; theme: any };
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  console.log(
-    loaderData.theme,
-    JSON.parse(loaderData.theme),
-    "loaderData.theme"
-  );
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
   function injectTheme(theme: any) {
     if (!theme) return "";

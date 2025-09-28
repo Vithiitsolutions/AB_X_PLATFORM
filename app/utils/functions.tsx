@@ -33,7 +33,8 @@ export const getModelFieldRefModelKey = async (
 export const GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS = async (
   modelName: string,
   modelFields: any[],
-  cookies?: string
+  cookies?: string,
+  viewName?: string
 ) => {
   if (modelName === "File") {
     return `query ListFiles($sort: sortFileInput, $offset: Int!, $limit: Int!, $where: whereFileInput, $filters: JSON) {
@@ -54,8 +55,8 @@ export const GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS = async (
   }
 }`;
   } else {
-    let str = `query ${modelName}ViewFor${parseCookies(cookies as string).role}($search: String, $limit: Int, $page: Int, $sort: JSON, $filters: JSON) {
-      ${modelName.charAt(0).toLowerCase() + modelName.slice(1)}ViewFor${parseCookies(cookies as string).role}(search: $search, limit: $limit, page: $page, sort: $sort, filters: $filters) {
+    let str = `query ${modelName}ViewFor${parseCookies(cookies as string).role}${viewName}($search: String, $limit: Int, $page: Int, $sort: JSON, $filters: JSON) {
+      ${modelName.charAt(0).toLowerCase() + modelName.slice(1)}ViewFor${parseCookies(cookies as string).role}${viewName}(search: $search, limit: $limit, page: $page, sort: $sort, filters: $filters) {
           totalDocs
           docs {
           id

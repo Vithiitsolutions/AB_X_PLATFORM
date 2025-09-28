@@ -98,7 +98,7 @@ function SideBar({ tabs }: { tabs: any[] }) {
         case "PAGE":
           return `/dashboard/page/${item?.page?.slug}`;
         case "VIEW_LIST":
-          return `/dashboard/view/${item?.view?.id}`;
+          return `/dashboard/o/${item?.model?.name}/view/${item?.view?.id}`;
         default:
           return "#";
       }
@@ -118,12 +118,31 @@ function SideBar({ tabs }: { tabs: any[] }) {
       >
         {items?.length
           ? items?.map((item) => {
-              const isActive =
-                location.pathname.includes(item?.model?.name) ||
-                (item?.model?.name === "Dashboard" &&
-                  location.pathname.endsWith("dashboard")) ||
-                location.pathname.includes(item?.page?.slug) ||
-                location.pathname.includes(item?.recordId);
+              const isActive = (() => {
+                switch (item.type) {
+                  case "VIEW_LIST":
+                    return (
+                      location.pathname.includes(item?.view?.id) &&
+                      location.pathname.includes(item?.model?.name)
+                    );
+                  case "LIST":
+                    return (
+                      location.pathname.includes(`o/${item?.model?.name}/`) &&
+                      (location.pathname.includes("/list"))
+                    );
+                  case "PAGE":
+                    return location.pathname.includes(item?.page?.slug);
+                  case "RECORD":
+                    return location.pathname.includes(item?.recordId);
+                  default:
+                    return (
+                      item?.model?.name === "Dashboard" &&
+                      location.pathname.endsWith("dashboard")
+                    );
+                }
+              })();
+
+              console.log(isActive, "isActive");
 
               return (
                 <Box

@@ -82,7 +82,7 @@ export class ViewComposer {
           ? _.upperFirst(_.camelCase(profile.name))
           : "Unknown";
         const resolverName = _.camelCase(
-          `${view.modelName}ViewFor${profileName}`
+          `${view.modelName}ViewFor${profileName}${view?.name}`
         );
 
         resolvers.Query[resolverName] = async (
@@ -162,7 +162,7 @@ async function generateViewTypeSchema(
       gqlType = registerSubType(
         field.name,
         vf.valueField?.split(".")?.at(-1) ?? recordKey,
-        subTypes,
+        subTypes
       );
     } else {
       /**
