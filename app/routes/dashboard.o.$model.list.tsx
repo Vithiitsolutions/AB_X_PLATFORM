@@ -100,7 +100,8 @@ export async function loader({
   const str = await GET_DYNAMIC_MODEL_LIST_VIEW_FIELDS(
     params?.model as string,
     response1?.listViewFields?.docs,
-    request.headers.get("Cookie")
+    request.headers.get("Cookie"),
+    response?.getView?.name
   );
 
   console.log(str, "dynamicQueryString");
@@ -129,7 +130,7 @@ export async function loader({
 
   const apiName = `${params?.model.charAt(0).toLowerCase()}${params?.model.slice(
     1
-  )}ViewFor${cookieObject.role}`;
+  )}ViewFor${cookieObject.role}${response?.getView?.name}`;
   return {
     view: response?.getView,
     dynamicQueryString: str,
