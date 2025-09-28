@@ -100,6 +100,7 @@ function RecordView({
               type={button?.type}
               href={button?.href}
               code={button?.buttonFn?.code}
+              className={button?.className}
               title={button?.tooltip}
               addOnStyles={{
                 base: {

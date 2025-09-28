@@ -73,6 +73,7 @@ query Docs($where: whereLayoutInput, $limit: Int!) {
         type
         variant
         text
+        className
         iconPosition
         profiles {
           id
@@ -124,6 +125,7 @@ export const GET_VIEW = `
     name
     label
     filters
+    modelName
     buttons {
       id
       icon
@@ -131,6 +133,7 @@ export const GET_VIEW = `
       disabled
       type
       variant
+      className
       text
       iconPosition
       profiles {

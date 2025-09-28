@@ -856,11 +856,15 @@ const DynamicFormWithConfig = ({
           <CustomeButton
             type="submit"
             children={loading ? "loading..." : "Submit"}
+          className="buttons-primaryButton"
+
           />
           <DynamicButton
             children={"Cancel"}
             variant={"secondary"}
             type={"action"}
+          className="buttons-secondaryButton"
+
             onClick={() => {
               if (typeof handleClose === "function") {
                 handleClose("");

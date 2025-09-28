@@ -17,11 +17,51 @@ const CustomeButton: React.FC<CustomButtonProps> = ({
   addOnStyles = {},
   children,
   onClick,
+  className,
   ...props
 }) => {
+  function getThemeObject(varName: string): any {
+    try {
+      // normalize the variable name
+      let cssVar = varName.trim();
+  
+      // if user passed var(--xxx), strip "var(" and ")"
+      if (cssVar.startsWith("var(")) {
+        cssVar = cssVar.slice(4, -1).trim(); // remove var( and )
+      }
+  
+      // ensure it starts with --
+      if (!cssVar.startsWith("--")) {
+        cssVar = `--${cssVar}`;
+      }
+  
+      const value = getComputedStyle(document.documentElement)
+        .getPropertyValue(cssVar)
+        .trim();
+  // console.log(typeof value, "value");
+  // console.log(JSON.parse(value), "varName");
+  // alert(JSON.parse(value));
+      // if (!value) return null;
+  
+      // if it's a stringified object, parse it
+      if (value.startsWith("{") || value.startsWith("[")) {
+        return JSON.parse(value);
+      }
+  
+      // otherwise just return as a normal string
+      return value;
+    } catch (e) {
+      console.error("Error parsing theme var:", varName, e);
+      return null;
+    }
+  }
+  // console.log(className, "className");
+  const addStyles = getThemeObject(className || "") || {}
+// console.log(addStyles, "addStyles");
   return (
     <Button
-      styles={Clx({
+    styles={Clx(
+      {
         base: {
           background: "black",
           fontSize: "14px",
@@ -32,13 +72,16 @@ const CustomeButton: React.FC<CustomButtonProps> = ({
           padding: "10px 20px",
           cursor: "pointer",
         },
-        addOnStyles,
-      })}
-      onClick={onClick}
-      {...props}
-    >
-      {children}
-    </Button>
+      },
+      addOnStyles,
+      addStyles
+    )}
+    onClick={onClick}
+    {...props}
+  >
+    {children}
+  </Button>
+  
   );
 };
 
@@ -61,7 +104,56 @@ export const DynamicButton: React.FC<DynamicButtonProps> = ({
     if (props.variant === "danger") return theme.colors.white[0];
     return theme.colors.black[0];
   };
-  const button = (
+  function getThemeObject(varName: string): any {
+    try {
+      // normalize the variable name
+      let cssVar = varName.trim();
+  
+      // if user passed var(--xxx), strip "var(" and ")"
+      if (cssVar.startsWith("var(")) {
+        cssVar = cssVar.slice(4, -1).trim(); // remove var( and )
+      }
+  
+      // ensure it starts with --
+      if (!cssVar.startsWith("--")) {
+        cssVar = `--${cssVar}`;
+      }
+  
+      const value = getComputedStyle(document.documentElement)
+        .getPropertyValue(cssVar)
+        .trim();
+  // console.log(typeof value, "value");
+  // console.log(JSON.parse(value), "varName");
+  // alert(JSON.parse(value));
+      // if (!value) return null;
+  
+      // if it's a stringified object, parse it
+      if (value.startsWith("{") || value.startsWith("[")) {
+        return JSON.parse(value);
+      }
+  
+      // otherwise just return as a normal string
+      return value;
+    } catch (e) {
+      console.error("Error parsing theme var:", varName, e);
+      return null;
+    }
+  }
+  const addStyles = getThemeObject(props?.className || "") || {}
+  //"buttons-primaryButton"
+  // console.log(addStyles, "addStyles");
+  // console.log(getThemeObject("buttons-primaryButton"));
+  // alert(getThemeObject("buttons-primaryButton"));
+  // { backgroundColor: "red", color: "white", padding: "10px 15px" }
+  
+  // console.log(getThemeObject("tab-sidebarWidth"));
+    // ✅ reads from --buttons-primaryButton
+  // alert(getThemeObject("var(--tab-sidebarWidth)"))
+  // alert(getThemeObject("--buttons-primaryButton"))
+
+  // console.log(getThemeObject("--buttons-primaryButton")); 
+  // also works
+    const button = (
     <Button
       styles={Clx(
         {
@@ -75,7 +167,8 @@ export const DynamicButton: React.FC<DynamicButtonProps> = ({
             cursor: "pointer",
           },
         },
-        addOnStyles
+        addOnStyles,
+        addStyles
       )}
       onClick={onClick}
       title={props?.title}
@@ -116,7 +209,8 @@ export const DynamicButton: React.FC<DynamicButtonProps> = ({
                 padding: "3px 8px"
               },
             },
-            addOnStyles
+            addOnStyles,
+            addStyles
           )}
           onClick={onClick ? onClick : InvokeFunction(props?.code || "")}
           {...props}

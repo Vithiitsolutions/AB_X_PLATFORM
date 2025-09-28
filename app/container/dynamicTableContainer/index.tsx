@@ -487,6 +487,7 @@ function DynamicTableContainer({
                 href={button?.href}
                 code={button?.buttonFn?.code}
                 title={button?.tooltip}
+                className={button?.className}
                 addOnStyles={{
                   base: {
                     padding: "3px 8px",

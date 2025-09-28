@@ -528,6 +528,8 @@ function DynamicCustomeForm ({
               addOnStyles={{base:{
                 padding:"5px 10px"
               }}}
+          className="buttons-primaryButton"
+
             />
           </div>{" "}
         </form>
