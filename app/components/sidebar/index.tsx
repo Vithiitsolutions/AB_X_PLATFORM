@@ -59,7 +59,7 @@ function SideBar({ tabs }: { tabs: any[] }) {
   }, []);
 
   useEffect(() => {
-    if(openItems.length === 0) {
+    if (openItems.length === 0) {
       return;
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(openItems));
@@ -79,6 +79,32 @@ function SideBar({ tabs }: { tabs: any[] }) {
     });
   };
 
+  const getItemUrl = (item: any) => {
+    if (item.model?.name === "Dashboard") {
+      return "/dashboard";
+    }
+
+    if (
+      item?.model?.name ||
+      item.page?.slug ||
+      item.recordId ||
+      item.view?.id
+    ) {
+      switch (item?.type) {
+        case "LIST":
+          return `/dashboard/o/${item?.model?.name}/list`;
+        case "RECORD":
+          return `/dashboard/o/${item?.model?.name}/r/${item?.recordId}`;
+        case "PAGE":
+          return `/dashboard/page/${item?.page?.slug}`;
+        case "VIEW_LIST":
+          return `/dashboard/view/${item?.view?.id}`;
+        default:
+          return "#";
+      }
+    }
+    return "#";
+  };
   const renderMenu = (items) => {
     return (
       <Box
@@ -111,19 +137,7 @@ function SideBar({ tabs }: { tabs: any[] }) {
                   }}
                 >
                   <A
-                    href={
-                      item.model?.name === "Dashboard"
-                        ? "/dashboard"
-                        : item?.model?.name || item.page?.slug || item.recordId
-                          ? item?.type === "LIST"
-                            ? `/dashboard/o/${item?.model?.name}/list`
-                            : item?.type === "RECORD"
-                              ? `/dashboard/o/${item?.model?.name}/r/${item?.recordId}`
-                              : item?.type === "PAGE"
-                                ? `/dashboard/page/${item?.page?.slug}`
-                                : "#"
-                          : "#"
-                    }
+                    href={getItemUrl(item)}
                     onClick={() => toggleItem(item.id)}
                     onMouseEnter={() => setHoveredItem(item.id)}
                     onMouseLeave={() => setHoveredItem(null)}

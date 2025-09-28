@@ -125,6 +125,7 @@ export const GET_VIEW = `
     name
     label
     filters
+    modelName
     buttons {
       id
       icon
