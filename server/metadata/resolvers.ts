@@ -490,6 +490,62 @@ export default {
       const response = await form.createRecordsUsingForm(formData);
       return response;
     },
+    removeUserFromTeam: async (
+      root: any,
+      { userId, deleteType }: { userId: string; deleteType: string },
+      ctx: ApolloCtx
+    ) => {
+      try {
+        const ctxUser: ctxUser = ctx.connect.user!;
+        if (deleteType === "myTeam") {
+          const teamRequest = await mercury.db.TeamRequest.get(
+            { sender: ctxUser.id, receiver: userId },
+            { id: ctxUser.id, profile: ctxUser.profile }
+          );
+          if (teamRequest) {
+            await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
+              { leader: new ObjectId(teamRequest.sender) },
+              { $pull: { team: teamRequest.receiver } },
+              { id: ctxUser.id, profile: ctxUser.profile }
+            );
+            await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
+              { leader: new ObjectId(teamRequest.receiver) },
+              { $pull: { associatedTo: teamRequest.sender } },
+              { id: ctxUser.id, profile: ctxUser.profile }
+            );
+            await mercury.db.TeamRequest.delete(
+              { _id: teamRequest._id },
+              { id: ctxUser.id, profile: ctxUser.profile }
+            );
+          }
+        } else if (deleteType === "associatedTo") {
+          const teamRequest = await mercury.db.TeamRequest.get(
+            { receiver: ctxUser.id, sender: userId },
+            { id: ctxUser.id, profile: ctxUser.profile }
+          );
+          if (teamRequest) {
+            await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
+              { leader: teamRequest.receiver },
+              { $pull: { associatedTo: teamRequest.sender } },
+              { id: ctxUser.id, profile: ctxUser.profile } // Removes receiverId from team array
+            );
+            await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
+              { leader: teamRequest.sender },
+              { $pull: { team: teamRequest.receiver } },
+              { id: ctxUser.id, profile: ctxUser.profile }
+            );
+            await mercury.db.TeamRequest.delete(
+              { _id: teamRequest._id },
+              { id: ctxUser.id, profile: ctxUser.profile }
+            );
+          }
+        }
+        return { message: "User removed from team successfully", user: userId };
+      } catch (error: any) {
+        throw new Error(`Failed to remove user: ${error.message}`);
+      }
+    },
+
     // recordUserLoginSession: async (
     //   root: any,
     //   { startTime, endTime }: { startTime: string; endTime: string },
