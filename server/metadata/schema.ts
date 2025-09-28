@@ -24,7 +24,12 @@ export const typeDefs = `
     }
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
+        removeUserFromTeam(userId:String,deleteType:String):UserTeamResponse
     }  
+    type UserTeamResponse{
+      message:String
+      user:String
+    }
     type ChangeStep {
         changedOn: DateTime!
         politicalParty: String
