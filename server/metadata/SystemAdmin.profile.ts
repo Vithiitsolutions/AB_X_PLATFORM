@@ -280,8 +280,24 @@ export const SystemAdminRules = [
       delete: true,
     },
   },
+  {
+    modelName: "TeamRequest",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
+  {
+    modelName: "BuildTeam",
+    access: {
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+    },
+  },
 ];
-
-
 
 mercury.access.createProfile("SystemAdmin", SystemAdminRules);

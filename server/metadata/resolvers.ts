@@ -556,29 +556,29 @@ export default {
         if (deleteType === "myTeam") {
           const teamRequest: any = await mercury.db.TeamRequest.get(
             { sender: leaderId, receiver: userId },
-            { id: ctxUser.id, profile: ctxUser.profile }
+            { id: "1", profile: "SystemAdmin" }
           );
           console.log(teamRequest, "TeamRequest");
           if (teamRequest) {
             await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
               { leader: new ObjectId(teamRequest.sender) },
               { $pull: { team: teamRequest.receiver } },
-              { id: ctxUser.id, profile: ctxUser.profile }
+              { id: "1", profile: "SystemAdmin" }
             );
             await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
               { leader: new ObjectId(teamRequest.receiver) },
               { $pull: { associatedTo: teamRequest.sender } },
-              { id: ctxUser.id, profile: ctxUser.profile }
+              { id: "1", profile: "SystemAdmin" }
             );
-            await mercury.db.TeamRequest.delete(
+           await mercury.db.TeamRequest.delete(
               { _id: teamRequest._id },
-              { id: ctxUser.id, profile: ctxUser.profile }
+              { id: "1", profile: "SystemAdmin" }
             );
           }
         } else if (deleteType === "associatedTo") {
           const teamRequest: any = await mercury.db.TeamRequest.get(
             { receiver: leaderId, sender: userId },
-            { id: ctxUser.id, profile: ctxUser.profile }
+            {id: "1", profile: "SystemAdmin"}
           );
           console.log(teamRequest, "associteaedTR");
 
@@ -586,16 +586,16 @@ export default {
             await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
               { leader: teamRequest.receiver },
               { $pull: { associatedTo: teamRequest.sender } },
-              { id: ctxUser.id, profile: ctxUser.profile } // Removes receiverId from team array
+              { id: "1", profile: "SystemAdmin" } // Removes receiverId from team array
             );
             await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
               { leader: teamRequest.sender },
               { $pull: { team: teamRequest.receiver } },
-              { id: ctxUser.id, profile: ctxUser.profile }
+              { id: "1", profile: "SystemAdmin" }
             );
             await mercury.db.TeamRequest.delete(
               { _id: teamRequest._id },
-              { id: ctxUser.id, profile: ctxUser.profile }
+              { id: "1", profile: "SystemAdmin" }
             );
           }
         }
