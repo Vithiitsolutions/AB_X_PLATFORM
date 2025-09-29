@@ -3,12 +3,19 @@ import { GraphQLError } from "graphql";
 import { Form } from "./FormService";
 import _ from "lodash";
 import jwt from "jsonwebtoken";
-import { getActiveUserCountWithRoles, getUserAnalytics, getUserLoginDurationByDate } from "../Analytics/UserAuth"
-import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey"
+import {
+  getActiveUserCountWithRoles,
+  getUserAnalytics,
+  getUserLoginDurationByDate,
+} from "../Analytics/UserAuth";
+import { getManifestoSurveyStats } from "../Analytics/ManifestoSurvey";
 import { getPostStats } from "../Analytics/Post";
 import { getActivityStats } from "../Analytics/Activity";
 import { getLeaderStats } from "../Analytics/Leader";
-import { getApplicationDetails, getMonthlyApplicationStats } from "../Analytics/UrgeRequest"
+import {
+  getApplicationDetails,
+  getMonthlyApplicationStats,
+} from "../Analytics/UrgeRequest";
 import { getNewsPostTrends } from "../Analytics/News";
 import { getReportedPostCount } from "../Analytics/PostReports";
 import { supportTrendstats } from "../Analytics/SupportTicket";
@@ -18,11 +25,16 @@ import { SurveyQuery } from "../masterApis/Survey";
 import mongoose, { Types } from "mongoose";
 import { getManifestoDetails } from "../Analytics/Manifesto";
 import { getUserPoliticalPartyHistory } from "../masterApis/trackPartyPositionChanges";
+import { ObjectId } from "mongodb";
 export default {
   Query: {
     signIn: async (
       _root: unknown,
-      { value, password, validateBy }: { value: string; password: string, validateBy: string },
+      {
+        value,
+        password,
+        validateBy,
+      }: { value: string; password: string; validateBy: string },
       _ctx: unknown
     ) => {
       const user: any = await mercury.db.User.get(
@@ -56,10 +68,10 @@ export default {
           id: user._id,
           profile: user.role,
         },
-        process.env.JWT_SECRET || 'default-secret-key',
+        process.env.JWT_SECRET || "default-secret-key",
         {
           algorithm: "HS256",
-          expiresIn: "1d"
+          expiresIn: "1d",
         }
       );
       return { token, user };
@@ -101,7 +113,7 @@ export default {
         stateId,
         districtId,
         constituencyId,
-        year
+        year,
       } = input || {};
 
       return await getUserAnalytics({
@@ -111,7 +123,7 @@ export default {
         stateId,
         districtId,
         constituencyId,
-        year
+        year,
       });
     },
     getManifestoSurveyStats: async (
@@ -180,15 +192,31 @@ export default {
     //   const data = await getUserLoginDurationByDate(ctxUser.id, input.date);
     //   return data;
     // },
-    getActiveUsersCount: async (root: any, { startDate, endDate, year }: { startDate: string, endDate: string, year: number }, ctx: any) => {
+    getActiveUsersCount: async (
+      root: any,
+      {
+        startDate,
+        endDate,
+        year,
+      }: { startDate: string; endDate: string; year: number },
+      ctx: any
+    ) => {
       console.log(startDate, endDate);
-      const data = await getActiveUserCountWithRoles({ startDate, endDate, year })
+      const data = await getActiveUserCountWithRoles({
+        startDate,
+        endDate,
+        year,
+      });
       return data;
     },
-    getNewsPostTrends: async (_: any, args: { filter?:any }, ctx: any) => {
-      return await getNewsPostTrends(args.filter||{});
+    getNewsPostTrends: async (_: any, args: { filter?: any }, ctx: any) => {
+      return await getNewsPostTrends(args.filter || {});
     },
-    getReportedPostCount: async (root: any, args: { filter?: any }, ctx: any) => {
+    getReportedPostCount: async (
+      root: any,
+      args: { filter?: any },
+      ctx: any
+    ) => {
       try {
         const stats = await getReportedPostCount(args.filter || {});
         return stats;
@@ -210,7 +238,7 @@ export default {
         );
       }
     },
-    CategoryStatsCount: async (root:any,args:{filter?:any},ctx:any) => {
+    CategoryStatsCount: async (root: any, args: { filter?: any }, ctx: any) => {
       try {
         const stats = await CategoryStatsCount(args.filter || {});
         return stats;
@@ -251,7 +279,7 @@ export default {
         );
         const leaderTeam: any = await mercury.db.BuildTeam.get(
           { leader: userId },
-          { id: "1", profile: "SystemAdmin" },
+          { id: "1", profile: "SystemAdmin" }
         );
         const solvedIssuesPromise: any = IssueData.mongoModel.aggregate([
           {
@@ -308,7 +336,11 @@ export default {
         throw new Error(`Failed to fetch leader profile: ${error.message}`);
       }
     },
-    getManifestoDetails: async (_: any, { input }: { input: any }, ctx: any) => {
+    getManifestoDetails: async (
+      _: any,
+      { input }: { input: any },
+      ctx: any
+    ) => {
       try {
         const manifesto = await getManifestoDetails(input.manifestoId);
         return manifesto;
@@ -317,7 +349,11 @@ export default {
         throw new Error("Failed to fetch manifesto details.");
       }
     },
-    getApplicationDetails: async (root: any, { applicationId }: { applicationId: string }, ctx: any) => {
+    getApplicationDetails: async (
+      root: any,
+      { applicationId }: { applicationId: string },
+      ctx: any
+    ) => {
       try {
         const application = await getApplicationDetails(applicationId);
         return application;
@@ -326,73 +362,84 @@ export default {
         throw new Error("Failed to fetch application details.");
       }
     },
-    getSurveyCounts: async (root: any, { }, ctx: any) => {
+    getSurveyCounts: async (root: any, {}, ctx: any) => {
       try {
-        const totalSurveysByMonth = await mercury.db.Survey.mongoModel.aggregate([
-          {
-            $match: {
-              createdAt: { $ne: null } // Exclude documents where createdAt is null
-            }
-          },
-          {
-            $group: {
-              _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-              count: { $sum: 1 }
-            }
-          },
-          { $sort: { "_id": 1 } }
-        ]);
+        const totalSurveysByMonth =
+          await mercury.db.Survey.mongoModel.aggregate([
+            {
+              $match: {
+                createdAt: { $ne: null }, // Exclude documents where createdAt is null
+              },
+            },
+            {
+              $group: {
+                _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { _id: 1 } },
+          ]);
         // Aggregation pipeline to get monthly response counts
-        const responsesByMonth = await mercury.db.SurveyResponse.mongoModel.aggregate([
-          {
-            $lookup: {
-              from: "surveys",
-              localField: "survey",
-              foreignField: "_id",
-              as: "surveyDetails"
-            }
-          },
-          { $unwind: "$surveyDetails" },
-          {
-            $match: {
-              "surveyDetails.createdAt": { $ne: null } // Exclude documents where the linked survey's createdAt is null
-            }
-          },
-          {
-            $group: {
-              _id: { $dateToString: { format: "%Y-%m", date: "$surveyDetails.createdAt" } },
-              count: { $addToSet: "$survey" }
-            }
-          },
-          {
-            $project: {
-              _id: 1,
-              count: { $size: "$count" }
-            }
-          },
-          { $sort: { "_id": 1 } }
-        ]);        // Combine the results into a single, clean format
+        const responsesByMonth =
+          await mercury.db.SurveyResponse.mongoModel.aggregate([
+            {
+              $lookup: {
+                from: "surveys",
+                localField: "survey",
+                foreignField: "_id",
+                as: "surveyDetails",
+              },
+            },
+            { $unwind: "$surveyDetails" },
+            {
+              $match: {
+                "surveyDetails.createdAt": { $ne: null }, // Exclude documents where the linked survey's createdAt is null
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  $dateToString: {
+                    format: "%Y-%m",
+                    date: "$surveyDetails.createdAt",
+                  },
+                },
+                count: { $addToSet: "$survey" },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                count: { $size: "$count" },
+              },
+            },
+            { $sort: { _id: 1 } },
+          ]); // Combine the results into a single, clean format
         const monthlyData: any = {};
 
         // Populate monthlyData with total survey counts
-        totalSurveysByMonth.forEach((item: { _id: string | number; count: any; }) => {
-          monthlyData[item._id] = {
-            totalSurveys: item.count,
-            surveysWithResponses: 0 // Initialize to 0
-          };
-        });
+        totalSurveysByMonth.forEach(
+          (item: { _id: string | number; count: any }) => {
+            monthlyData[item._id] = {
+              totalSurveys: item.count,
+              surveysWithResponses: 0, // Initialize to 0
+            };
+          }
+        );
 
         // Add response counts to the correct months
-        responsesByMonth.forEach((item: { _id: string | number; count: any; }) => {
-          if (monthlyData[item._id]) {
-            monthlyData[item._id].surveysWithResponses = item.count;
+        responsesByMonth.forEach(
+          (item: { _id: string | number; count: any }) => {
+            if (monthlyData[item._id]) {
+              monthlyData[item._id].surveysWithResponses = item.count;
+            }
           }
-        });
+        );
 
         // Convert the object to an array for a cleaner API response
-        const result = Object.keys(monthlyData).map(month => ({
+        const result = Object.keys(monthlyData).map((month) => ({
           month,
-          ...monthlyData[month]
+          ...monthlyData[month],
         }));
 
         console.log("Monthly Survey and Response Counts:", result);
@@ -413,11 +460,15 @@ export default {
     ) => {
       return await listLeaders(filter);
     },
-    trackPoliticalPartyChanges:async(root:any,{userId}:{userId:string},ctx:any)=>{
+    trackPoliticalPartyChanges: async (
+      root: any,
+      { userId }: { userId: string },
+      ctx: any
+    ) => {
       return await getUserPoliticalPartyHistory(userId);
     },
 
-    ...SurveyQuery
+    ...SurveyQuery,
 
     // retentionRatemetrics: async (
     //   root: any,
@@ -492,16 +543,22 @@ export default {
     },
     removeUserFromTeam: async (
       root: any,
-      { userId, deleteType }: { userId: string; deleteType: string },
-      ctx: ApolloCtx
+      {
+        leaderId,
+        userId,
+        deleteType,
+      }: { leaderId: string; userId: string; deleteType: string },
+      ctx: any
     ) => {
+      console.log("hiii");
       try {
-        const ctxUser: ctxUser = ctx.connect.user!;
+        const ctxUser = ctx.user.id;
         if (deleteType === "myTeam") {
-          const teamRequest = await mercury.db.TeamRequest.get(
-            { sender: ctxUser.id, receiver: userId },
+          const teamRequest: any = await mercury.db.TeamRequest.get(
+            { sender: leaderId, receiver: userId },
             { id: ctxUser.id, profile: ctxUser.profile }
           );
+          console.log(teamRequest, "TeamRequest");
           if (teamRequest) {
             await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
               { leader: new ObjectId(teamRequest.sender) },
@@ -519,10 +576,12 @@ export default {
             );
           }
         } else if (deleteType === "associatedTo") {
-          const teamRequest = await mercury.db.TeamRequest.get(
-            { receiver: ctxUser.id, sender: userId },
+          const teamRequest: any = await mercury.db.TeamRequest.get(
+            { receiver: leaderId, sender: userId },
             { id: ctxUser.id, profile: ctxUser.profile }
           );
+          console.log(teamRequest, "associteaedTR");
+
           if (teamRequest) {
             await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
               { leader: teamRequest.receiver },
