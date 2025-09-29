@@ -550,61 +550,90 @@ export default {
       }: { leaderId: string; userId: string; deleteType: string },
       ctx: any
     ) => {
-      console.log("hiii");
       try {
-        const ctxUser = ctx.user.id;
         if (deleteType === "myTeam") {
           const teamRequest: any = await mercury.db.TeamRequest.get(
             { sender: leaderId, receiver: userId },
             { id: "1", profile: "SystemAdmin" }
           );
-          console.log(teamRequest, "TeamRequest");
-          if (teamRequest) {
+          // FIX 2: Explicitly check for teamRequest and its primary key
+          if (teamRequest && teamRequest._id) {
+            console.log(teamRequest, "TeamRequest found for myTeam");
+
+            // Use teamRequest properties safely
+            const senderId = new ObjectId(teamRequest.sender);
+            const receiverId = new ObjectId(teamRequest.receiver);
+
+            // 1. Remove receiver (userId) from the leader's (sender's) 'team' array
             await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
-              { leader: new ObjectId(teamRequest.sender) },
-              { $pull: { team: teamRequest.receiver } },
-              { id: "1", profile: "SystemAdmin" }
+              { leader: senderId }, // Query by leader (sender) ID
+              { $pull: { team: receiverId } },
+              // Use a valid options object for Mongoose update
+              { new: true, runValidators: true }
             );
+
+            // 2. Remove sender (leaderId) from the user's (receiver's) 'associatedTo' array
             await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
-              { leader: new ObjectId(teamRequest.receiver) },
-              { $pull: { associatedTo: teamRequest.sender } },
-              { id: "1", profile: "SystemAdmin" }
+              { leader: receiverId }, // Query by leader (receiver) ID
+              { $pull: { associatedTo: senderId } },
+              { new: true, runValidators: true }
             );
-           await mercury.db.TeamRequest.delete(
+
+            // 3. Delete the TeamRequest document
+            await mercury.db.TeamRequest.delete(
               { _id: teamRequest._id },
               { id: "1", profile: "SystemAdmin" }
+            );
+          } else {
+            console.log(
+              "TeamRequest not found for myTeam, skipping deletions."
             );
           }
         } else if (deleteType === "associatedTo") {
           const teamRequest: any = await mercury.db.TeamRequest.get(
             { receiver: leaderId, sender: userId },
-            {id: "1", profile: "SystemAdmin"}
+            { id: "1", profile: "SystemAdmin" }
           );
-          console.log(teamRequest, "associteaedTR");
 
-          if (teamRequest) {
+          // FIX 2: Explicitly check for teamRequest and its primary key
+          if (teamRequest && teamRequest._id) {
+            console.log(teamRequest, "TeamRequest found for associatedTo");
+
+            // Ensure IDs are ObjectIds for MongoDB operations
+            const senderId = new ObjectId(teamRequest.sender);
+            const receiverId = new ObjectId(teamRequest.receiver);
+
+            // 1. Remove sender (userId) from the leader's (receiver's) 'associatedTo' array
             await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
-              { leader: teamRequest.receiver },
-              { $pull: { associatedTo: teamRequest.sender } },
-              { id: "1", profile: "SystemAdmin" } // Removes receiverId from team array
+              { leader: receiverId }, // Query by leader (receiver) ID
+              { $pull: { associatedTo: senderId } },
+              { new: true, runValidators: true }
             );
+
+            // 2. Remove receiver (leaderId) from the user's (sender's) 'team' array
             await mercury.db.BuildTeam.mongoModel.findOneAndUpdate(
-              { leader: teamRequest.sender },
-              { $pull: { team: teamRequest.receiver } },
-              { id: "1", profile: "SystemAdmin" }
+              { leader: senderId }, // Query by leader (sender) ID
+              { $pull: { team: receiverId } },
+              { new: true, runValidators: true }
             );
+
+            // 3. Delete the TeamRequest document
             await mercury.db.TeamRequest.delete(
               { _id: teamRequest._id },
               { id: "1", profile: "SystemAdmin" }
             );
+          } else {
+            console.log(
+              "TeamRequest not found for associatedTo, skipping deletions."
+            );
           }
         }
-        return { message: "User removed from team successfully", user: userId };
+        return { message: "User removal process complete", user: userId };
       } catch (error: any) {
-        throw new Error(`Failed to remove user: ${error.message}`);
+        console.error("Error in removeUserFromTeam:", error);
+        throw new Error(`Failed to remove user: An unexpected error occurred.`);
       }
     },
-
     // recordUserLoginSession: async (
     //   root: any,
     //   { startTime, endTime }: { startTime: string; endTime: string },
