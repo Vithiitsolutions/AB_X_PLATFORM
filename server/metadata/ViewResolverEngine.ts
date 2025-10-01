@@ -75,6 +75,7 @@ export class ViewResolverEngine {
     // ----------------------------
     // 2. Handle lookups and projections
     // ----------------------------
+    let miniPipeline = [];
     for (const vf of viewFields) {
       const modelField = vf.field;
       let fieldName = modelField.name;
@@ -216,7 +217,7 @@ export class ViewResolverEngine {
           // Handle pluralization edge cases
           const pluralizedCollection = this.pluralizeModelName(fromModel);
 
-          pipeline.push({
+          miniPipeline.push({
             $lookup: {
               from: pluralizedCollection,
               localField: fieldName, // check here model name to small case
@@ -237,7 +238,7 @@ export class ViewResolverEngine {
           recordKeyMap[recordKey] = recordKey;
 
           if (!modelField.many) {
-            pipeline.push({
+            miniPipeline.push({
               $unwind: {
                 path: `$${alias}`,
                 preserveNullAndEmptyArrays: true,
@@ -270,6 +271,8 @@ export class ViewResolverEngine {
         fieldSearchMap.push({ type: "local", key, alias: fieldName });
       }
     } // end for viewFields
+
+    if (miniPipeline.length) pipeline.push(...miniPipeline);
 
     // ----------------------------
     // 3. Search (OR condition)
