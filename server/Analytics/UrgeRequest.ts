@@ -7,7 +7,7 @@ export const getMonthlyApplicationStats = async (
   const toObjectId = (id?: string) =>
     id ? new mongoose.Types.ObjectId(id) : undefined;
   const now = new Date();
-  const selectedYear =now.getFullYear();
+  const selectedYear = now.getFullYear();
   const yearStart = new Date(`${selectedYear}-01-01T00:00:00.000Z`);
   const yearEnd = new Date(`${selectedYear}-12-31T23:59:59.999Z`);
   const dateRange: any = {};
@@ -19,7 +19,10 @@ export const getMonthlyApplicationStats = async (
   }
 
   const matchFilter: Record<string, any> = {
-    createdOn: Object.keys(dateRange).length > 0 ? dateRange : { $gte: yearStart, $lte: yearEnd },
+    createdOn:
+      Object.keys(dateRange).length > 0
+        ? dateRange
+        : { $gte: yearStart, $lte: yearEnd },
     ...(filter.leaderId && { leader: toObjectId(filter.leaderId) }),
   };
 
@@ -38,6 +41,9 @@ export const getMonthlyApplicationStats = async (
         rejectedCount: {
           $sum: { $cond: [{ $eq: ["$status", "REJECTED"] }, 1, 0] },
         },
+        pendingCount: {
+          $sum: { $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0] },
+        },
       },
     },
     {
@@ -47,27 +53,41 @@ export const getMonthlyApplicationStats = async (
         acceptedCount: 1,
         resolvedCount: 1,
         rejectedCount: 1,
+        pendingCount:1,
         _id: 0,
       },
     },
     { $sort: { month: 1 } },
   ];
   const monthNames = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
   try {
     const result = await mercury.db.Application.mongoModel
       .aggregate(pipeline)
       .exec();
     const monthlyCounts = Array.from({ length: 12 }, (_, i) => {
-      const monthData = result.find((r: { month: number; }) => r.month === i + 1);
+      const monthData = result.find(
+        (r: { month: number }) => r.month === i + 1
+      );
       return {
         month: monthNames[i],
         count: monthData?.count || 0,
         acceptedCount: monthData?.acceptedCount || 0,
         resolvedCount: monthData?.resolvedCount || 0,
         rejectedCount: monthData?.rejectedCount || 0,
+        pendingCount:monthData?.pendingCount||0
       };
     });
 
@@ -169,18 +189,51 @@ export const getApplicationDetails = async (
           category: "$category.name",
           title: 1,
           description: 1,
-          attachments: { $map: { input: "$attachments", as: "attachment", in: "$$attachment.location" } },
+          attachments: {
+            $map: {
+              input: "$attachments",
+              as: "attachment",
+              in: "$$attachment.location",
+            },
+          },
           status: 1,
           comments: 1,
-          createdOn: { $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$createdOn" } },
-          inProgressAt: { $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$inProgressAt" } },
-          acceptedAt: { $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$acceptedAt" } },
-          resolvedAt: { $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$resolvedAt" } },
-          rejectedAt: { $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$rejectedAt" } },
+          createdOn: {
+            $dateToString: {
+              format: "%Y-%m-%dT%H:%M:%S.%LZ",
+              date: "$createdOn",
+            },
+          },
+          inProgressAt: {
+            $dateToString: {
+              format: "%Y-%m-%dT%H:%M:%S.%LZ",
+              date: "$inProgressAt",
+            },
+          },
+          acceptedAt: {
+            $dateToString: {
+              format: "%Y-%m-%dT%H:%M:%S.%LZ",
+              date: "$acceptedAt",
+            },
+          },
+          resolvedAt: {
+            $dateToString: {
+              format: "%Y-%m-%dT%H:%M:%S.%LZ",
+              date: "$resolvedAt",
+            },
+          },
+          rejectedAt: {
+            $dateToString: {
+              format: "%Y-%m-%dT%H:%M:%S.%LZ",
+              date: "$rejectedAt",
+            },
+          },
         },
       },
     ];
-    const [result] = await mercury.db.Application.mongoModel.aggregate(pipeline);
+    const [result] = await mercury.db.Application.mongoModel.aggregate(
+      pipeline
+    );
     return result as ApplicationDetails | null;
   } catch (error) {
     console.error("Error fetching application details:", error);

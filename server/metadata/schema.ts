@@ -175,6 +175,7 @@ export const typeDefs = `
         acceptedCount:Int,
         resolvedCount: Int,
         rejectedCount: Int,
+        pendingCount:Int
     }
     type MonthlyApplicationStatsResponse {
         year: Int
