@@ -25,7 +25,30 @@ export const typeDefs = `
     type Mutation {
         createRecordsUsingForm(formId: String, formData: JSON): String
         removeUserFromTeam(leaderId:String,userId:String,deleteType:String):UserTeamResponse
+        forgotPassword(input: ForgotPasswordInput!): ForgotPasswordResponse!
+        changePassword(token: String!newPassword: String! confirmPassword: String!): PasswordResponse!
+        resetPassword(email: String oldPassword: String newPassword: String!): ResetPasswordResponse!
     }  
+    type ResetPasswordResponse {
+        success: Boolean!
+        message: String!
+    }
+    type PasswordResponse {
+        success: Boolean!
+        message: String!
+    }
+    input ChangePasswordInput {
+        token: String!
+        newPassword: String!
+        confirmPassword: String!
+    }
+    input ForgotPasswordInput {
+        email: String!
+    }
+    type ForgotPasswordResponse {
+        message: String!
+        success: Boolean!
+    }
     type UserTeamResponse{
       message:String
       user:String

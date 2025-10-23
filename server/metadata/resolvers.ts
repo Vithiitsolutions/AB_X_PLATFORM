@@ -26,6 +26,7 @@ import mongoose, { Types } from "mongoose";
 import { getManifestoDetails } from "../Analytics/Manifesto";
 import { getUserPoliticalPartyHistory } from "../masterApis/trackPartyPositionChanges";
 import { ObjectId } from "mongodb";
+import * as nodemailer from "nodemailer"; // <-- Import nodemailer
 export default {
   Query: {
     signIn: async (
@@ -469,67 +470,6 @@ export default {
     },
 
     ...SurveyQuery,
-
-    // retentionRatemetrics: async (
-    //   root: any,
-    //   {
-    //     date,
-    //     stateId,
-    //     districtId,
-    //     constituencyId,
-    //   }: {
-    //     date?: string;
-    //     stateId?: string;
-    //     districtId?: string;
-    //     constituencyId?: string;
-    //   },
-    //   ctx: any
-    // ) => {
-    //   const ctxUser = ctx.user
-    //   const [year, month, day] = (date || new Date().toISOString().split("T")[0])
-    //     .split("-")
-    //     .map(Number);
-    //   const inputDate = new Date(Date.UTC(year, month - 1, day));
-    //   // const inputDate = date ? new Date(date) : new Date();
-    //   console.log(inputDate, "inputDate");
-    //   const dateStart = new Date(inputDate.setHours(0, 0, 0, 0));
-    //   const dateEnd = new Date(inputDate.setHours(23, 59, 59, 999));
-    //   const userFilters: any = {
-    //     createdOn: { $lte: dateEnd },
-    //   };
-    //   if (stateId) userFilters.state = stateId;
-    //   if (districtId) userFilters.district = districtId;
-    //   if (constituencyId) userFilters.constituency = constituencyId;
-    //   console.log(userFilters, "afterrrr");
-    //   const users = await mercury.db.User.list(userFilters, {
-    //     id: ctxUser.id,
-    //     profile: ctxUser.profile,
-    //   });
-    //   console.log(users.length, "no of users");
-    //   const userIds = users.map((u: any) => u.id);
-    //   const sessions = await mercury.db.UserScreenTime.list(
-    //     {
-    //       user: { $in: userIds },
-    //       date: { $gte: dateStart }
-    //     },
-    //     {
-    //       id: ctxUser.id,
-    //       profile: ctxUser.profile,
-    //     }
-    //   );
-    //   console.log(sessions.length, "no of userloginss");
-    //   const retainedUserIds = new Set(sessions.map((s: any) => s.user));
-    //   const retainedCount = retainedUserIds.size;
-    //   const totalUsers = users.length;
-    //   const retentionRate =
-    //     totalUsers > 0 ? (retainedCount / totalUsers) * 100 : 0;
-    //   return {
-    //     date: dateStart.toISOString().split("T")[0],
-    //     totalUsers,
-    //     retainedUsers: retainedCount,
-    //     retentionRate: Math.round(retentionRate * 100) / 100,
-    //   };
-    // },
   },
   Mutation: {
     createRecordsUsingForm: async (
@@ -634,82 +574,280 @@ export default {
         throw new Error(`Failed to remove user: An unexpected error occurred.`);
       }
     },
-    // recordUserLoginSession: async (
-    //   root: any,
-    //   { startTime, endTime }: { startTime: string; endTime: string },
-    //   ctx: any
-    // ) => {
-    //   if (!ctx.connect || !ctx.connect.user) {
-    //     throw new Error("User not authenticated.");
-    //   }
-    //   const ctxUser = ctx.user;
-    //   console.log(ctxUser, "hgfdf");
+    forgotPassword: async (
+      _root: unknown,
+      { input }: { input: any },
+      _ctx: unknown
+    ) => {
+      console.log("Forgot password request for:", input.email);
 
-    //   const date = new Date(startTime || Date.now());
-    //   const year = date.getUTCFullYear();
-    //   const month = date.getUTCMonth();
-    //   const day = date.getUTCDate();
-    //   const isSameDay = (d: Date) =>
-    //     d.getUTCFullYear() === year &&
-    //     d.getUTCMonth() === month &&
-    //     d.getUTCDate() === day;
-    //   let loginSession = await mercury.db.LoginSession.mongoModel.findOne({
-    //     user: ctxUser.id,
-    //     startTime: new Date(startTime),
-    //   });
-    //   if (loginSession) {
-    //     if (!loginSession.endTime && endTime) {
-    //       loginSession = await mercury.db.LoginSession.update(
-    //         loginSession.id,
-    //         { endTime: new Date(endTime) },
-    //         { id: ctxUser.id, profile: ctxUser.profile }
-    //       );
-    //     }
-    //     const userScreen = await mercury.db.UserScreenTime.mongoModel.findOne({ user: ctxUser.id });
-    //     if (userScreen && isSameDay(new Date(userScreen.date))) {
-    //       if (!userScreen.logins.includes(loginSession.id)) {
-    //         await mercury.db.UserScreenTime.mongoModel.updateOne(
-    //           { _id: userScreen._id },
-    //           { $addToSet: { logins: loginSession._id } }
-    //         );
-    //       }
-    //     }
-    //     return {
-    //       message: loginSession.endTime ? "Session updated with endTime." : "Session already exists.",
-    //       session: loginSession,
-    //     };
-    //   }
-    //   const latestActiveSession = await mercury.db.LoginSession.mongoModel.findOne({
-    //     user: ctxUser.id,
-    //     endTime: null,
-    //   });
-    //   if (latestActiveSession) {
-    //     throw new Error("User already has an active login session.");
-    //   }
-    //   let todayScreenTime = await mercury.db.UserScreenTime.mongoModel.findOne({ user: ctxUser.id });
-    //   if (!todayScreenTime || !isSameDay(new Date(todayScreenTime.date))) {
-    //     todayScreenTime = await mercury.db.UserScreenTime.create(
-    //       {
-    //         user: ctxUser.id,
-    //         date,
-    //         logins: [],
-    //       },
-    //       { id: ctxUser.id, profile: ctxUser.profile }
-    //     );
-    //   }
-    //   loginSession = await mercury.db.LoginSession.create(
-    //     {
-    //       user: ctxUser.id,
-    //       startTime: new Date(startTime),
-    //       endTime: endTime ? new Date(endTime) : undefined,
-    //     },
-    //     { id: ctxUser.id, profile: ctxUser.profile }
-    //   );
-    //   await mercury.db.UserScreenTime.mongoModel.updateOne(
-    //     { _id: todayScreenTime._id },
-    //     { $addToSet: { logins: loginSession._id } }
-    //   );
-    //   return { message: "New login session created.", session: loginSession };
-    // }
+      try {
+        // Step 1: Find user
+        const user: any = await mercury.db.User.get(
+          { email: input.email },
+          {
+            id: "1",
+            profile: "SystemAdmin",
+          }
+        );
+
+        // Step 2: If user not found, stop and return error
+        if (_.isEmpty(user)) {
+          console.warn(`No user found with email: ${input.email}`);
+          throw new GraphQLError("User not found", {
+            extensions: { code: "USER_NOT_FOUND" },
+          });
+        }
+
+        // Step 3: Generate JWT token
+        const resetToken = jwt.sign(
+          {
+            userId: user._id,
+            email: user.email,
+            type: "password_reset",
+          },
+          process.env.JWT_SECRET || "default-secret-key",
+          {
+            algorithm: "HS256",
+            expiresIn: "1h",
+          }
+        );
+        await mercury.db.User.update(
+          user._id,
+          { token: resetToken }, // 1 hour expiry
+          {
+            id: "1",
+            profile: "SystemAdmin",
+          }
+        );
+        // Step 4: Send reset email (only if user exists)
+        try {
+          const transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com",
+            port: 465,
+            secure: true,
+            auth: {
+              user: process.env.EMAIL_USER || "shashanksonwane305@gmail.com",
+              pass: process.env.EMAIL_PASS || "jfhucooflemoxuya",
+            },
+          });
+
+          const resetLink = `https://admin-dev.ableader.com/page/change-password?token=${resetToken}`;
+
+          const mailOptions = {
+            from: "shashanksonwane305@gmail.com",
+            to: user.email,
+            subject: "Password Reset Request - Vithi IT Solutions",
+            html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+            .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+            .button {
+              display: inline-block;
+              padding: 12px 30px;
+              background-color: #4CAF50;
+              color: white !important;
+              text-decoration: none;
+              border-radius: 5px;
+              margin: 20px 0;
+              font-weight: bold;
+            }
+            .button:hover {
+              background-color: #45a049;
+            }
+            .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+            .warning { color: #ff6b6b; font-weight: bold; margin: 15px 0; }
+            .link-box {
+              word-break: break-all;
+              background-color: #fff;
+              padding: 10px;
+              border: 1px solid #ddd;
+              border-radius: 3px;
+              font-size: 13px;
+              color: #555;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🔐 Password Reset Request</h1>
+            </div>
+            <div class="content">
+              <p>Hello <strong>${user.name || "User"}</strong>,</p>
+              <p>We received a request to reset your password .</p>
+              <p>Click the button below to create a new password:</p>
+              <div style="text-align: center;">
+                <a href="${resetLink}" class="button">Reset Password</a>
+              </div>
+              <p>Or click on the  link :</p>
+              <div class="link-box">
+                ${resetLink}
+              </div>
+              <p class="warning">⚠️ This link will expire in 1 hour.</p>
+              <p style="margin-top: 20px;">If you didn't request a password reset, please ignore this email or contact our support team if you have concerns about your account security.</p>
+              <p style="margin-top: 20px;">Best regards,<br><strong>Vithi IT Solutions Team</strong></p>
+            </div>
+            <div class="footer">
+              <p>This is an automated email. Please do not reply to this message.</p>
+              <p style="margin-top: 5px;">© ${new Date().getFullYear()} Vithi IT Solutions. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+          };
+
+          await transporter.sendMail(mailOptions);
+          console.log(`✅ Reset email sent to ${user.email}`);
+        } catch (emailError) {
+          console.error("Error sending password reset email:", emailError);
+          throw new GraphQLError("Failed to send password reset email", {
+            extensions: { code: "EMAIL_SEND_FAILED" },
+          });
+        }
+
+        // Step 5: Return success response
+        return {
+          success: true,
+          message: "Password reset link has been sent to your email address.",
+        };
+      } catch (error: any) {
+        console.error("Error in forgotPassword:", error);
+
+        // Known error types
+        if (error instanceof GraphQLError) throw error;
+
+        // Fallback error
+        throw new GraphQLError("Internal server error", {
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
+        });
+      }
+    },
+    changePassword: async (
+      root: any,
+      {
+        token,
+        newPassword,
+        confirmPassword,
+      }: { token: string; newPassword: string; confirmPassword: string },
+      ctx: any
+    ) => {
+      try {
+        const decoded: any = jwt.verify(
+          token,
+          process.env.JWT_SECRET || "default-secret-key"
+        );
+        const user: any = await mercury.db.User.get(
+          { _id: decoded.userId, token: token },
+          { id: "1", profile: "SystemAdmin" }
+        );
+
+        if (!user || !user.token) {
+          throw new GraphQLError("Invalid or expired token", {
+            extensions: { code: "INVALID_TOKEN" },
+          });
+        }
+        if (Date.now() > user.token) {
+          throw new GraphQLError("Reset token has expired", {
+            extensions: { code: "TOKEN_EXPIRED" },
+          });
+        }
+        if (newPassword !== confirmPassword) {
+          throw new GraphQLError("Passwords do not match", {
+            extensions: { code: "PASSWORD_MISMATCH" },
+          });
+        }
+        await mercury.db.User.update(
+          user._id,
+          {
+            password: newPassword,
+            token: null,
+          },
+          { id: "1", profile: "SystemAdmin" }
+        );
+        return {
+          success: true,
+          message: "Password has been successfully updated.",
+        };
+      } catch (err: any) {
+        console.error("Error in changePassword:", err);
+        throw new GraphQLError(err.message || "Internal server error", {
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
+        });
+      }
+    },
+    resetPassword: async (
+      root: any,
+      {
+        email,
+        oldPassword,
+        newPassword,
+      }: {
+        email: string; // required for both cases
+        oldPassword?: string; // required only for self-service
+        newPassword: string;
+      },
+      ctx: any
+    ) => {
+      try {
+        if (!email) {
+          throw new GraphQLError("Email is required", {
+            extensions: { code: "EMAIL_REQUIRED" },
+          });
+        }
+
+        // 1️⃣ Fetch the target user by email
+        const targetUser: any = await mercury.db.User.get(
+          { email },
+          {
+            id: "1",
+            profile: "SystemAdmin",
+          }
+        );
+
+        if (!targetUser) {
+          throw new GraphQLError("User not found", {
+            extensions: { code: "USER_NOT_FOUND" },
+          });
+        }
+
+        // 2️⃣ If oldPassword is provided → self-service password reset
+        if (oldPassword) {
+          const isOldPasswordCorrect = await targetUser.verifyPassword(
+            oldPassword
+          );
+          if (!isOldPasswordCorrect) {
+            throw new GraphQLError("Old password is incorrect", {
+              extensions: { code: "INVALID_OLD_PASSWORD" },
+            });
+          }
+        }
+
+        // 3️⃣ Update password (Mercury will hash automatically)
+        await mercury.db.User.update(
+          targetUser._id,
+          { password: newPassword },
+          { id: "1", profile: "SystemAdmin" }
+        );
+
+        return {
+          success: true,
+          message: oldPassword
+            ? "Your password has been successfully updated."
+            : `Password reset successfully for ${targetUser.email}`,
+        };
+      } catch (err: any) {
+        console.error("Error in resetPassword:", err);
+        throw new GraphQLError(err.message || "Internal server error", {
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
+        });
+      }
+    },
   },
 };
