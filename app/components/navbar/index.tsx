@@ -8,10 +8,12 @@ import { FiMenu } from "react-icons/fi"; // Hamburger menu icon
 function Navbar({
   siteName,
   logo,
+  buttons,
   onMenuClick,
 }: {
   siteName?: string;
   logo?: string;
+  buttons?: any[];
   onMenuClick?: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -166,6 +168,13 @@ function Navbar({
                 },
               }}
             >
+              {(buttons ?? [])?.length > 0 && (buttons ?? []).filter((item) => item?.type == "link").map((button) => (
+                <A 
+                  key={button.id}
+                  styles={{ base: { cursor: "pointer" } }}  href={button.href || "#"}>
+                  {button.text}
+                </A>
+              ))}
               {/* <Box styles={{ base: { cursor: "pointer" } }}>Dashboard</Box> */}
               {/* <Box styles={{ base: { cursor: "pointer" } }}>Settings</Box> */}
               {/* <Box styles={{ base: { cursor: "pointer" } }}>Account</Box> */}

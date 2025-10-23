@@ -211,6 +211,23 @@ export async function loader({ request }: any) {
             id
             siteName
             logo
+            buttons {
+        id
+        icon
+        href
+        disabled
+        buttonFn {
+          id
+          code
+          name
+          description
+        }
+        iconPosition
+        label
+        text
+        type
+        variant
+      }
           }
         }
       }`,
@@ -318,12 +335,13 @@ export async function loader({ request }: any) {
     siteName: setting?.listSettings?.docs?.[0]?.siteName || "",
     logo: setting?.listSettings?.docs?.[0]?.logo || "/assets/logo.png",
     theme: theme?.listThemes?.docs?.[0]?.config || JSON.stringify(defaultTheme),
+    buttons: setting?.listSettings?.docs?.[0]?.buttons || []
   };
 }
 const dashboard = ({
   loaderData,
 }: {
-  loaderData: { tabs: any; logo: string; siteName: string; theme: any };
+  loaderData: { tabs: any; logo: string; siteName: string; theme: any;buttons:any[] };
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
@@ -369,6 +387,7 @@ const dashboard = ({
       <Navbar
         siteName={loaderData.siteName}
         logo={loaderData.logo}
+        buttons={loaderData.buttons}
         onMenuClick={toggleSidebar} // Add this prop to your Navbar to show menu icon on mobile
       />
       <Box

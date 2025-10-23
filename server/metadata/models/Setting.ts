@@ -20,5 +20,10 @@ export const setting = mercury.createModel("Setting", {
     },
     forgotPasswordLink: {
         type: "string"
-    }
+    },
+    buttons: {
+        type: "relationship",
+        many: true,
+        ref: "Button"
+      }
 });
