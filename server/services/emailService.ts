@@ -1,33 +1,41 @@
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 dotenv.config();
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
+  host: "smtp.gmail.com",
   port: 465,
   secure: true,
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-
-  }
-
-
+    pass: process.env.EMAIL_PASS,
+  },
 });
-export const sendEmail = async (fromEmail: string, toEmail: string, subject: string, message: string, emailHtml: string) => {
+export const sendEmail = async (
+  fromEmail: string,
+  toEmail: string,
+  subject: string,
+  message: string,
+  emailHtml: string
+) => {
   const mailOptions = {
     from: fromEmail,
     to: toEmail,
-    subject: subject || 'No Subject',
-    text: message || 'No Message',
-    html: emailHtml
+    subject: subject || "No Subject",
+    text: message || "No Message",
+    html: emailHtml,
   };
   try {
     await transporter.sendMail(mailOptions);
   } catch (error: any) {
-    console.error('Error sending email:', error.message);
+    console.error("Error sending email:", error.message);
   }
 };
-export const generateEmailHtml = (userName: string, userEmail: string, subject: string, description: string) => {
+export const generateEmailHtml = (
+  userName: string,
+  userEmail: string,
+  subject: string,
+  description: string
+) => {
   return `  
     <div style="max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
       <div style="background-color:#FF7518; padding: 15px; border-radius: 8px 8px 0 0; color: #ffffff; text-align: center;">
@@ -35,7 +43,9 @@ export const generateEmailHtml = (userName: string, userEmail: string, subject: 
       </div>
       <div style="padding: 20px; color: #333; line-height: 1.6;">
         <p>Hello Support Team,</p>
-        <p><strong>${userName || "Unknown User"}</strong> has reported a new issue.</p>
+        <p><strong>${
+          userName || "Unknown User"
+        }</strong> has reported a new issue.</p>
         <p><strong>Email:</strong> ${userEmail || "N/A"}</p>
         <p><strong>Issue Details:</strong></p>
         <p><strong>Title:</strong> ${subject}</p>
@@ -47,4 +57,34 @@ export const generateEmailHtml = (userName: string, userEmail: string, subject: 
         <p>&copy; ${new Date().getFullYear()} Your Company. All rights reserved.</p>
       </div>
     </div>`;
+};
+export const generateSetPasswordEmailHtml = (
+  userName: string,
+  setPasswordLink: string
+) => {
+  return `
+  <div style="max-width:600px;margin:20px auto;padding:20px;border:1px solid #e0e0e0;border-radius:8px;background-color:#ffffff;font-family:Arial,sans-serif;line-height:1.6;">
+    <div style="background-color:#007BFF;padding:15px;border-radius:8px 8px 0 0;color:#ffffff;text-align:center;">
+      <h2 style="margin:0;font-size:22px;">Welcome to Ableader!</h2>
+    </div>
+    <div style="padding:20px;color:#333;">
+      <p>Hi <strong>${userName || "User"}</strong>,</p>
+      <p>Your account has been successfully created on <b>Ableader Admin Portal</b>.</p>
+      <p>To activate your account, please set your password using the link below:</p>
+      <p style="text-align:center;margin:30px 0;">
+        <a href="${setPasswordLink}" target="_blank" 
+          style="display:inline-block;padding:12px 24px;background-color:#007BFF;color:#fff;
+          text-decoration:none;border-radius:5px;font-weight:bold;">
+          Set My Password
+        </a>
+      </p>
+      <p>This link will expire in <b>1 hour</b> for security reasons.</p>
+      <p>If you did not request this, please ignore this email.</p>
+      <p>Best Regards,<br/><strong>The Ableader Team</strong></p>
+    </div>
+    <div style="text-align:center;padding:15px;font-size:12px;color:#888;">
+      <p>&copy; ${new Date().getFullYear()} Ableader. All rights reserved.</p>
+    </div>
+  </div>
+  `;
 };

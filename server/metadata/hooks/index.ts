@@ -17,3 +17,4 @@ import "./application.ts";
 import "./manifesto.ts";
 import "./survey.ts";
 import "./post.ts";
+import "./user.ts"
