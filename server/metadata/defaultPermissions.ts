@@ -269,4 +269,22 @@ export const defaultPermissionSet = [
       delete: false,
     },
   },
+  {
+    modelName: "Theme",
+    access: {
+      create: false,
+      read: true,
+      update: false,
+      delete: false,
+    },
+  },
+  {
+    modelName: "Setting",
+    access: {
+      create: false,
+      read: true,
+      update: false,
+      delete: false,
+    },
+  },
 ];
