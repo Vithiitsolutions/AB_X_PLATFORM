@@ -26,7 +26,7 @@ import mongoose, { Types } from "mongoose";
 import { getManifestoDetails } from "../Analytics/Manifesto";
 import { getUserPoliticalPartyHistory } from "../masterApis/trackPartyPositionChanges";
 import { ObjectId } from "mongodb";
-import * as nodemailer from "nodemailer"; // <-- Import nodemailer
+import { sendEmailViaMSG91 } from "../services/msg91";
 export default {
   Query: {
     signIn: async (
@@ -621,96 +621,14 @@ export default {
           }
         );
         // Step 4: Send reset email (only if user exists)
-        try {
-          const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 465,
-            secure: true,
-            auth: {
-              user: process.env.EMAIL_USER || "shashanksonwane305@gmail.com",
-              pass: process.env.EMAIL_PASS || "jfhucooflemoxuya",
-            },
-          });
+        const resetLink = `https://admin-dev.ableader.com/page/change-password?token=${resetToken}`;
 
-          const resetLink = `https://admin-dev.ableader.com/page/change-password?token=${resetToken}`;
-
-          const mailOptions = {
-            from: "shashanksonwane305@gmail.com",
-            to: user.email,
-            subject: "Password Reset Request - Vithi IT Solutions",
-            html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-            .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
-            .button {
-              display: inline-block;
-              padding: 12px 30px;
-              background-color: #4CAF50;
-              color: white !important;
-              text-decoration: none;
-              border-radius: 5px;
-              margin: 20px 0;
-              font-weight: bold;
-            }
-            .button:hover {
-              background-color: #45a049;
-            }
-            .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
-            .warning { color: #ff6b6b; font-weight: bold; margin: 15px 0; }
-            .link-box {
-              word-break: break-all;
-              background-color: #fff;
-              padding: 10px;
-              border: 1px solid #ddd;
-              border-radius: 3px;
-              font-size: 13px;
-              color: #555;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🔐 Password Reset Request</h1>
-            </div>
-            <div class="content">
-              <p>Hello <strong>${user.name || "User"}</strong>,</p>
-              <p>We received a request to reset your password .</p>
-              <p>Click the button below to create a new password:</p>
-              <div style="text-align: center;">
-                <a href="${resetLink}" class="button">Reset Password</a>
-              </div>
-              <p>Or click on the  link :</p>
-              <div class="link-box">
-                ${resetLink}
-              </div>
-              <p class="warning">⚠️ This link will expire in 1 hour.</p>
-              <p style="margin-top: 20px;">If you didn't request a password reset, please ignore this email or contact our support team if you have concerns about your account security.</p>
-              <p style="margin-top: 20px;">Best regards,<br><strong>Vithi IT Solutions Team</strong></p>
-            </div>
-            <div class="footer">
-              <p>This is an automated email. Please do not reply to this message.</p>
-              <p style="margin-top: 5px;">© ${new Date().getFullYear()} Vithi IT Solutions. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-          };
-
-          await transporter.sendMail(mailOptions);
-          console.log(`✅ Reset email sent to ${user.email}`);
-        } catch (emailError) {
-          console.error("Error sending password reset email:", emailError);
-          throw new GraphQLError("Failed to send password reset email", {
-            extensions: { code: "EMAIL_SEND_FAILED" },
-          });
-        }
+        // Send via MSG91
+        await sendEmailViaMSG91(user.email, process.env.MSG91_TEMPLATE_ID!, {
+          NAME: user.name || "User",
+          RESET_LINK: resetLink,
+          YEAR: new Date().getFullYear().toString(),
+        });
 
         // Step 5: Return success response
         return {

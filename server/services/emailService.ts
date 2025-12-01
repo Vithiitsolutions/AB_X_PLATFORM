@@ -88,3 +88,62 @@ export const generateSetPasswordEmailHtml = (
   </div>
   `;
 };
+export const passwordResetTemplate = (userName: string, resetLink: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+    .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }
+    .button {
+      display: inline-block;
+      padding: 12px 30px;
+      background-color: #4CAF50;
+      color: white !important;
+      text-decoration: none;
+      border-radius: 5px;
+      margin: 20px 0;
+      font-weight: bold;
+    }
+    .button:hover { background-color: #45a049; }
+    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
+    .warning { color: #ff6b6b; font-weight: bold; margin: 15px 0; }
+    .link-box {
+      word-break: break-all;
+      background-color: #fff;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-size: 13px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 Password Reset Request</h1>
+    </div>
+    <div class="content">
+      <p>Hello <strong>${userName || "User"}</strong>,</p>
+      <p>We received a request to reset your password.</p>
+      <p>Click the button below to create a new password:</p>
+      <div style="text-align: center;">
+        <a href="${resetLink}" class="button">Reset Password</a>
+      </div>
+      <p>Or click on the link below:</p>
+      <div class="link-box">${resetLink}</div>
+      <p class="warning">⚠️ This link will expire in 1 hour.</p>
+      <p>If you didn't request a password reset, please ignore this email.</p>
+      <p>Best regards,<br><strong>Vithi IT Solutions Team</strong></p>
+    </div>
+    <div class="footer">
+      <p>This is an automated email. Please do not reply.</p>
+      <p>© ${new Date().getFullYear()} Vithi IT Solutions. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
