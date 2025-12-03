@@ -79,8 +79,6 @@ mercury.hook.after("UPDATE_POST_RECORD", async function (this: any) {
         {
           $set: {
             comment: data.comment,
-            commentedBy: ctxUser.id,
-            commentedAt: new Date(),
           },
         },
         { id: ctxUser.id, profile: ctxUser.profile }
